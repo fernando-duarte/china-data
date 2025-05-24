@@ -1,3 +1,14 @@
+"""Test suite for validating the structure of downloaded raw data.
+
+This module ensures that the raw data downloaded from various sources
+meets expected structural requirements:
+- All expected columns are present
+- Year range is appropriate (1960 to current/recent year)
+- No gaps in year sequence
+- No duplicate years
+- No NaN values in the markdown output
+"""
+
 import os
 import sys
 from datetime import datetime

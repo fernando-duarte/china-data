@@ -1,3 +1,15 @@
+"""Test suite for the china_data_processor.py functionality.
+
+This module tests the data processing pipeline including:
+- Loading raw data from markdown files
+- Unit conversion functions
+- Capital stock calculations
+- Human capital projections
+- Economic indicator calculations (TFP, savings, etc.)
+- Time series extrapolation methods
+- Output file generation
+"""
+
 import os
 import sys
 import pandas as pd

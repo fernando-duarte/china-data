@@ -1,6 +1,13 @@
 """
 Utilities for the China Economic Data Analysis project.
-Contains common utility functions used across the codebase.
+
+This module provides common utility functions used across the codebase:
+- Project root and file path resolution
+- Directory creation and management
+- Output directory handling
+
+The utilities handle the project's directory structure where the project root
+contains the main scripts, utils/, tests/, input/, and output/ directories.
 """
 
 import os

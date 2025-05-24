@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Download and aggregate raw economic data for China."""
+"""Download and aggregate raw economic data for China.
+
+This script downloads economic data from multiple sources:
+- World Bank World Development Indicators (WDI): GDP components, FDI, population
+- Penn World Table (PWT): Real GDP, capital stock, human capital index
+- IMF Fiscal Monitor: Tax revenue data (pre-downloaded from input directory)
+
+The data is merged by year and output as a markdown file containing the raw data
+with source attribution and download dates.
+"""
 
 import os
 import time

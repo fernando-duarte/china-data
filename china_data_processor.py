@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Process raw China economic data and produce analysis files."""
+"""Process raw China economic data and produce analysis files.
+
+This script processes the raw data downloaded by china_data_downloader.py to:
+- Convert units to standardized formats (billions USD, millions people)
+- Calculate capital stock using the perpetual inventory method
+- Project human capital using linear regression
+- Extrapolate time series to the specified end year using various methods
+- Calculate derived economic indicators (TFP, savings, openness ratio, etc.)
+- Output processed data in both markdown and CSV formats
+
+The script uses configurable parameters for economic calculations (alpha, capital-output ratio)
+and supports various extrapolation methods (ARIMA, linear regression, growth rates).
+"""
 
 import os
 import logging

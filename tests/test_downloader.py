@@ -1,3 +1,12 @@
+"""Test suite for the china_data_downloader.py functionality.
+
+This module tests the data downloading functionality including:
+- World Bank WDI data retrieval
+- Penn World Table data retrieval
+- Error handling for failed downloads
+- Data format validation
+"""
+
 import builtins
 import io
 import os
