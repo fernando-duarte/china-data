@@ -37,10 +37,6 @@ htmlcov/
 *.jar
 *.war
 
-# Output directories
-output/*
-!output/.gitkeep
-
 # Third-party libraries
 venv/lib/
 venv/include/

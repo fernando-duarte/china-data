@@ -69,10 +69,6 @@ htmlcov/
 CHANGELOG.md
 LICENSE
 
-# Output files (generated content)
-output/*
-!output/.gitkeep
-
 # Large third-party libraries
 venv/lib/
 venv/include/
