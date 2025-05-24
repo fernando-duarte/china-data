@@ -1,3 +1,6 @@
+# Files that should not be indexed but can still be accessed by AI when needed
+# This helps optimize Cursor's performance while maintaining flexibility
+
 # Large build directories
 dist/
 build/
@@ -10,7 +13,8 @@ node_modules/
 # Git and version control
 .git/
 
-# Large data files (but not excluding from AI access when needed)
+# Large data files (can still be accessed by AI when directly referenced)
+# Excluded from indexing to improve performance
 input/*.csv
 *.xlsx
 *.parquet
@@ -25,6 +29,14 @@ htmlcov/
 .tox/
 .nox/
 
+# Generated or binary files
+*.pyc
+*.so
+*.dll
+*.class
+*.jar
+*.war
+
 # Output directories
 output/*
 !output/.gitkeep
@@ -34,8 +46,12 @@ venv/lib/
 venv/include/
 venv/bin/
 
-# Generated files
-*.pyc
-*.so
-*.dll
-*.class 
+# Large auto-generated code
+**/generated/
+**/dist/
+**/node_modules/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp 

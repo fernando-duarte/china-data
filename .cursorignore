@@ -1,4 +1,5 @@
-# Sensitive information files
+# Security-sensitive files
+# These should never be accessed by Cursor's AI
 .env
 .env.development
 *.pem
@@ -7,6 +8,12 @@
 *.pfx
 *.cer
 *.crt
+*.env*
+*secret*
+*credential*
+*password*
+*token*
+*key*
 
 # Environment directories
 venv/
@@ -20,7 +27,7 @@ build/
 __pycache__/
 *.py[cod]
 
-# Package dependencies
+# Package dependencies (large files)
 node_modules/
 
 # Git and version control
@@ -29,6 +36,7 @@ node_modules/
 .gitattributes
 
 # Large data files and assets
+# Block data files that could contain sensitive information
 *.csv
 input/*.csv
 *.xlsx
@@ -57,16 +65,15 @@ htmlcov/
 *.swp
 *~.nib
 
-# Documentation
-docs/
-README.md
-*.md
+# Documentation (may still be needed for reference, so selective)
 CHANGELOG.md
 LICENSE
 
-# Output files
+# Output files (generated content)
 output/*
 !output/.gitkeep
 
 # Large third-party libraries
-venv/lib/ 
+venv/lib/
+venv/include/
+venv/bin/ 
