@@ -21,14 +21,14 @@
 
 | Symbol         | Definition                                    | Units                                 |
 | :------------- | :-------------------------------------------- | :------------------------------------ |
-| $e_t$        | Nominal exchange rate           | CNY per USD |
-| $L_t$        | Labor force                     | million     |
-| $fdi\_ratio_t$ | FDI inflows \/ GDP                            | fraction                              |
+| $e_t$          | Nominal exchange rate (player controlled)     | CNY per USD |
+| $L_t$          | Labor force                                   | million     |
+| $fdi\_ratio_t$ | FDI inflows / GDP                             | fraction                              |
 | $Y^*_t$        | Foreign income                                | index (1980 = 1000)                   |
-| $H_t$          | Human capital index                           | index (2015 = Penn World Table value) |
+| $H_t$          | Human capital index                           | index       |
 | $G_t$          | Government spending                           | bn USD                                |
-| $T_t$          | Taxes                           | bn USD                                |
-| $s_t$          | Saving rate                           | fraction                                |
+| $T_t$          | Taxes                                         | bn USD                                |
+| $s_t$          | Saving rate (player controlled)               | fraction                              |
 
 ### Parameters
 
@@ -36,30 +36,34 @@
 | :------------------------------ | :------------------------------------------- | :------- | :---------- |
 | $\alpha$                        | Capital share in production                  | unitless | $0.30$      |
 | $\delta$                        | Depreciation rate                            | per year | $0.10$      |
-| $g$                             | Baseline TFP growth rate                     | per year | $0.005$     |
-| $\theta$                        | Openness contribution to TFP growth          | unitless | $0.1453$    |
-| $\phi$                          | FDI contribution to TFP growth               | unitless | $0.10$      |
-| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $337.49$   |
+| $g$                             | Baseline TFP growth rate                     | per year | $0.02$      |
+| $\theta$                        | Openness contribution to TFP growth          | unitless | $0.10$      |
+| $\phi$                          | FDI contribution to TFP growth               | unitless | $0.08$      |
+| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $337.49$    |
 | $X_0$                           | Initial level of exports (1980)              | bn USD   | $19.41$     |
 | $M_0$                           | Initial level of imports (1980)              | bn USD   | $21.84$     |
-| $\varepsilon_x,\ \varepsilon_m$ | Exchange‐rate elasticities (exports/imports) | unitless | $1.5,\ 1.2$ |
-| $\mu_x,\ \mu_m$                 | Income elasticities (exports/imports)        | unitless | $1.0,\ 1.0$ |
+| $\varepsilon_x$                 | Export exchange rate elasticity              | unitless | $1.5$       |
+| $\varepsilon_m$                 | Import exchange rate elasticity              | unitless | $-1.2$      |
+| $\mu_x$                         | Export income elasticity                     | unitless | $1.5$       |
+| $\mu_m$                         | Import income elasticity                     | unitless | $1.1$       |
 
 
 ## Paths of exogenous variables
 
-| Year | $\tilde e_t$ | $fdi\_ratio_t$ | $Y^*_t$ | $H_t$ |
-| ---: | -----------: | -------------: | ------: | ----: |
-| 1980 |         0.78 |          0.001 | 1000.00 |  1.58 |
-| 1985 |         1.53 |          0.001 | 1159.27 |  1.77 |
-| 1990 |         2.48 |           0.02 | 1343.92 |  1.80 |
-| 1995 |         4.34 |           0.02 | 1557.97 |  2.02 |
-| 2000 |         5.23 |           0.02 | 1806.11 |  2.24 |
-| 2005 |         4.75 |           0.02 | 2093.78 |  2.43 |
-| 2010 |         5.61 |           0.02 | 2427.26 |  2.61 |
-| 2015 |         7.27 |           0.02 | 2813.86 |  2.60 |
-| 2020 |         7.00 |           0.02 | 3262.04 |  6.71 |
-| 2025 |         6.41 |           0.02 | 3781.60 |  6.49 |
+| Year | $fdi\_ratio_t$ | $Y^*_t$ | $H_t$ | $G_t$ | $T_t$ |
+| ---: | -------------: | ------: | ----: | ----: | ----: |
+| 1980 |          0.0003 | 1000.00 |  1.74 | 26.28 | 26.28* |
+| 1985 |          0.0054 | 1159.27 |  1.85 | 43.99 | 43.99* |
+| 1990 |          0.0097 | 1343.92 |  1.96 | 49.28 | 49.28* |
+| 1995 |          0.0488 | 1557.97 |  2.14 | 97.75 | 74.42 |
+| 2000 |          0.0348 | 1806.11 |  2.31 | 203.97 | 160.62 |
+| 2005 |          0.0455 | 2093.78 |  2.40 | 338.27 | 379.65 |
+| 2010 |          0.0400 | 2427.26 |  2.44 | 887.94 | 1479.72 |
+| 2015 |          0.0219 | 2813.86 |  2.60 | 1793.95 | 3153.84 |
+| 2020 |          0.0172 | 3262.04 |  2.75 | 2516.03 | 3712.35 |
+| 2025 |          0.0010 | 3781.60 |  2.87 | 3158.48 | 4816.57 |
+
+*Note: Tax revenue data for 1980-1990 is not available; values shown assume balanced budget (T=G).
 
 ## Model Equations
 
@@ -71,31 +75,31 @@
   $$K_0 \text{ given}$$
 
 - **Labor force:**
-  $$L_{t+1} = (1+n) L_t$$
+  $$L_t \text{ is exogenous (read from data)}$$
 
 - **TFP:**
-The law of motion for technology \(A_t\) with spillover effects from openness and FDI can be written generally as:
+The law of motion for technology $A_t$ with spillover effects from openness and FDI can be written generally as:
 
-    $$
-      A_{t+1} = A_t \left(1 + g + f(\text{spillovers}_t)\right),
-    $$
+  $$
+    A_{t+1} = A_t \left(1 + g + f(\text{spillovers}_t)\right),
+  $$
 
-    where $f(\text{spillovers}_t)$ captures the effect of trade openness, foreign direct investment, and other external factors influencing technology growth, which we model as in in Barro and Sala-i-Martin (see Economic Growth, MIT Press, 2nd edition, Chapter 8, 2004, isbn: 9780262025539):
+where $f(\text{spillovers}_t)$ captures the effect of trade openness, foreign direct investment, and other external factors influencing technology growth, which we model as in Barro and Sala-i-Martin (see Economic Growth, MIT Press, 2nd edition, Chapter 8, 2004, isbn: 9780262025539):
 
-    $$
-      A_{t+1} = A_t \left(1 + g + \theta\, \text{openness}_t + \phi\, \text{fdi\_ratio}_t \right),
-    $$
+  $$
+    A_{t+1} = A_t \left(1 + g + \theta\, \text{openness}_t + \phi\, \text{fdi\_ratio}_t \right),
+  $$
 
 - **Exports:**
   $$
-    X_t = X_0\Bigl(\tfrac{e_t}{e_{1980}}\Bigr)^{\varepsilon_x}
-      \Bigl(\tfrac{Y^*_t}{Y^*_{1980}}\Bigr)^{\mu_x}
+    X_t = X_0\Bigl(\tfrac{e_t}{e_{0}}\Bigr)^{\varepsilon_x}
+      \Bigl(\tfrac{Y^*_t}{Y^*_{0}}\Bigr)^{\mu_x}
   $$
 
 - **Imports:**
   $$
-    M_t = M_0\Bigl(\tfrac{e_t}{e_{1980}}\Bigr)^{-\varepsilon_m}
-      \Bigl(\tfrac{Y_t}{Y_{1980}}\Bigr)^{\mu_m}
+    M_t = M_0\Bigl(\tfrac{e_t}{e_{0}}\Bigr)^{\varepsilon_m}
+      \Bigl(\tfrac{Y_t}{Y_{0}}\Bigr)^{\mu_m}
   $$
 
 - **Net exports:**
@@ -126,63 +130,55 @@ The law of motion for technology \(A_t\) with spillover effects from openness an
 
 ## Computation Steps for Each Round
 
-### Initial Setup
+### Read values
 
-1. **Read parameters:** $\alpha = 0.30$, $\delta = 0.10$, $g = 0.005$, $\theta = 0.1453$, $\phi = 0.10$, $\varepsilon_x = 1.5$, $\varepsilon_m = 1.2$, $\mu_x = 1.0$, $\mu_m = 1.0$
+1. Read values of parameters and paths of exogenous variables. These are known before any computation starts.
 
-2. **Read initial values (t=0, year 1980):**
-   - $K_0 = 337.49$ bn USD
-   - $X_0 = 19.41$ bn USD  
-   - $M_0 = 21.84$ bn USD
-   - $A_0 = 1.0$ (normalized)
-   - $L_0$ (to be specified)
-   - $e_0 = 0.78$ CNY/USD
-   - $Y^*_0 = 1000.00$
+### Compute variables for t=1,2,...
 
-3. **Read paths of exogenous variables** for each year t: $L_t$, $e_t$, $fdi\_ratio_t$, $Y^*_t$, $H_t$, $G_t$, $T_t$, $s_t$
+1. Compute output/production:
+   $$ Y_t = A_t K_t^{\alpha} (L_t\,H_t)^{1-\alpha} $$
 
-### Compute Variables for t = 0
+2. Compute exports:
+   $$
+     X_t = X_0\Bigl(\tfrac{e_t}{e_{0}}\Bigr)^{\varepsilon_x}
+       \Bigl(\tfrac{Y^*_t}{Y^*_{0}}\Bigr)^{\mu_x}
+   $$
 
-4. **Compute initial output:**
-   $$Y_0 = A_0 K_0^{\alpha} (L_0 H_0)^{1-\alpha}$$
+3. Compute imports:
+   $$
+     M_t = M_0\Bigl(\tfrac{e_t}{e_{0}}\Bigr)^{\varepsilon_m}
+       \Bigl(\tfrac{Y_t}{Y_{0}}\Bigr)^{\mu_m}
+   $$
 
-5. **Compute initial openness ratio:**
-   $$openness_0 = \frac{X_0 + M_0}{Y_0}$$
+4. Compute net exports:
+   $$ NX_t = X_t - M_t $$
 
-### Compute Variables for t = 1, 2, 3, ...
+5. Compute openness ratio:
+   $$
+     openness_t = \frac{X_t + M_t}{Y_t}
+   $$
 
-6. **Update TFP using previous period's openness:**
-   $$A_t = A_{t-1} \left(1 + g + \theta \cdot openness_{t-1} + \phi \cdot fdi\_ratio_{t-1}\right)$$
+6. Compute consumption:
+   $$ C_t = (1-s_t) Y_t - G_t $$
 
-7. **Compute output:**
-   $$Y_t = A_t K_t^{\alpha} (L_t H_t)^{1-\alpha}$$
+7. Compute investment:
+   $$ I_t = s_t Y_t - NX_t $$
 
-8. **Compute exports:**
-   $$X_t = X_0 \left(\frac{e_t}{e_0}\right)^{\varepsilon_x} \left(\frac{Y^*_t}{Y^*_0}\right)^{\mu_x}$$
+### Compute next period's variable values
 
-9. **Compute imports:**
-   $$M_t = M_0 \left(\frac{e_t}{e_0}\right)^{-\varepsilon_m} \left(\frac{Y_t}{Y_0}\right)^{\mu_m}$$
+8. Compute next period's capital:
+   $$ K_{t+1} = (1-\delta) K_t + I_t $$
 
-10. **Compute net exports:**
-    $$NX_t = X_t - M_t$$
+9. Compute next period's TFP:
+    $$
+      A_{t+1} = A_t
+        (1 + g
+          + \theta\,openness_t
+          + \phi\,fdi\_ratio_t
+        )
+    $$
 
-11. **Compute openness ratio:**
-    $$openness_t = \frac{X_t + M_t}{Y_t}$$
+## Data Notes
 
-12. **Compute consumption:**
-    $$C_t = (1 - s_t) Y_t - G_t$$
-
-13. **Compute investment:**
-    $$I_t = s_t Y_t - NX_t$$
-
-14. **Update capital stock for next period:**
-    $$K_{t+1} = (1 - \delta) K_t + I_t$$
-
-### Notes
-
-- Steps 6-14 are repeated for each time period
-- The labor force $L_t$ is exogenous and read from data for each period
-- The nominal exchange rate $e_t$ is given exogenously in the table
-- All monetary values are in billions of 2015 USD
-
-
+The exogenous variables are based on historical data from the World Bank World Development Indicators, Penn World Table 10.01, and IMF Fiscal Monitor. The foreign income index ($Y^*_t$) represents an index of world GDP growth relative to 1980. Government spending and tax revenue show China's dramatic fiscal expansion over the reform period.
