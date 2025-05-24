@@ -32,20 +32,20 @@
 
 ### Parameters
 
-| Symbol                          | Definition                                   | Units    | Value       |
-| :------------------------------ | :------------------------------------------- | :------- | :---------- |
-| $\alpha$                        | Capital share in production                  | unitless | $0.30$      |
-| $\delta$                        | Depreciation rate                            | per year | $0.10$      |
-| $g$                             | Baseline TFP growth rate                     | per year | $0.02$      |
-| $\theta$                        | Openness contribution to TFP growth          | unitless | $0.10$      |
-| $\phi$                          | FDI contribution to TFP growth               | unitless | $0.08$      |
-| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $337.49$    |
-| $X_0$                           | Initial level of exports (1980)              | bn USD   | $19.41$     |
-| $M_0$                           | Initial level of imports (1980)              | bn USD   | $21.84$     |
-| $\varepsilon_x$                 | Export exchange rate elasticity              | unitless | $1.5$       |
-| $\varepsilon_m$                 | Import exchange rate elasticity              | unitless | $-1.2$      |
-| $\mu_x$                         | Export income elasticity                     | unitless | $1.5$       |
-| $\mu_m$                         | Import income elasticity                     | unitless | $1.1$       |
+| Symbol                          | Definition                                   | Units    | Value       | Lower Bound | Upper Bound |
+| :------------------------------ | :------------------------------------------- | :------- | :---------- | :---------- | :---------- |
+| $\alpha$                        | Capital share in production                  | unitless | $0.30$      | 0           | 1           |
+| $\delta$                        | Depreciation rate                            | per year | $0.10$      | 0           | 1           |
+| $g$                             | Baseline TFP growth rate                     | per year | $0.02$      | -1          | 1           |
+| $\theta$                        | Openness contribution to TFP growth          | unitless | $0.10$      | 0           | 1           |
+| $\phi$                          | FDI contribution to TFP growth               | unitless | $0.08$      | 0           | 1           |
+| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $337.49$    | 0           | infinity    |
+| $X_0$                           | Initial level of exports (1980)              | bn USD   | $19.41$     | 0           | infinity    |
+| $M_0$                           | Initial level of imports (1980)              | bn USD   | $21.84$     | 0           | infinity    |
+| $\varepsilon_x$                 | Export exchange rate elasticity              | unitless | $1.5$       | 0           | infinity    |
+| $\varepsilon_m$                 | Import exchange rate elasticity              | unitless | $-1.2$      | -infinity   | 0           |
+| $\mu_x$                         | Export income elasticity                     | unitless | $1.5$       | 0           | infinity    |
+| $\mu_m$                         | Import income elasticity                     | unitless | $1.1$       | 0           | infinity    |
 
 
 ## Paths of exogenous variables
