@@ -188,3 +188,4 @@ cython_debug/
 .cursorindexingignore
 # Specifically ignore PDF files in output even if the directory is tracked later
 output/**/*.pdf
+.DS_Store
