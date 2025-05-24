@@ -1,0 +1,72 @@
+# Sensitive information files
+.env
+.env.development
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+
+# Environment directories
+venv/
+env/
+.venv/
+ENV/
+
+# Large build directories
+dist/
+build/
+__pycache__/
+*.py[cod]
+
+# Package dependencies
+node_modules/
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+
+# Large data files and assets
+*.csv
+input/*.csv
+*.xlsx
+*.parquet
+*.pkl
+*.h5
+*.db
+*.sqlite
+*.sqlite3
+
+# Cached files
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE configurations
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Documentation
+docs/
+README.md
+*.md
+CHANGELOG.md
+LICENSE
+
+# Output files
+output/*
+!output/.gitkeep
+
+# Large third-party libraries
+venv/lib/ 

@@ -1,0 +1,41 @@
+# Large build directories
+dist/
+build/
+__pycache__/
+*.py[cod]
+
+# Package dependencies
+node_modules/
+
+# Git and version control
+.git/
+
+# Large data files (but not excluding from AI access when needed)
+input/*.csv
+*.xlsx
+*.parquet
+*.h5
+*.db
+*.sqlite
+*.sqlite3
+
+# Cached files
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+
+# Output directories
+output/*
+!output/.gitkeep
+
+# Third-party libraries
+venv/lib/
+venv/include/
+venv/bin/
+
+# Generated files
+*.pyc
+*.so
+*.dll
+*.class 
