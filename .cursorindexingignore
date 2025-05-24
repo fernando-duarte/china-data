@@ -23,6 +23,11 @@ input/*.csv
 *.sqlite
 *.sqlite3
 
+# PDF files (can be large and hinder indexing performance)
+*.pdf
+# Specifically target PDFs in output directory
+output/**/*.pdf
+
 # Cached files
 .pytest_cache/
 htmlcov/
