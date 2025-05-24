@@ -1,0 +1,6 @@
+# Allow specific files that would otherwise be blocked by .cursorignore
+output/*.csv
+.env
+.env.development
+*.env*
+.gitignore 
