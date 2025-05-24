@@ -10,6 +10,18 @@ This module tests the data processing pipeline including:
 - Output file generation
 """
 
+# This file now serves as a placeholder as tests have been refactored into smaller, topic-specific files in the tests/processor directory.
+
+# Original tests have been moved to:
+# - tests/processor/test_loading.py
+# - tests/processor/test_units.py
+# - tests/processor/test_capital.py
+# - tests/processor/test_human_capital.py
+# - tests/processor/test_economic_indicators.py
+# - tests/processor/test_extrapolation.py
+# - tests/processor/test_output.py
+# - tests/processor/test_processed_properties.py
+
 import os
 import pandas as pd
 import numpy as np
@@ -144,6 +156,31 @@ def test_calculate_economic_indicators():
     assert round(result['T_USD_bn'].iloc[0], 4) == 0.4  # (20.0 / 100) * 2.0
     assert round(result['S_USD_bn'].iloc[0], 4) == 0.7  # 2.0 - 1.0 - 0.3
 
+    # New tests for economic indicators
+    # private saving + public saving = saving
+    assert np.allclose(result['S_USD_bn'], result['S_priv_USD_bn'] + result['S_pub_USD_bn'].fillna(0))
+
+    # net exports = exports - imports
+    assert np.allclose(result['NX_USD_bn'], result['X_USD_bn'] - result['M_USD_bn'])
+
+    # openness = (exports+imports)/Y
+    assert np.allclose(result['Openness_Ratio'], (result['X_USD_bn'] + result['M_USD_bn']) / result['GDP_USD_bn'])
+
+    # saving rate = S/Y
+    assert np.allclose(result['Saving_Rate'], result['S_USD_bn'] / result['GDP_USD_bn'])
+
+    # saving rate = (I_t + NX_t)/Y_t (Investment-Saving Identity)
+    assert np.allclose(result['Saving_Rate'], (result['I_USD_bn'] + result['NX_USD_bn']) / result['GDP_USD_bn'])
+
+    # saving rate = 1 - (C_t + G_t)/Y_t (GDP Identity based saving)
+    assert np.allclose(result['Saving_Rate'], 1 - (result['C_USD_bn'] + result['G_USD_bn']) / result['GDP_USD_bn'])
+
+    # taxes > 0 (for years where tax data is available)
+    assert (result.loc[result['TAX_pct_GDP'].notna(), 'T_USD_bn'].dropna() > 0).all()
+
+    # A > 0 (TFP > 0)
+    assert (result['TFP'].dropna() > 0).all()
+
 
 def test_extrapolate_series_to_end_year(monkeypatch):
     df = pd.DataFrame({
@@ -207,3 +244,25 @@ def test_create_markdown_table(tmp_path):
     out = tmp_path/'out.md'
     create_markdown_table(data, str(out), {'GDP_USD_bn': {'method':'test','years':[2024]}}, end_year=2024)
     assert out.exists()
+
+def test_processed_data_properties():
+    # Load the processed data CSV
+    processed_df = pd.read_csv('output/china_data_processed.csv')
+
+    # K increasing over time
+    assert (processed_df['Physical Capital'].diff().dropna() >= 0).all()
+
+    # L increasing over time (Labor Force)
+    # Note: Labor Force data is sparse before 1990, so we check from 1990 onwards
+    lf_data = processed_df.set_index('Year')['Labor Force'].dropna()
+    assert (lf_data.diff().dropna() >= 0).all()
+
+    # K/Y ratio in 2017 between 1 and 5
+    k_y_2017 = processed_df[processed_df['Year'] == 2017]['Physical Capital'].iloc[0] / processed_df[processed_df['Year'] == 2017]['GDP'].iloc[0]
+    assert 1 <= k_y_2017 <= 5
+
+    # Check 1980 initial values for K, X, M against china_data_processed.csv
+    data_1980 = processed_df[processed_df['Year'] == 1980]
+    assert data_1980['Physical Capital'].iloc[0] > 0 and np.isclose(data_1980['Physical Capital'].iloc[0], 337.49)
+    assert data_1980['Exports'].iloc[0] > 0 and np.isclose(data_1980['Exports'].iloc[0], 19.4057)
+    assert data_1980['Imports'].iloc[0] > 0 and np.isclose(data_1980['Imports'].iloc[0], 21.8427)
