@@ -39,9 +39,9 @@
 | $g$                             | Baseline TFP growth rate                     | per year | $0.005$     |
 | $\theta$                        | Openness contribution to TFP growth          | unitless | $0.1453$    |
 | $\phi$                          | FDI contribution to TFP growth               | unitless | $0.10$      |
-| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $2050.10$   |
-| $X_0$                           | Initial level of exports (1980)              | bn USD   | $18.10$     |
-| $M_0$                           | Initial level of imports (1980)              | bn USD   | $14.50$     |
+| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $337.49$   |
+| $X_0$                           | Initial level of exports (1980)              | bn USD   | $19.41$     |
+| $M_0$                           | Initial level of imports (1980)              | bn USD   | $21.84$     |
 | $\varepsilon_x,\ \varepsilon_m$ | Exchange‐rate elasticities (exports/imports) | unitless | $1.5,\ 1.2$ |
 | $\mu_x,\ \mu_m$                 | Income elasticities (exports/imports)        | unitless | $1.0,\ 1.0$ |
 
@@ -131,9 +131,9 @@ The law of motion for technology \(A_t\) with spillover effects from openness an
 1. **Read parameters:** $\alpha = 0.30$, $\delta = 0.10$, $g = 0.005$, $\theta = 0.1453$, $\phi = 0.10$, $\varepsilon_x = 1.5$, $\varepsilon_m = 1.2$, $\mu_x = 1.0$, $\mu_m = 1.0$
 
 2. **Read initial values (t=0, year 1980):**
-   - $K_0 = 2050.10$ bn USD
-   - $X_0 = 18.10$ bn USD  
-   - $M_0 = 14.50$ bn USD
+   - $K_0 = 337.49$ bn USD
+   - $X_0 = 19.41$ bn USD  
+   - $M_0 = 21.84$ bn USD
    - $A_0 = 1.0$ (normalized)
    - $L_0$ (to be specified)
    - $e_0 = 0.78$ CNY/USD

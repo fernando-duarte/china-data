@@ -39,7 +39,7 @@
 | $g$                             | Baseline TFP growth rate                     | per year | $0.02$      |
 | $\theta$                        | Openness contribution to TFP growth          | unitless | $0.10$      |
 | $\phi$                          | FDI contribution to TFP growth               | unitless | $0.08$      |
-| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $573.45$    |
+| $K_0$                           | Initial level of physical capital (1980)     | bn USD   | $337.49$    |
 | $X_0$                           | Initial level of exports (1980)              | bn USD   | $19.41$     |
 | $M_0$                           | Initial level of imports (1980)              | bn USD   | $21.84$     |
 | $\varepsilon_x$                 | Export exchange rate elasticity              | unitless | $1.5$       |
