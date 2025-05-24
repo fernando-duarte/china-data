@@ -5,19 +5,20 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils import get_project_root, find_file, ensure_directory, get_output_directory
-from utils.path_constants import PACKAGE_DIR_NAME, OUTPUT_DIR_NAME
+from utils.path_constants import OUTPUT_DIR_NAME
 
 
 def test_get_project_root_returns_existing_directory():
     root = get_project_root()
     assert os.path.isdir(root)
-    # Check that the directory exists and contains the china_data directory
-    assert os.path.isdir(os.path.join(root, 'china_data'))
+    # Check that the directory exists and contains expected project files
+    assert os.path.isfile(os.path.join(root, 'README.md'))
+    assert os.path.isdir(os.path.join(root, 'utils'))
 
 
 def test_find_file_locates_known_file():
-    path = find_file('README.md', [PACKAGE_DIR_NAME])
-    assert path and path.endswith(os.path.join(PACKAGE_DIR_NAME, 'README.md'))
+    path = find_file('README.md', [''])  # Look in project root
+    assert path and path.endswith('README.md')
 
 
 def test_ensure_directory_creates_path(tmp_path):
@@ -28,7 +29,7 @@ def test_ensure_directory_creates_path(tmp_path):
 
 def test_get_output_directory_exists():
     out_dir = get_output_directory()
-    expected = os.path.join(get_project_root(), PACKAGE_DIR_NAME, OUTPUT_DIR_NAME)
+    expected = os.path.join(get_project_root(), OUTPUT_DIR_NAME)
     assert out_dir == expected
     assert os.path.isdir(out_dir)
 

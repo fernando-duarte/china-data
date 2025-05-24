@@ -5,41 +5,26 @@ Contains common utility functions used across the codebase.
 
 import os
 import logging
-from typing import Optional, List, Union
+from pathlib import Path
+from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
 
 def get_project_root() -> str:
     """
-    Determine the project root directory.
-
-    If we're in the china_data directory, return the parent directory.
-    If we're already at the project root, return the current directory.
-
+    Get the project root directory.
+    
+    Since the current directory structure is the project root 
+    (what used to be inside the china_data folder), we can 
+    simply use the directory containing this utils module.
+    
     Returns:
         str: Path to the project root directory
     """
-    current_dir = os.path.abspath(os.getcwd())
-    base_dir_name = os.path.basename(current_dir)
-
-    if base_dir_name == "china_data":
-        # We're in the china_data directory
-        return os.path.dirname(current_dir)
-    else:
-        # We're either at the project root or somewhere else
-        china_data_dir = os.path.join(current_dir, "china_data")
-        if os.path.isdir(china_data_dir):
-            # We're at the project root
-            return current_dir
-        else:
-            # We're somewhere else, try to find the china_data directory
-            parent_dir = os.path.dirname(current_dir)
-            if os.path.isdir(os.path.join(parent_dir, "china_data")):
-                return parent_dir
-            else:
-                # Default to current directory if we can't determine the project root
-                return current_dir
+    # Simple path resolution from this file to the project root
+    # utils/__init__.py -> project root is the parent directory
+    return str(Path(__file__).parent.parent)
 
 
 def find_file(filename: str, possible_locations_relative_to_root: Optional[List[str]] = None) -> Optional[str]:
@@ -58,7 +43,6 @@ def find_file(filename: str, possible_locations_relative_to_root: Optional[List[
 
     if possible_locations_relative_to_root is None:
         from utils.path_constants import get_search_locations_relative_to_root
-        # These locations are already relative to the project root
         search_locations_relative = get_search_locations_relative_to_root()["general"]
     else:
         search_locations_relative = possible_locations_relative_to_root
@@ -95,19 +79,16 @@ def ensure_directory(directory: str) -> str:
 def get_output_directory() -> str:
     """
     Get the path to the output directory, ensuring it exists.
+    
+    Since the project root is now the current directory,
+    the output directory is simply ./output from the project root.
 
     Returns:
         str: Path to the output directory
     """
-    # Get the absolute path to the china_data/output directory
-    # regardless of where the script is run from
-    from utils.path_constants import PACKAGE_DIR_NAME, OUTPUT_DIR_NAME
-
-    # First, find the project root
+    # Simple path to output directory from project root
     project_root = get_project_root()
-
-    # Then, construct the path to china_data/output
-    output_dir = os.path.join(project_root, PACKAGE_DIR_NAME, OUTPUT_DIR_NAME)
-
+    output_dir = os.path.join(project_root, "output")
+    
     # Ensure the directory exists
     return ensure_directory(output_dir)
