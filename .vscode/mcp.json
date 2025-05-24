@@ -1,0 +1,43 @@
+{
+    "mcpServers": {
+        "context7": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp@latest"
+            ]
+        },
+        "exa": {
+            "command": "npx",
+            "args": [
+                "exa-mcp-server",
+                "--tools=web_search_exa,research_paper_search,twitter_search,company_research,crawling,competitor_finder,linkedin_search"
+            ],
+            "env": {
+                "EXA_API_KEY": "d0a0eadc-7bfd-41f7-a8d2-579762ef0406"
+            }
+        }
+    },
+    "mcp": {
+        "inputs": [
+            {
+                "type": "promptString",
+                "id": "github_token",
+                "description": "GitHub Personal Access Token",
+                "password": true
+            }
+        ],
+        "servers": {
+            "github": {
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "@modelcontextprotocol/server-github"
+                ],
+                "env": {
+                    "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}"
+                }
+            }
+        }
+    }
+}
