@@ -10,11 +10,7 @@ meets expected structural requirements:
 """
 
 import os
-import sys
 from datetime import datetime
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from utils.path_constants import get_absolute_output_path
 

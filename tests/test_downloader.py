@@ -10,14 +10,10 @@ This module tests the data downloading functionality including:
 import builtins
 import io
 import os
-import sys
 import types
 import pandas as pd
 import pytest
 from unittest import mock
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Use updated import structure
 from utils.data_sources import download_wdi_data, get_pwt_data

@@ -1,9 +1,5 @@
 import os
-import sys
 import pandas as pd
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils.processor_dataframe import merge_dataframe_column, merge_projections, merge_tax_data
 from utils.processor_dataframe import prepare_final_dataframe

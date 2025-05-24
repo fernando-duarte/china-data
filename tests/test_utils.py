@@ -1,8 +1,4 @@
 import os
-import sys
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils import get_project_root, find_file, ensure_directory, get_output_directory
 from utils.path_constants import OUTPUT_DIR_NAME

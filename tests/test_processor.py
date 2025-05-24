@@ -11,14 +11,10 @@ This module tests the data processing pipeline including:
 """
 
 import os
-import sys
 import pandas as pd
 import numpy as np
 import pytest
 from unittest import mock
-
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from utils.processor_load import load_raw_data
 from utils.processor_units import convert_units
