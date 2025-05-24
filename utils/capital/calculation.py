@@ -44,7 +44,7 @@ def calculate_capital_stock(raw_data, capital_output_ratio=3.0):
         return pd.DataFrame({'year': [], 'K_USD_bn': []})
     
     # Check for required columns
-    required_columns = ['rkna', 'pl_gdpo', 'cgdpo']
+    required_columns = ['rkna', 'pl_gdpo', 'cgdpo_bn']
     missing_columns = [col for col in required_columns if col not in df.columns]
     
     if missing_columns:
@@ -88,10 +88,10 @@ def calculate_capital_stock(raw_data, capital_output_ratio=3.0):
         # Get baseline values
         logger.info(f"Using {baseline_year} as baseline year for capital stock calculation")
         
-        # Get GDP (cgdpo) for baseline year
-        gdp_baseline_rows = df.loc[df.year == baseline_year, 'cgdpo']
+        # Get GDP (cgdpo_bn) for baseline year
+        gdp_baseline_rows = df.loc[df.year == baseline_year, 'cgdpo_bn']
         if gdp_baseline_rows.empty or pd.isna(gdp_baseline_rows.iloc[0]):
-            raise ValueError(f"No cgdpo data for {baseline_year}")
+            raise ValueError(f"No cgdpo_bn data for {baseline_year}")
         gdp_baseline = gdp_baseline_rows.iloc[0]
         
         # Get capital stock at constant prices (rkna) for baseline year
@@ -106,8 +106,9 @@ def calculate_capital_stock(raw_data, capital_output_ratio=3.0):
             raise ValueError(f"No pl_gdpo data for {baseline_year}")
         pl_gdpo_baseline = pl_gdpo_baseline_rows.iloc[0]
         
-        # Calculate capital in baseline constant USD
-        k_baseline_usd = (rkna_baseline * gdp_baseline) / capital_output_ratio
+        # Calculate capital in baseline constant USD (billions)
+        k_baseline_usd = gdp_baseline * capital_output_ratio
+        logger.info(f"Baseline year ({baseline_year}) GDP: {gdp_baseline:.2f} billion USD")
         logger.info(f"Baseline year ({baseline_year}) calculated capital: {k_baseline_usd:.2f} billion USD")
         
         # Calculate capital stock for all years

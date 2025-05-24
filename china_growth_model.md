@@ -126,50 +126,63 @@ The law of motion for technology \(A_t\) with spillover effects from openness an
 
 ## Computation Steps for Each Round
 
-### Read values
+### Initial Setup
 
-1. Read values of parameters and paths of exogenous variables. These are known before any computation starts.
+1. **Read parameters:** $\alpha = 0.30$, $\delta = 0.10$, $g = 0.005$, $\theta = 0.1453$, $\phi = 0.10$, $\varepsilon_x = 1.5$, $\varepsilon_m = 1.2$, $\mu_x = 1.0$, $\mu_m = 1.0$
 
-### Compute variables for t=1,2,...
+2. **Read initial values (t=0, year 1980):**
+   - $K_0 = 2050.10$ bn USD
+   - $X_0 = 18.10$ bn USD  
+   - $M_0 = 14.50$ bn USD
+   - $A_0 = 1.0$ (normalized)
+   - $L_0$ (to be specified)
+   - $e_0 = 0.78$ CNY/USD
+   - $Y^*_0 = 1000.00$
 
-14. Compute TFP:
-    $$
-      A_{t} = A_{t-1}
-        (1 + g
-          + \theta\,openness_t
-          + \phi\,fdi\_ratio_t
-        )
-    $$
+3. **Read paths of exogenous variables** for each year t: $L_t$, $e_t$, $fdi\_ratio_t$, $Y^*_t$, $H_t$, $G_t$, $T_t$, $s_t$
 
-2. Compute output/production:
-   $$ Y_t = A_t K_t^{\alpha} (L_t\,H_t)^{1-\alpha} $$
-5. Compute nominal exchange rate:
-   $$ e_t = x_t \tilde e_t $$
-6. Compute exports:
-   $$
-     X_t = X_0\Bigl(\tfrac{e_t}{e_{0}}\Bigr)^{\varepsilon_x}
-       \Bigl(\tfrac{Y^*_t}{Y^*_{0}}\Bigr)^{\mu_x}.
-   $$
-7. Compute imports:
-   $$
-     M_t = M_0\Bigl(\tfrac{e_t}{e_{0}}\Bigr)^{-\varepsilon_m}
-       \Bigl(\tfrac{Y_t}{Y_{0}}\Bigr)^{\mu_m}.
-   $$
-8. Compute net exports:
-   $$ NX_t = X_t - M_t $$
-9. Compute openness ratio:
-   $$
-     openness_t = \frac{X_t + M_t}{Y_t}
-   $$
-10. Compute consumption:
-    $$ C_t = (1-s) Y_t $$
+### Compute Variables for t = 0
 
-11. Compute investment:
-    $$ I_t = s Y_t - NX_t $$
+4. **Compute initial output:**
+   $$Y_0 = A_0 K_0^{\alpha} (L_0 H_0)^{1-\alpha}$$
 
-### Compute next period's variable values
+5. **Compute initial openness ratio:**
+   $$openness_0 = \frac{X_0 + M_0}{Y_0}$$
 
-13. Compute next period's capital:
-    $$ K\_{t+1} = (1-\delta) K_t + I_t $$
+### Compute Variables for t = 1, 2, 3, ...
+
+6. **Update TFP using previous period's openness:**
+   $$A_t = A_{t-1} \left(1 + g + \theta \cdot openness_{t-1} + \phi \cdot fdi\_ratio_{t-1}\right)$$
+
+7. **Compute output:**
+   $$Y_t = A_t K_t^{\alpha} (L_t H_t)^{1-\alpha}$$
+
+8. **Compute exports:**
+   $$X_t = X_0 \left(\frac{e_t}{e_0}\right)^{\varepsilon_x} \left(\frac{Y^*_t}{Y^*_0}\right)^{\mu_x}$$
+
+9. **Compute imports:**
+   $$M_t = M_0 \left(\frac{e_t}{e_0}\right)^{-\varepsilon_m} \left(\frac{Y_t}{Y_0}\right)^{\mu_m}$$
+
+10. **Compute net exports:**
+    $$NX_t = X_t - M_t$$
+
+11. **Compute openness ratio:**
+    $$openness_t = \frac{X_t + M_t}{Y_t}$$
+
+12. **Compute consumption:**
+    $$C_t = (1 - s_t) Y_t - G_t$$
+
+13. **Compute investment:**
+    $$I_t = s_t Y_t - NX_t$$
+
+14. **Update capital stock for next period:**
+    $$K_{t+1} = (1 - \delta) K_t + I_t$$
+
+### Notes
+
+- Steps 6-14 are repeated for each time period
+- The labor force $L_t$ is exogenous and read from data for each period
+- The nominal exchange rate $e_t$ is given exogenously in the table
+- All monetary values are in billions of 2015 USD
 
 

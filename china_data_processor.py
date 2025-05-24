@@ -74,7 +74,7 @@ def main():
 
     # Capital Stock Calculation
     logger.info("Calculating capital stock")
-    capital_df = calculate_capital_stock(raw_data, capital_output_ratio)
+    capital_df = calculate_capital_stock(processed, capital_output_ratio)
     processed, _ = merge_dataframe_column(processed, capital_df, 'K_USD_bn', "capital stock")
 
     # Human Capital Projection
