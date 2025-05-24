@@ -3,4 +3,4 @@ output/*.csv
 .env
 .env.development
 *.env*
-.gitignore 
+.gitignore
