@@ -20,12 +20,12 @@ def download_wdi_data(indicator_code: str, country_code: str = "CN", start_year:
             data = wb.download(country=country_code, indicator=indicator_code, start=start_year, end=end_year)
             data = data.reset_index()
             data = data.rename(columns={indicator_code: indicator_code.replace(".", "_")})
-            logger.debug("Successfully downloaded %s data with %d rows", indicator_code, len(data))
+            logger.debug(f"Successfully downloaded {indicator_code} data with {len(data)} rows")
             return data
         except Exception as e:
             if attempt < max_retries - 1:
-                logger.warning("Attempt %d failed. Retrying in 5 seconds... Error: %s", attempt + 1, e)
+                logger.warning(f"Attempt {attempt + 1} failed. Retrying in 5 seconds... Error: {e}")
                 time.sleep(5)
             else:
-                logger.error("Failed to download %s after %d attempts. Error: %s", indicator_code, max_retries, e)
+                logger.error(f"Failed to download {indicator_code} after {max_retries} attempts. Error: {e}")
                 return pd.DataFrame(columns=["country", "year", indicator_code.replace(".", "_")])

@@ -34,25 +34,25 @@ def get_pwt_data() -> pd.DataFrame:
                 if chunk:
                     tmp.write(chunk)
             tmp_path = tmp.name
-            logger.debug("Downloaded PWT data to temporary file: %s", tmp_path)
+            logger.debug(f"Downloaded PWT data to temporary file: {tmp_path}")
 
         # Read the Excel file
         pwt = pd.read_excel(tmp_path, sheet_name="Data")
 
     except requests.exceptions.RequestException as e:
-        logger.error("Error occurred while downloading PWT data: %s", e)
+        logger.error(f"Error occurred while downloading PWT data: {e}")
         raise
     except Exception as e:
-        logger.error("Unexpected error occurred while processing PWT data: %s", e)
+        logger.error(f"Unexpected error occurred while processing PWT data: {e}")
         raise
     finally:
         # Ensure temporary file is deleted
         if "tmp_path" in locals() and tmp_path and os.path.exists(tmp_path):
             try:
                 os.unlink(tmp_path)
-                logger.debug("Deleted temporary file: %s", tmp_path)
+                logger.debug(f"Deleted temporary file: {tmp_path}")
             except Exception as e:
-                logger.warning("Failed to delete temporary file %s: %s", tmp_path, e)
+                logger.warning(f"Failed to delete temporary file {tmp_path}: {e}")
 
     chn = pwt[pwt.countrycode == "CHN"].copy()
     chn_data = chn[["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]].copy()

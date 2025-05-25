@@ -115,7 +115,7 @@ def load_imf_tax_data() -> pd.DataFrame:
     imf_file = find_file(imf_filename, possible_locations_relative)
 
     if imf_file:
-        logger.info("Found IMF Fiscal Monitor file at: %s", imf_file)
+        logger.info(f"Found IMF Fiscal Monitor file at: {imf_file}")
         df = pd.read_csv(imf_file)
         df = df[(df["COUNTRY"] == "CHN") & (df["FREQUENCY"] == "A") & (df["INDICATOR"] == "G1_S13_POGDP_PT")]
         tax_data = df[["TIME_PERIOD", "OBS_VALUE"]].rename(columns={"TIME_PERIOD": "year", "OBS_VALUE": "TAX_pct_GDP"})

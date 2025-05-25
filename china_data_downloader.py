@@ -159,7 +159,7 @@ def main():
 
     # Get output directory using the common utility function
     output_dir = get_output_directory()
-    logger.info("Output files will be saved to: %s", output_dir)
+    logger.info(f"Output files will be saved to: {output_dir}")
 
     all_data = {}
     # Record the download date for WDI data
@@ -214,7 +214,7 @@ def main():
     try:
         pwt_data = get_pwt_data()
     except Exception as e:
-        logger.warning("Could not get PWT data: %s", e)
+        logger.warning(f"Could not get PWT data: {e}")
         pwt_data = pd.DataFrame(columns=["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"])
         pwt_download_failed = True
     pwt_data["year"] = pwt_data["year"].astype(int)
