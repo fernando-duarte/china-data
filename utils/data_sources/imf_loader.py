@@ -47,7 +47,7 @@ def check_and_update_hash() -> bool:
         # Read the current metadata
         metadata = {}
         try:
-            with open(date_file, "r") as f:
+            with open(date_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             for line in lines:
@@ -84,7 +84,7 @@ def check_and_update_hash() -> bool:
 
         # Write the new content
         try:
-            with open(output_path, "w") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 f.write(content)
             logger.info(f"Updated download_date.txt at {output_path}")
             return True

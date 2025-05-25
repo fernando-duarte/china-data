@@ -52,7 +52,7 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
     
     try:
         # Read the markdown file
-        with open(fallback_file, 'r') as f:
+        with open(fallback_file, 'r', encoding='utf-8') as f:
             content = f.read()
             
         # Find the table section
@@ -189,7 +189,7 @@ def main():
     date_file = find_file("download_date.txt", possible_locations_relative)
     if date_file and os.path.exists(date_file):
         try:
-            with open(date_file, "r") as f:
+            with open(date_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             # Parse the file content
@@ -262,7 +262,7 @@ def main():
         merged_data, wdi_date=wdi_download_date, pwt_date=pwt_download_date, imf_date=imf_download_date
     )
 
-    with open(os.path.join(output_dir, "china_data_raw.md"), "w") as f:
+    with open(os.path.join(output_dir, "china_data_raw.md"), "w", encoding="utf-8") as f:
         f.write(markdown_output)
     logger.info("Data download and integration complete!")
 

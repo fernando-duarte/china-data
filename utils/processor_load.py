@@ -33,19 +33,13 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     if md_file is None:
         raise FileNotFoundError(f"Raw data file not found: {input_file} in any of the expected locations.")
 
-    with open(md_file, "r") as f:
+    with open(md_file, "r", encoding="utf-8") as f:
         lines = f.readlines()
-
-    # Print the first 20 lines to debug
-    print("\nDebug: First few lines of markdown file:")
-    for i, line in enumerate(lines[:10]):
-        print(f"{i}: {line.strip()}")
 
     header_idx = None
     for i, line in enumerate(lines):
         if "| Year |" in line and "GDP" in line:
             header_idx = i
-            print(f"Found header at line {i}: {line.strip()}")
             break
 
     if header_idx is None:
@@ -60,7 +54,6 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
 
     # Split by | and strip whitespace
     header = [h.strip() for h in header_line.split("|") if h.strip()]
-    print(f"Parsed header columns: {header}")
 
     mapping = {
         "Year": "year",
@@ -81,12 +74,10 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
         "PWT hc": "hc",
     }
 
-    # Print all available columns and their mappings
     renamed = []
     for col in header:
         mapped_col = mapping.get(col, col)
         renamed.append(mapped_col)
-        print(f"Column '{col}' -> '{mapped_col}'")
     data_start_idx = header_idx + 2
     data = []
     for i in range(data_start_idx, len(lines)):

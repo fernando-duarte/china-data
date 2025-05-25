@@ -221,7 +221,7 @@ Each series was extrapolated using the following methods:
 Data processed with alpha={{ alpha }}, K/Y= {{ capital_output_ratio }}, source file={{ input_file }},
 end year={{ end_year }}. Generated {{ today }}."""
     )
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(
             tmpl.render(
                 headers=headers,
