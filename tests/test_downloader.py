@@ -9,9 +9,9 @@ This module tests the data downloading functionality including:
 
 import builtins
 import io
-import os
 import types
 from unittest import mock
+
 
 import pandas as pd
 import pytest

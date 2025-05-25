@@ -1,7 +1,7 @@
 """
 Output processing utilities for China data processor.
 
-This package provides functionality for formatting data and generating 
+This package provides functionality for formatting data and generating
 various output formats (markdown, CSV, etc.).
 """
 

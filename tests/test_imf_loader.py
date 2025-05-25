@@ -1,6 +1,4 @@
-from unittest.mock import MagicMock, mock_open, patch
-
-import numpy as np
+from unittest.mock import mock_open, patch
 import pandas as pd
 import pytest
 
@@ -128,7 +126,7 @@ class TestIMFLoader:
         result = check_and_update_hash()
 
         # Should return True (hash was updated)
-        assert result == True
+        assert result is True
 
     @patch("utils.data_sources.imf_loader.find_file")
     def test_check_and_update_hash_no_imf_file(self, mock_find_file):
@@ -138,4 +136,4 @@ class TestIMFLoader:
         result = check_and_update_hash()
 
         # Should return False
-        assert result == False
+        assert result is False

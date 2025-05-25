@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from unittest import mock
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd

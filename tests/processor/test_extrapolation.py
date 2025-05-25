@@ -1,6 +1,5 @@
 """Tests for time series extrapolation functionality."""
 
-from unittest import mock
 
 import pandas as pd
 
@@ -29,9 +28,6 @@ def test_extrapolate_series_to_end_year(monkeypatch):
         def forecast(self, steps):
             return [1.0] * steps
 
-    # Import the modules where ARIMA and LinearRegression are used
-    import utils.extrapolation_methods.arima as arima_module
-    import utils.extrapolation_methods.linear_regression as linear_regression_module
 
     # Mock the extrapolation functions to return successful results
     def mock_extrapolate_with_arima(df, col, years, **kwargs):

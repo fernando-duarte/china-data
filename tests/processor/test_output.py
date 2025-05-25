@@ -1,7 +1,5 @@
 """Tests for output file generation."""
 
-import os
-
 import pandas as pd
 
 from utils.output import create_markdown_table

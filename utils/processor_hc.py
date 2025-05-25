@@ -6,7 +6,6 @@ using various statistical methods.
 """
 
 import logging
-from typing import Union
 
 import numpy as np
 import pandas as pd
