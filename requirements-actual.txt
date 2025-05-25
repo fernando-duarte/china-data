@@ -1,2 +1,0 @@
-pandas_datareader==0.10.0
-statsmodels==0.14.4
