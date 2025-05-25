@@ -120,7 +120,7 @@ def create_markdown_table(
 
     today = datetime.today().strftime("%Y-%m-%d")
     tmpl = Template(
-        """# Processed China Economic Data
+        r"""# Processed China Economic Data
 
 |{% for h in headers %} {{ h }} |{% endfor %}
 |{% for h in headers %}---|{% endfor %}
