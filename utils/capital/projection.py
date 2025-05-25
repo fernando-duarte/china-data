@@ -122,7 +122,7 @@ def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: fl
         proj_df = pd.DataFrame(list(proj.items()), columns=["year", "K_USD_bn"])
 
         # Merge with original data
-        result = df.copy()
+        result = df
 
         # Make sure all years up to end_year exist in the result
         for year in range(int(df["year"].min()), end_year + 1):

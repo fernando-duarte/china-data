@@ -47,7 +47,7 @@ class TestCreateMarkdownTable:
         )
 
         # Check that file was opened for writing
-        mock_file.assert_called_once_with(output_path, "w")
+        mock_file.assert_called_once_with(output_path, "w", encoding="utf-8")
 
         # Get what was written
         handle = mock_file()

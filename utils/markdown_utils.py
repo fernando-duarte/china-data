@@ -17,7 +17,7 @@ def render_markdown_table(merged_data: pd.DataFrame, wdi_date: Optional[str] = N
     Returns:
         str: The rendered markdown table
     """
-    display_data = merged_data.copy()
+    # Define column mapping
     column_mapping = {
         "year": "Year",
         "GDP_USD": "GDP (USD)",
@@ -36,18 +36,24 @@ def render_markdown_table(merged_data: pd.DataFrame, wdi_date: Optional[str] = N
         "cgdpo": "PWT cgdpo",
         "hc": "PWT hc",
     }
-    display_data = display_data.rename(columns=column_mapping)
+    
+    # Create display data by renaming columns without copying the entire DataFrame
+    display_data = merged_data.rename(columns=column_mapping)
 
+    # Format the data for display - create a new DataFrame with formatted values
+    formatted_data = {}
     for col in display_data.columns:
         if col == "Year":
-            display_data[col] = display_data[col].astype(int)
+            formatted_data[col] = display_data[col].astype(int).tolist()
         elif col in ["Population", "Labor Force"]:
-            display_data[col] = display_data[col].apply(lambda x: f"{x:,.0f}" if not pd.isna(x) else "N/A")
+            formatted_data[col] = [f"{x:,.0f}" if not pd.isna(x) else "N/A" for x in display_data[col]]
         else:
-            display_data[col] = display_data[col].apply(lambda x: f"{x:.2f}" if not pd.isna(x) else "N/A")
-
-    headers = list(display_data.columns)
-    rows = display_data.values.tolist()
+            formatted_data[col] = [f"{x:.2f}" if not pd.isna(x) else "N/A" for x in display_data[col]]
+    
+    # Create the final display DataFrame
+    display_df = pd.DataFrame(formatted_data)
+    headers = list(display_df.columns)
+    rows = display_df.values.tolist()
 
     # No default dates - we'll only include dates in the markdown if they're provided
 

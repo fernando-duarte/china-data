@@ -152,7 +152,7 @@ def main() -> None:
         final_df = prepare_final_dataframe(processed, Config.OUTPUT_COLUMN_MAP)
 
         # Format data for output
-        formatted = format_data_for_output(final_df.copy())
+        formatted = format_data_for_output(final_df)
 
         # Save to output files
         save_output_files(

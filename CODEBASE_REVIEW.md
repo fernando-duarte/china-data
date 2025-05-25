@@ -74,6 +74,9 @@ This document summarizes the comprehensive review and improvements made to the C
 - [ ] No use of `eval()`, `exec()`, or `pickle.loads()` with untrusted data
 - [ ] Timeouts set for all network operations
 - [ ] Proper error handling without exposing sensitive information 
+- [ ]  Certificate pinning for downloads
+- [ ] Integrity checks on downloaded data
+- [ ] Rate limiting protection
 
 ### 11. Testing ✓
 - **Coverage**: Coverage is +95% 
@@ -90,3 +93,11 @@ This document summarizes the comprehensive review and improvements made to the C
 - **Import Sorting**: isort for organized imports
 - **Testing**: pytest with comprehensive test suite
 
+### 12. Error Handling
+- **Reporting**: Do not use `print` command
+- **Formatting**: Error handling patterns must be consistent across files
+
+### 16. Hardcoded Magic 
+- **Magic Numbers**: Avoid magic numbers
+- **Other magic**: Avoid other magic variables (strings, etc.)
+- **Single source of thruth**: Constants and cli variables must be single source of truth

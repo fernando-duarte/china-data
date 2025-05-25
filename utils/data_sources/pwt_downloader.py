@@ -54,7 +54,7 @@ def get_pwt_data() -> pd.DataFrame:
             except Exception as e:
                 logger.warning(f"Failed to delete temporary file {tmp_path}: {e}")
 
-    chn = pwt[pwt.countrycode == "CHN"].copy()
-    chn_data = chn[["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]].copy()
+    # Filter for China and select relevant columns in one operation
+    chn_data = pwt[pwt.countrycode == "CHN"][["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]].copy()
     chn_data["year"] = chn_data["year"].astype(int)
     return chn_data

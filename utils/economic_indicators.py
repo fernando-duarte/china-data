@@ -36,11 +36,17 @@ def calculate_tfp(data: pd.DataFrame, alpha: float = 1 / 3) -> pd.DataFrame:
     Returns:
         DataFrame with TFP column added
     """
-    df = data.copy()
+    # Check required columns first
     required = ["GDP_USD_bn", "K_USD_bn", "LF_mn"]
-    if not all(col in df.columns for col in required):
+    if not all(col in data.columns for col in required):
+        # Need to copy here since we're adding a new column
+        df = data.copy()
         df["TFP"] = np.nan
         return df
+    
+    # Create copy only when we need to modify the DataFrame
+    df = data.copy()
+    
     if "hc" not in df.columns:
         df["hc"] = np.nan
     if df["hc"].isna().any():
@@ -89,6 +95,7 @@ def calculate_economic_indicators(merged: pd.DataFrame, alpha: float = 1 / 3, lo
     if logger is None:
         logger = logging.getLogger(__name__)
 
+    # Create copy since we'll be adding multiple new columns
     df = merged.copy()
 
     # Net exports

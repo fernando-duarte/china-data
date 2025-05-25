@@ -6,10 +6,12 @@ from jinja2 import Template
 
 
 def format_data_for_output(data_df: pd.DataFrame) -> pd.DataFrame:
-    formatted_df = data_df.copy()
-    for col_name in formatted_df.columns:
+    # Instead of copying the entire DataFrame, create a new one with formatted values
+    formatted_data = {}
+    
+    for col_name in data_df.columns:
         vals = []
-        for val in formatted_df[col_name]:
+        for val in data_df[col_name]:
             if pd.isna(val):
                 vals.append("nan")
             elif isinstance(val, float):
@@ -40,8 +42,9 @@ def format_data_for_output(data_df: pd.DataFrame) -> pd.DataFrame:
                 vals.append(f"{val:.2f}".rstrip("0").rstrip("."))
             else:
                 vals.append(str(val))
-        formatted_df[col_name] = vals
-    return formatted_df
+        formatted_data[col_name] = vals
+    
+    return pd.DataFrame(formatted_data)
 
 
 def create_markdown_table(

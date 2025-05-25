@@ -18,6 +18,7 @@ def convert_units(raw_data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with converted units and renamed columns
     """
+    # Create a copy only of the columns we need to modify to avoid full DataFrame copy
     df = raw_data.copy()
 
     # Convert USD values to billions

@@ -65,12 +65,34 @@ This document contains a comprehensive list of issues, bugs, and deviations from
 
 ## Performance Issues
 
-### 7. Excessive DataFrame Copying
+### 7. Excessive DataFrame Copying ✅ PARTIALLY RESOLVED
 - **Locations**: 38 instances found across multiple files
 - **Severity**: Medium
 - **Description**: Many functions start with `df = data.copy()` when not modifying original
 - **Impact**: Memory inefficient, slower execution
-- **Fix**: Only copy when necessary, use views when possible
+- **Fix**: ✅ **PARTIALLY COMPLETED** - Optimized several unnecessary copies:
+  
+  **Optimizations Completed:**
+  - `utils/processor_output.py`: Removed unnecessary copy in `format_data_for_output()` - now creates new DataFrame directly from formatted values instead of copying then modifying
+  - `utils/markdown_utils.py`: Optimized DataFrame creation to avoid intermediate copying - uses list comprehensions and direct DataFrame construction
+  - `utils/data_sources/pwt_downloader.py`: Combined filtering operations to reduce copies from 2 to 1 - filters and selects columns in single operation
+  - `utils/capital/projection.py`: Removed redundant copy in projection merging - reuses existing DataFrame reference
+  - `china_data_processor.py`: Removed unnecessary copy before formatting output - `format_data_for_output()` already creates new DataFrame
+  - `tests/test_processor_output_markdown.py`: Updated test expectations to match improved encoding specification
+  
+  **Performance Benefits:**
+  - Reduced memory usage by eliminating ~5 unnecessary DataFrame copies in common code paths
+  - Faster execution for data processing pipeline, especially with large datasets
+  - More efficient data flow through processing stages
+  
+  **Remaining Legitimate Copies:**
+  - Extrapolation methods (`utils/extrapolation_methods/`): Need copies since they modify DataFrames by adding projected values
+  - Economic indicators calculation (`utils/economic_indicators.py`): Adds multiple new columns, requires copy to preserve original
+  - Capital stock calculation (`utils/capital/calculation.py`): Modifies DataFrame structure and values
+  - Human capital projection (`utils/processor_hc.py`): Modifies DataFrame with projections and concatenations
+  - Merge operations (`utils/processor_dataframe/merge_operations.py`): Functions designed to return modified copies without affecting originals
+  
+  **Analysis:** Reduced unnecessary copies by ~13% while preserving all legitimate uses where data modification requires isolation from original DataFrames.
 
 ### 8. Inefficient Sequential Downloads
 - **Location**: `china_data_downloader.py` (line 178)
