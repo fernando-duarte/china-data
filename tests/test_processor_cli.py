@@ -79,22 +79,46 @@ class TestProcessorCLI:
             assert args.end_year == 2045
 
     def test_invalid_alpha_negative(self):
-        """Test that negative alpha values are accepted (no validation in CLI)."""
+        """Test that negative alpha values are rejected with validation."""
         with patch.object(sys, "argv", ["prog", "--alpha", "-0.5"]):
-            args = parse_arguments()
-            assert args.alpha == -0.5
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
 
     def test_invalid_alpha_too_large(self):
-        """Test that alpha values greater than 1 are accepted (no validation in CLI)."""
+        """Test that alpha values greater than 1 are rejected with validation."""
         with patch.object(sys, "argv", ["prog", "--alpha", "1.5"]):
-            args = parse_arguments()
-            assert args.alpha == 1.5
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
 
-    def test_invalid_capital_output_ratio(self):
-        """Test that negative capital-output ratio is accepted (no validation in CLI)."""
+    def test_invalid_capital_output_ratio_negative(self):
+        """Test that negative capital-output ratio is rejected with validation."""
         with patch.object(sys, "argv", ["prog", "--capital-output-ratio", "-1"]):
-            args = parse_arguments()
-            assert args.capital_output_ratio == -1
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
+
+    def test_invalid_capital_output_ratio_zero(self):
+        """Test that zero capital-output ratio is rejected with validation."""
+        with patch.object(sys, "argv", ["prog", "--capital-output-ratio", "0"]):
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
+
+    def test_invalid_end_year_too_early(self):
+        """Test that end years before 2000 are rejected."""
+        with patch.object(sys, "argv", ["prog", "--end-year", "1999"]):
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
+
+    def test_invalid_end_year_too_late(self):
+        """Test that end years too far in the future are rejected."""
+        with patch.object(sys, "argv", ["prog", "--end-year", "3000"]):
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
 
     def test_invalid_end_year_type(self):
         """Test that non-integer end year is rejected."""
@@ -128,19 +152,8 @@ class TestProcessorCLI:
             args = parse_arguments()
             assert abs(args.alpha - 0.333333) < 1e-6
 
-    def test_capital_output_ratio_zero(self):
-        """Test that zero capital-output ratio is handled."""
-        with patch.object(sys, "argv", ["prog", "--capital-output-ratio", "0"]):
-            # Zero might be rejected or allowed depending on implementation
-            try:
-                args = parse_arguments()
-                assert args.capital_output_ratio == 0
-            except SystemExit:
-                # If zero is not allowed, that's also valid
-                pass
-
-    @pytest.mark.parametrize("year", [2020, 2030, 2100, 3000])
-    def test_various_end_years(self, year):
+    @pytest.mark.parametrize("year", [2020, 2030, 2100])
+    def test_valid_end_years(self, year):
         """Test various valid end year values."""
         with patch.object(sys, "argv", ["prog", "--end-year", str(year)]):
             args = parse_arguments()
@@ -167,3 +180,20 @@ class TestProcessorCLI:
         with patch.object(sys, "argv", ["prog", "-k", "2.5"]):
             args = parse_arguments()
             assert args.capital_output_ratio == 2.5
+
+    def test_multiple_validation_errors(self):
+        """Test that multiple validation errors are reported together."""
+        with patch.object(sys, "argv", ["prog", "--alpha", "-0.5", "--capital-output-ratio", "-1", "--end-year", "1999"]):
+            with pytest.raises(SystemExit) as exc_info:
+                parse_arguments()
+            assert exc_info.value.code == 1
+
+    def test_validation_error_messages(self, capsys):
+        """Test that validation error messages are informative."""
+        with patch.object(sys, "argv", ["prog", "--alpha", "1.5"]):
+            with pytest.raises(SystemExit):
+                parse_arguments()
+            
+            captured = capsys.readouterr()
+            assert "Input validation errors:" in captured.err
+            assert "Alpha parameter must be between 0 and 1" in captured.err
