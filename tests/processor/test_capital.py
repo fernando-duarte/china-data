@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from utils.capital import calculate_capital_stock, project_capital_stock
+from utils.capital import calculate_capital_stock
 
 
 def test_calculate_capital_stock_missing():

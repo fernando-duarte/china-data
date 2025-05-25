@@ -13,7 +13,6 @@ import pandas as pd
 
 from config import Config
 from utils.error_handling import DataValidationError, FileOperationError, log_error_with_context
-from utils.validation_utils import INDICATOR_VALIDATION_RULES, validate_dataframe_with_rules
 
 logger = logging.getLogger(__name__)
 
