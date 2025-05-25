@@ -1,50 +1,15 @@
+"""
+Markdown output generation utilities.
+
+This module provides functions to generate markdown tables and documentation
+from processed economic data with detailed methodology notes.
+"""
+
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 import pandas as pd
 from jinja2 import Template
-
-
-def format_data_for_output(data_df: pd.DataFrame) -> pd.DataFrame:
-    # Instead of copying the entire DataFrame, create a new one with formatted values
-    formatted_data = {}
-    
-    for col_name in data_df.columns:
-        vals = []
-        for val in data_df[col_name]:
-            if pd.isna(val):
-                vals.append("nan")
-            elif isinstance(val, float):
-                if col_name in ["FDI (% of GDP)", "TFP", "Human Capital", "Openness Ratio", "Saving Rate"]:
-                    vals.append(f"{val:.4f}".rstrip("0").rstrip("."))
-                elif col_name in [
-                    "GDP",
-                    "Consumption",
-                    "Government",
-                    "Investment",
-                    "Exports",
-                    "Imports",
-                    "Net Exports",
-                    "Physical Capital",
-                    "Tax Revenue (bn USD)",
-                    "Saving (bn USD)",
-                    "Private Saving (bn USD)",
-                    "Public Saving (bn USD)",
-                ]:
-                    vals.append(f"{val:.4f}".rstrip("0").rstrip("."))
-                elif col_name in ["Population", "Labor Force"]:
-                    vals.append(f"{val:.2f}".rstrip("0").rstrip("."))
-                else:
-                    vals.append(f"{val:.2f}".rstrip("0").rstrip("."))
-            elif isinstance(val, int) and col_name == "Year":
-                vals.append(str(val))
-            elif col_name in ["Population", "Labor Force"] and isinstance(val, (int, float)):
-                vals.append(f"{val:.2f}".rstrip("0").rstrip("."))
-            else:
-                vals.append(str(val))
-        formatted_data[col_name] = vals
-    
-    return pd.DataFrame(formatted_data)
 
 
 def create_markdown_table(
@@ -56,6 +21,26 @@ def create_markdown_table(
     input_file: str = "china_data_raw.md",
     end_year: int = 2025,
 ) -> None:
+    """
+    Create comprehensive markdown output with data table and methodology documentation.
+
+    Args:
+        data: Processed economic data DataFrame
+        output_path: Path to write the markdown file
+        extrapolation_info: Dictionary containing extrapolation method information
+        alpha: Capital share parameter used in TFP calculation
+        capital_output_ratio: Capital-output ratio used in capital stock calculation
+        input_file: Name of the input raw data file
+        end_year: Final year of data projection
+
+    Note:
+        The function generates a comprehensive markdown document including:
+        - Data table with all economic indicators
+        - Detailed methodology notes
+        - Source attribution
+        - Mathematical formulas for derived variables
+        - Extrapolation method documentation
+    """
     column_mapping = {
         "Year": "year",
         "GDP": "GDP_USD_bn",
@@ -78,9 +63,11 @@ def create_markdown_table(
         "Public Saving (bn USD)": "S_pub_USD_bn",
         "Saving Rate": "Saving_Rate",
     }
+
     headers = list(data.columns)
     rows = data.values.tolist()
     notes = []
+
     for var, info in extrapolation_info.items():
         if not info["years"]:
             continue

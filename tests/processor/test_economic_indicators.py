@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 from config import Config
+from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 
 
 def test_calculate_tfp_with_missing_hc():
@@ -86,11 +86,17 @@ def test_calculate_economic_indicators():
     processed_data = calculate_economic_indicators(data)
 
     expected_columns = [
-        "TFP", "T_USD_bn", "Openness_Ratio", "NX_USD_bn",
-        "S_USD_bn", "S_priv_USD_bn", "S_pub_USD_bn", "Saving_Rate",
+        "TFP",
+        "T_USD_bn",
+        "Openness_Ratio",
+        "NX_USD_bn",
+        "S_USD_bn",
+        "S_priv_USD_bn",
+        "S_pub_USD_bn",
+        "Saving_Rate",
         # "K_Y_ratio" # This indicator is not calculated by calculate_economic_indicators
     ]
     for col in expected_columns:
         assert col in processed_data.columns, f"Missing expected column: {col}"
-    
+
     # Example check for TFP (can add more specific value checks if needed)

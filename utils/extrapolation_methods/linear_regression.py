@@ -16,7 +16,12 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 
-def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = Config.MIN_DATA_POINTS_FOR_REGRESSION) -> Tuple[pd.DataFrame, bool, str]:
+def extrapolate_with_linear_regression(
+    df: pd.DataFrame,
+    col: str,
+    years_to_project: List[int],
+    min_data_points: int = Config.MIN_DATA_POINTS_FOR_REGRESSION,
+) -> Tuple[pd.DataFrame, bool, str]:
     """
     Extrapolate a time series using linear regression.
 
@@ -58,8 +63,8 @@ def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_proj
 
     try:
         # Prepare data for linear regression
-        X = historical["year"].values.reshape(-1, 1)
-        y = historical[col].values
+        X = historical["year"].to_numpy().reshape(-1, 1)
+        y = historical[col].to_numpy()
 
         # Fit linear regression model
         model = LinearRegression()

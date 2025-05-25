@@ -5,9 +5,7 @@ This module provides centralized path management using pathlib for consistent
 cross-platform path handling.
 """
 
-import os
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # Directory names
 INPUT_DIR_NAME = "input"
@@ -17,7 +15,7 @@ OUTPUT_DIR_NAME = "output"
 def get_project_root() -> Path:
     """
     Get the project root directory.
-    
+
     Returns:
         Path object pointing to the project root directory
     """
@@ -27,7 +25,7 @@ def get_project_root() -> Path:
 def get_absolute_input_path() -> Path:
     """
     Get the absolute path to the input directory.
-    
+
     Returns:
         Path object pointing to the input directory
     """
@@ -37,7 +35,7 @@ def get_absolute_input_path() -> Path:
 def get_absolute_output_path() -> Path:
     """
     Get the absolute path to the output directory.
-    
+
     Returns:
         Path object pointing to the output directory
     """
@@ -47,7 +45,7 @@ def get_absolute_output_path() -> Path:
 def get_search_locations_relative_to_root() -> dict:
     """
     Get search locations for various file types relative to project root.
-    
+
     Returns:
         Dictionary mapping file types to lists of relative path strings
     """
@@ -66,5 +64,5 @@ def get_search_locations_relative_to_root() -> dict:
             ".",  # Project root
             "config",
             "parameters_info",
-        ]
+        ],
     }

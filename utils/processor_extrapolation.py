@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ def _prepare(df: pd.DataFrame, end_year: int) -> Tuple[pd.DataFrame, Dict[str, A
             if missing:
                 break
         if not missing:
-            return df, {}, []
+            return df, {}, [], []
         years_to_add = [end_year - 1, end_year]
     else:
         years_to_add = list(range(max_year + 1, end_year + 1))
@@ -38,7 +38,9 @@ def _prepare(df: pd.DataFrame, end_year: int) -> Tuple[pd.DataFrame, Dict[str, A
     return df, {}, years_to_add, cols_to_extrapolate
 
 
-def _apply_methods(df: pd.DataFrame, years_to_add: List[int], cols: List[str], info: Dict[str, Any]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def _apply_methods(
+    df: pd.DataFrame, years_to_add: List[int], cols: List[str], info: Dict[str, Any]
+) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Apply appropriate extrapolation methods to each column based on column type.
 
@@ -104,7 +106,14 @@ def _apply_methods(df: pd.DataFrame, years_to_add: List[int], cols: List[str], i
     return df, info
 
 
-def _finalize(df: pd.DataFrame, years_to_add: List[int], raw_data: pd.DataFrame, cols: List[str], info: Dict[str, Any], end_year: int) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def _finalize(
+    df: pd.DataFrame,
+    years_to_add: List[int],
+    raw_data: pd.DataFrame,
+    cols: List[str],
+    info: Dict[str, Any],
+    end_year: int,
+) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     key_vars = [
         "GDP_USD_bn",
         "C_USD_bn",
@@ -169,7 +178,9 @@ def _finalize(df: pd.DataFrame, years_to_add: List[int], raw_data: pd.DataFrame,
     return df, info
 
 
-def extrapolate_series_to_end_year(data: pd.DataFrame, end_year: int = 2025, raw_data: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def extrapolate_series_to_end_year(
+    data: pd.DataFrame, end_year: int = 2025, raw_data: Optional[pd.DataFrame] = None
+) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     df, info, years_to_add, cols = _prepare(data.copy(), end_year)
     if years_to_add == [] and info == {}:
         return df, info

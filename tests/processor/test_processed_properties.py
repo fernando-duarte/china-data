@@ -7,14 +7,16 @@ import pytest
 
 def test_processed_data_properties():
     # Create mock processed data
-    processed_df = pd.DataFrame({
-        "Year": list(range(1980, 2023)),
-        "Physical Capital": [337.49 + i * 100 for i in range(43)],  # Increasing values
-        "Labor Force": [500 + i * 10 for i in range(43)],  # Increasing values
-        "GDP": [300 + i * 50 for i in range(43)],
-        "Exports": [19.4057 + i * 5 for i in range(43)],
-        "Imports": [21.8427 + i * 5 for i in range(43)],
-    })
+    processed_df = pd.DataFrame(
+        {
+            "Year": list(range(1980, 2023)),
+            "Physical Capital": [337.49 + i * 100 for i in range(43)],  # Increasing values
+            "Labor Force": [500 + i * 10 for i in range(43)],  # Increasing values
+            "GDP": [300 + i * 50 for i in range(43)],
+            "Exports": [19.4057 + i * 5 for i in range(43)],
+            "Imports": [21.8427 + i * 5 for i in range(43)],
+        }
+    )
 
     # K increasing over time
     assert (processed_df["Physical Capital"].diff().dropna() >= 0).all()

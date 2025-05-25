@@ -121,7 +121,7 @@ class TestChinaDataProcessorIntegration:
         # X_USD[0] = 2000000 -> X_USD_bn[0] = 2000000 / 1e9 = 0.002
         # M_USD[0] = 1500000 -> M_USD_bn[0] = 1500000 / 1e9 = 0.0015
         # NX_USD_bn[0] = 0.002 - 0.0015 = 0.0005
-        expected_nx = 0.0005 
+        expected_nx = 0.0005
         assert result["NX_USD_bn"].iloc[0] == pytest.approx(expected_nx, rel=1e-4)
 
         # Check TFP
@@ -166,7 +166,7 @@ class TestChinaDataProcessorIntegration:
 
         # Check that capital stock is calculated
         assert "K_USD_bn" in result.columns
-        
+
         # Just check that K_USD_bn column exists
         # The actual calculation depends on having the right PWT columns which our test data doesn't have
 
@@ -191,7 +191,7 @@ class TestChinaDataProcessorIntegration:
     @patch("builtins.open", new_callable=mock_open)
     def test_markdown_output_format(self, mock_file, sample_raw_data):
         """Test that markdown output is properly formatted."""
-        from utils.processor_output import create_markdown_table
+        from utils.output import create_markdown_table
 
         # Create sample processed data
         processed_data = pd.DataFrame(

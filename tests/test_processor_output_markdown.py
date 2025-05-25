@@ -5,7 +5,7 @@ from unittest.mock import mock_open, patch
 import pandas as pd
 import pytest
 
-from utils.processor_output import create_markdown_table
+from utils.output import create_markdown_table
 
 
 class TestCreateMarkdownTable:
@@ -120,7 +120,7 @@ class TestCreateMarkdownTable:
         assert f"end year={end_year}" in written_content
 
     @patch("builtins.open", new_callable=mock_open)
-    @patch("utils.processor_output.datetime")
+    @patch("utils.output.markdown_generator.datetime")
     def test_date_generation(self, mock_datetime, mock_file, sample_data, extrapolation_info):
         """Test that current date is included."""
         mock_datetime.today.return_value.strftime.return_value = "2024-01-15"
@@ -175,4 +175,4 @@ class TestCreateMarkdownTable:
         # Check for different method sections
         assert "### Average growth rate" in written_content
         assert "### Investment-based projection" in written_content
-        assert "### IMF projections" in written_content 
+        assert "### IMF projections" in written_content

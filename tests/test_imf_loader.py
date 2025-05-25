@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from utils.data_sources.imf_loader import load_imf_tax_data, check_and_update_hash
+from utils.data_sources.imf_loader import check_and_update_hash, load_imf_tax_data
 
 
 class TestIMFLoader:
@@ -13,13 +13,21 @@ class TestIMFLoader:
     @pytest.fixture
     def mock_csv_data(self):
         """Create mock CSV data for testing."""
-        return pd.DataFrame({
-            "COUNTRY": ["CHN", "CHN", "CHN", "USA", "USA"],
-            "FREQUENCY": ["A", "A", "A", "A", "A"],
-            "INDICATOR": ["G1_S13_POGDP_PT", "G1_S13_POGDP_PT", "G1_S13_POGDP_PT", "G1_S13_POGDP_PT", "G1_S13_POGDP_PT"],
-            "TIME_PERIOD": [2020, 2021, 2022, 2020, 2021],
-            "OBS_VALUE": [15.2, 15.8, 16.3, 25.5, 26.0],
-        })
+        return pd.DataFrame(
+            {
+                "COUNTRY": ["CHN", "CHN", "CHN", "USA", "USA"],
+                "FREQUENCY": ["A", "A", "A", "A", "A"],
+                "INDICATOR": [
+                    "G1_S13_POGDP_PT",
+                    "G1_S13_POGDP_PT",
+                    "G1_S13_POGDP_PT",
+                    "G1_S13_POGDP_PT",
+                    "G1_S13_POGDP_PT",
+                ],
+                "TIME_PERIOD": [2020, 2021, 2022, 2020, 2021],
+                "OBS_VALUE": [15.2, 15.8, 16.3, 25.5, 26.0],
+            }
+        )
 
     @patch("utils.data_sources.imf_loader.check_and_update_hash")
     @patch("utils.data_sources.imf_loader.find_file")
@@ -71,13 +79,15 @@ class TestIMFLoader:
     def test_load_imf_tax_data_no_china_data(self, mock_read_csv, mock_find_file, mock_check_hash):
         """Test handling when no China data is present."""
         # Create data without China
-        data_without_china = pd.DataFrame({
-            "COUNTRY": ["USA", "UK", "FRA"],
-            "FREQUENCY": ["A", "A", "A"],
-            "INDICATOR": ["G1_S13_POGDP_PT", "G1_S13_POGDP_PT", "G1_S13_POGDP_PT"],
-            "TIME_PERIOD": [2020, 2020, 2020],
-            "OBS_VALUE": [25.5, 30.0, 35.0],
-        })
+        data_without_china = pd.DataFrame(
+            {
+                "COUNTRY": ["USA", "UK", "FRA"],
+                "FREQUENCY": ["A", "A", "A"],
+                "INDICATOR": ["G1_S13_POGDP_PT", "G1_S13_POGDP_PT", "G1_S13_POGDP_PT"],
+                "TIME_PERIOD": [2020, 2020, 2020],
+                "OBS_VALUE": [25.5, 30.0, 35.0],
+            }
+        )
 
         mock_check_hash.return_value = True
         mock_find_file.return_value = "/path/to/imf_data.csv"
@@ -111,7 +121,7 @@ class TestIMFLoader:
         # Mock file locations
         mock_find_file.side_effect = [
             "/path/to/dataset_DEFAULT_INTEGRATION_IMF.FAD_FM_5.0.0.csv",  # IMF file
-            None  # download_date.txt doesn't exist
+            None,  # download_date.txt doesn't exist
         ]
         mock_exists.return_value = False
 

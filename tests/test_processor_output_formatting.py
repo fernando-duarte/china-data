@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from utils.processor_output import format_data_for_output
+from utils.output import format_data_for_output
 
 
 class TestFormatDataForOutput:
@@ -109,4 +109,4 @@ class TestFormatDataForOutput:
         result = format_data_for_output(data)
 
         # Unknown columns should get 2 decimal places by default
-        assert result.loc[0, "Unknown_Column"] == "123.46" 
+        assert result.loc[0, "Unknown_Column"] == "123.46"

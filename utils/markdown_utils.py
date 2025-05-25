@@ -4,7 +4,12 @@ import pandas as pd
 from jinja2 import Template
 
 
-def render_markdown_table(merged_data: pd.DataFrame, wdi_date: Optional[str] = None, pwt_date: Optional[str] = None, imf_date: Optional[str] = None) -> str:
+def render_markdown_table(
+    merged_data: pd.DataFrame,
+    wdi_date: Optional[str] = None,
+    pwt_date: Optional[str] = None,
+    imf_date: Optional[str] = None,
+) -> str:
     """
     Render the merged data as a markdown table.
 
@@ -36,7 +41,7 @@ def render_markdown_table(merged_data: pd.DataFrame, wdi_date: Optional[str] = N
         "cgdpo": "PWT cgdpo",
         "hc": "PWT hc",
     }
-    
+
     # Create display data by renaming columns without copying the entire DataFrame
     display_data = merged_data.rename(columns=column_mapping)
 
@@ -44,12 +49,12 @@ def render_markdown_table(merged_data: pd.DataFrame, wdi_date: Optional[str] = N
     formatted_data = {}
     for col in display_data.columns:
         if col == "Year":
-            formatted_data[col] = display_data[col].astype(int).tolist()
+            formatted_data[col] = [str(int(x)) for x in display_data[col] if not pd.isna(x)]
         elif col in ["Population", "Labor Force"]:
             formatted_data[col] = [f"{x:,.0f}" if not pd.isna(x) else "N/A" for x in display_data[col]]
         else:
             formatted_data[col] = [f"{x:.2f}" if not pd.isna(x) else "N/A" for x in display_data[col]]
-    
+
     # Create the final display DataFrame
     display_df = pd.DataFrame(formatted_data)
     headers = list(display_df.columns)

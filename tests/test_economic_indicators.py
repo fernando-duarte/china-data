@@ -1,11 +1,11 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 from config import Config
+from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 
 
 class TestCalculateTFP:
@@ -68,7 +68,7 @@ class TestCalculateTFP:
 
         # hc column in result should reflect the NaN value
         assert pd.isna(result.loc[1, "hc"])
-        
+
         assert "TFP" in result.columns
         # TFP for the row with NaN hc should be NaN
         assert pd.isna(result.loc[1, "TFP"])
@@ -203,8 +203,10 @@ class TestCalculateEconomicIndicators:
         # Calculate expected_rate then round it to the same precision as in the code
         expected_rate_unrounded = result["S_USD_bn"] / complete_data["GDP_USD_bn"]
         expected_rate_rounded = expected_rate_unrounded.round(Config.DECIMAL_PLACES_RATIOS)
-        
-        assert result["Saving_Rate"].tolist() == pytest.approx(expected_rate_rounded.tolist()) # Default approx tolerance
+
+        assert result["Saving_Rate"].tolist() == pytest.approx(
+            expected_rate_rounded.tolist()
+        )  # Default approx tolerance
 
     def test_missing_columns_handling(self):
         """Test handling of missing columns for various calculations."""
@@ -225,7 +227,7 @@ class TestCalculateEconomicIndicators:
 
         # Columns that couldn't be calculated should exist but be NaN
         assert "NX_USD_bn" in result.columns
-        assert result["NX_USD_bn"].isna().all() # Missing X and M should result in NaN
+        assert result["NX_USD_bn"].isna().all()  # Missing X and M should result in NaN
         # assert "K_Y_ratio" not in result.columns  # Missing K - K_Y_ratio is not calculated by this func
 
     def test_with_custom_logger(self, complete_data):

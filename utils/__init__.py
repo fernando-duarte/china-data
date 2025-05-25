@@ -49,6 +49,7 @@ def find_file(filename: str, possible_locations_relative_to_root: Optional[List[
 
     if possible_locations_relative_to_root is None:
         from utils.path_constants import get_search_locations_relative_to_root
+
         search_locations_relative = get_search_locations_relative_to_root()["input_files"]
     else:
         search_locations_relative = possible_locations_relative_to_root
@@ -61,7 +62,7 @@ def find_file(filename: str, possible_locations_relative_to_root: Optional[List[
             path = project_root / filename
         else:
             path = project_root / rel_location / filename
-            
+
         checked_paths.append(str(path))
         if path.exists():
             logger.info(f"Found file at: {path}")

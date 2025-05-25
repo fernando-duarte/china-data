@@ -165,17 +165,17 @@ class TestProcessorCLI:
         with patch.object(sys, "argv", ["prog", "-i", "input.md"]):
             args = parse_arguments()
             assert args.input_file == "input.md"
-            
+
         # Test that -a short option works
         with patch.object(sys, "argv", ["prog", "-a", "0.4"]):
             args = parse_arguments()
             assert args.alpha == 0.4
-            
+
         # Test that -o short option works
         with patch.object(sys, "argv", ["prog", "-o", "output"]):
             args = parse_arguments()
             assert args.output_file == "output"
-            
+
         # Test that -k short option works
         with patch.object(sys, "argv", ["prog", "-k", "2.5"]):
             args = parse_arguments()
@@ -183,7 +183,9 @@ class TestProcessorCLI:
 
     def test_multiple_validation_errors(self):
         """Test that multiple validation errors are reported together."""
-        with patch.object(sys, "argv", ["prog", "--alpha", "-0.5", "--capital-output-ratio", "-1", "--end-year", "1999"]):
+        with patch.object(
+            sys, "argv", ["prog", "--alpha", "-0.5", "--capital-output-ratio", "-1", "--end-year", "1999"]
+        ):
             with pytest.raises(SystemExit) as exc_info:
                 parse_arguments()
             assert exc_info.value.code == 1
@@ -193,7 +195,7 @@ class TestProcessorCLI:
         with patch.object(sys, "argv", ["prog", "--alpha", "1.5"]):
             with pytest.raises(SystemExit):
                 parse_arguments()
-            
+
             captured = capsys.readouterr()
             assert "Input validation errors:" in captured.err
             assert "Alpha parameter must be between 0 and 1" in captured.err

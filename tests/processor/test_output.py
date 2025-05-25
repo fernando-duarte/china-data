@@ -4,7 +4,7 @@ import os
 
 import pandas as pd
 
-from utils.processor_output import create_markdown_table
+from utils.output import create_markdown_table
 
 
 def test_create_markdown_table(tmp_path):

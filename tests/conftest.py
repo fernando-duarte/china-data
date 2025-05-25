@@ -1,7 +1,6 @@
-import shutil
-import tempfile
-from pathlib import Path
 import os
+
+from pathlib import Path
 
 import pytest
 
@@ -42,6 +41,8 @@ def temp_project_root(tmp_path):
 def mock_cached_session_for_tests(monkeypatch):
     """Globally mocks get_cached_session to return a non-cached session for all tests."""
     import requests
+
     def non_cached_session():
         return requests.Session()
+
     monkeypatch.setattr("utils.caching_utils.get_cached_session", non_cached_session)

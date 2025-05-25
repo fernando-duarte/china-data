@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 
 from utils.caching_utils import get_cached_session
-from utils.validation_utils import validate_dataframe_with_rules, INDICATOR_VALIDATION_RULES
+from utils.validation_utils import INDICATOR_VALIDATION_RULES, validate_dataframe_with_rules
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +60,10 @@ def get_pwt_data() -> pd.DataFrame:
     # Filter for China and select relevant columns in one operation
     chn_data = pwt[pwt.countrycode == "CHN"][["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]].copy()
     chn_data["year"] = chn_data["year"].astype(int)
-    
+
     # Validate PWT data
     # Rules are based on original PWT column names used in INDICATOR_VALIDATION_RULES
-    validate_dataframe_with_rules(chn_data, rules=INDICATOR_VALIDATION_RULES, year_column='year')
+    validate_dataframe_with_rules(chn_data, rules=INDICATOR_VALIDATION_RULES, year_column="year")
     logger.info(f"Successfully downloaded and validated PWT data with {len(chn_data)} rows for China.")
 
     return chn_data

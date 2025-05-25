@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from utils.processor_output import create_markdown_table
+from utils.output import create_markdown_table
 
 logger = logging.getLogger(__name__)
 

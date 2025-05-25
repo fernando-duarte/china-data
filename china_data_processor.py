@@ -22,27 +22,18 @@ from utils import get_output_directory
 from utils.capital import calculate_capital_stock, project_capital_stock
 from utils.economic_indicators import calculate_economic_indicators
 from utils.processor_cli import parse_arguments
+
+# Import the refactored functions from their new locations
+from utils.processor_dataframe.merge_operations import merge_dataframe_column, merge_projections, merge_tax_data
+from utils.processor_dataframe.metadata_operations import get_projection_metadata
+from utils.processor_dataframe.output_operations import prepare_final_dataframe, save_output_files
 from utils.processor_extrapolation import extrapolate_series_to_end_year
 from utils.processor_hc import project_human_capital
 from utils.processor_load import load_imf_tax_revenue_data, load_raw_data
-from utils.processor_output import format_data_for_output
+from utils.output import format_data_for_output
 from utils.processor_units import convert_units
 
-# Import the refactored functions from their new locations
-from utils.processor_dataframe.merge_operations import (
-    merge_dataframe_column,
-    merge_projections,
-    merge_tax_data,
-)
-from utils.processor_dataframe.metadata_operations import get_projection_metadata
-from utils.processor_dataframe.output_operations import (
-    prepare_final_dataframe,
-    save_output_files,
-)
-
-logging.basicConfig(
-    level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT
-)
+logging.basicConfig(level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT)
 logger = logging.getLogger(__name__)
 
 
@@ -90,9 +81,7 @@ def main() -> None:
     # Extrapolate base series to end year
     logger.info(f"Extrapolating base series to end year {end_year}")
     try:
-        processed, extrapolation_info = extrapolate_series_to_end_year(
-            processed, end_year=end_year, raw_data=raw_data
-        )
+        processed, extrapolation_info = extrapolate_series_to_end_year(processed, end_year=end_year, raw_data=raw_data)
         logger.info(f"Extrapolation complete - info contains {len(extrapolation_info)} series")
     except Exception as e:
         logger.error(f"Error during extrapolation: {e}")
@@ -104,9 +93,7 @@ def main() -> None:
     k_proj = project_capital_stock(processed, end_year=end_year)
 
     # Merge capital stock projections
-    processed, k_info = merge_projections(
-        processed, k_proj, "K_USD_bn", "Investment-based projection", "capital stock"
-    )
+    processed, k_info = merge_projections(processed, k_proj, "K_USD_bn", "Investment-based projection", "capital stock")
 
     # Calculate economic indicators using extrapolated variables
     logger.info("Calculating derived economic indicators from extrapolated variables")

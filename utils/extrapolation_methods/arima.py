@@ -15,7 +15,13 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 
-def extrapolate_with_arima(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = Config.MIN_DATA_POINTS_FOR_ARIMA, order: Tuple[int, int, int] = Config.DEFAULT_ARIMA_ORDER) -> Tuple[pd.DataFrame, bool, str]:
+def extrapolate_with_arima(
+    df: pd.DataFrame,
+    col: str,
+    years_to_project: List[int],
+    min_data_points: int = Config.MIN_DATA_POINTS_FOR_ARIMA,
+    order: Tuple[int, int, int] = Config.DEFAULT_ARIMA_ORDER,
+) -> Tuple[pd.DataFrame, bool, str]:
     """
     Extrapolate a time series using ARIMA model.
 
