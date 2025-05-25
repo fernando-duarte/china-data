@@ -1,0 +1,32 @@
+# Since you are the only person on the team, you are the owner of all files
+# Format: pattern    owner
+
+# Default owner for everything in the repo
+*       @fernandoduarte
+
+# Data processing and downloading scripts
+china_data_*.py    @data-team-lead @data-scientists-username
+
+# Configuration files
+*.toml    @devops-lead
+*.yml     @devops-lead
+config.py @devops-lead @data-team-lead
+
+# Utils directory
+/utils/   @backend-team-lead
+
+# Tests directory
+/tests/   @qa-team-lead @backend-team-lead
+
+# Documentation
+*.md      @tech-writers @repo-admin-username
+
+# GitHub workflows
+/.github/workflows/   @devops-lead
+
+# Input/Output directories
+/input/    @data-team-lead
+/output/   @data-team-lead
+
+# Parameters info
+/parameters_info/   @data-scientists-username @data-team-lead 
