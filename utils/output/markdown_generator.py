@@ -120,7 +120,7 @@ def create_markdown_table(
 
     today = datetime.today().strftime("%Y-%m-%d")
     tmpl = Template(
-        """# Processed China Economic Data
+        r"""# Processed China Economic Data
 
 |{% for h in headers %} {{ h }} |{% endfor %}
 |{% for h in headers %}---|{% endfor %}
@@ -152,7 +152,7 @@ Net Exports = Exports - Imports
 ### Physical Capital
 Calculated using PWT data with the following formula:
 ```
-K_t = (rkna_t / rkna_2017) × K_2017 × (pl_gdpo_t / pl_gdpo_2017)
+K_t = (rkna_t / rkna_2017) \times K_2017 \times (pl_gdpo_t / pl_gdpo_2017)
 ```
 Where:
 - $K_t$ is the capital stock in year $t$ (billions USD)
@@ -165,7 +165,7 @@ Where:
 ### TFP (Total Factor Productivity)
 Calculated using the Cobb-Douglas production function:
 ```
-TFP_t = Y_t / (K_t^α × (L_t × H_t)^(1-α))
+TFP_t = Y_t / (K_t^\alpha \times (L_t \times H_t)^(1-\alpha))
 ```
 Where:
 - $Y_t$ is GDP in year $t$ (billions USD)
