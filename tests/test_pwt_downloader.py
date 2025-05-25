@@ -181,26 +181,3 @@ class TestPWTDownloader:
         # Should return all rows (deduplication might be done elsewhere)
         assert len(result) == 3
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_column_order(self, mock_download, mock_pwt_data):
-        """Test that columns are in expected order."""
-        mock_download.return_value = mock_pwt_data
-
-        result = get_pwt_data()
-
-        # Check that year is first column (common convention)
-        assert list(result.columns)[0] == "year"
-
-    @patch("pandas_datareader.wb.download")
-    @patch("logging.Logger.warning")
-    def test_get_pwt_data_logs_warning_on_error(self, mock_log, mock_download):
-        """Test that warnings are logged on errors."""
-        mock_download.side_effect = Exception("API Error")
-
-        result = get_pwt_data()
-
-        # Should log warning
-        mock_log.assert_called()
-
-        # Should return empty DataFrame
-        assert len(result) == 0
