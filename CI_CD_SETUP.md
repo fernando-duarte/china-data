@@ -540,6 +540,202 @@ When using the public data releases, users should cite:
 2. **This processed dataset** with version and release date
 3. **DOI or GitHub release URL** for reproducibility
 
+## ❌ What This Codebase Should NOT Have
+
+### **Important Design Decisions - Excluded Features**
+
+This CI/CD implementation intentionally **excludes** certain common GitHub Actions workflows and features that are not appropriate for this academic data processing pipeline:
+
+#### **🚫 No Scheduled/Cron Triggers**
+```yaml
+# ❌ NOT INCLUDED - No automatic scheduled workflows
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily runs
+    - cron: '0 0 * * 1'  # Weekly runs
+```
+
+**Why excluded:**
+- **Academic timeline:** Research data processing should be intentional, not automatic
+- **Data source dependencies:** External APIs (World Bank, IMF) may have rate limits
+- **Resource conservation:** Avoid unnecessary compute usage for unchanged data
+- **Version control:** Manual releases ensure proper versioning and documentation
+- **Cost control:** Prevents unexpected GitHub Actions minutes consumption
+
+#### **🚫 No External Security Service Integrations**
+```yaml
+# ❌ NOT INCLUDED - No third-party security services
+- name: Snyk Security Scan
+  uses: snyk/actions/python@master
+  
+- name: SonarQube Analysis  
+  uses: sonarqube-quality-gate-action@master
+  
+- name: Veracode Security Scan
+  uses: veracode/veracode-uploadandscan-action@master
+```
+
+**Why excluded:**
+- **Academic budget constraints:** External services often require paid subscriptions
+- **Privacy concerns:** Sensitive economic data should not be sent to third-party services
+- **Sufficient built-in security:** Bandit and dependency scanning provide adequate security
+- **Academic access limitations:** Many external services require enterprise accounts
+- **Data sovereignty:** Research data should remain within institutional control
+
+#### **🚫 No Performance Benchmarking Workflows**
+```yaml
+# ❌ NOT INCLUDED - No performance regression testing
+- name: Performance Benchmarks
+  run: pytest --benchmark-only --benchmark-compare
+  
+- name: Memory Profiling
+  run: python -m memory_profiler china_data_processor.py
+  
+- name: Load Testing
+  uses: loadimpact/k6-action@v0.2.0
+```
+
+**Why excluded:**
+- **Data processing nature:** Performance is data-dependent, not code-dependent
+- **Academic priorities:** Correctness and reproducibility matter more than optimization
+- **Resource intensity:** Benchmarking workflows consume significant compute resources
+- **Limited utility:** Economic data processing doesn't require millisecond optimization
+- **Complexity overhead:** Performance testing adds complexity without academic value
+
+#### **🚫 No Container/Docker Workflows**
+```yaml
+# ❌ NOT INCLUDED - No container building or deployment
+- name: Build Docker Image
+  uses: docker/build-push-action@v4
+  
+- name: Deploy to Container Registry
+  uses: docker/login-action@v2
+```
+
+**Why excluded:**
+- **Python environment sufficiency:** Virtual environments provide adequate isolation
+- **Academic simplicity:** Researchers prefer straightforward Python setup
+- **Resource requirements:** Container workflows require additional infrastructure
+- **Deployment unnecessary:** This is a data processing tool, not a deployed service
+- **Learning curve:** Containers add complexity for academic users
+
+#### **🚫 No Deployment/Infrastructure Workflows**
+```yaml
+# ❌ NOT INCLUDED - No deployment automation
+- name: Deploy to Production
+  uses: azure/webapps-deploy@v2
+  
+- name: Infrastructure as Code
+  uses: hashicorp/terraform-github-actions@v0.8
+  
+- name: Kubernetes Deployment
+  uses: azure/k8s-deploy@v1
+```
+
+**Why excluded:**
+- **No deployment target:** Data processing pipeline doesn't require hosted deployment
+- **Academic use case:** Researchers run locally or on their own infrastructure
+- **Complexity mismatch:** Infrastructure workflows inappropriate for research tools
+- **Cost implications:** Cloud deployments involve ongoing costs
+- **Security concerns:** Academic data should not be automatically deployed to cloud
+
+#### **🚫 No External Notification Services**
+```yaml
+# ❌ NOT INCLUDED - No external messaging integration
+- name: Slack Notification
+  uses: 8398a7/action-slack@v3
+  
+- name: Teams Notification
+  uses: skitionek/notify-microsoft-teams@master
+  
+- name: Discord Notification
+  uses: Ilshidur/action-discord@master
+```
+
+**Why excluded:**
+- **GitHub notifications sufficient:** Built-in email notifications work for academic teams
+- **Privacy considerations:** Academic work should not require external messaging services
+- **Service dependencies:** External services may become unavailable or change APIs
+- **Professional boundaries:** Academic work should use institutional communication channels
+- **Additional complexity:** External notifications add configuration overhead
+
+#### **🚫 No Database Migration or Schema Workflows**
+```yaml
+# ❌ NOT INCLUDED - No database automation
+- name: Database Migration
+  run: python manage.py migrate
+  
+- name: Schema Validation
+  uses: liquibase/liquibase-github-action@v7
+```
+
+**Why excluded:**
+- **File-based data:** Economic data is processed as files, not stored in databases
+- **Simplicity preferred:** File-based approach is more accessible to researchers
+- **No persistent infrastructure:** Data processing doesn't require database management
+- **Academic accessibility:** Researchers can work with CSV/Excel files directly
+
+#### **🚫 No Multi-Environment Deployment Pipelines**
+```yaml
+# ❌ NOT INCLUDED - No environment promotion
+- name: Deploy to Staging
+  if: github.ref == 'refs/heads/develop'
+  
+- name: Deploy to Production  
+  if: github.ref == 'refs/heads/main'
+  
+- name: Smoke Tests
+  run: curl -f https://staging.example.com/health
+```
+
+**Why excluded:**
+- **Single environment use:** Academic data processing runs in researcher's local environment
+- **No staging needed:** Data processing doesn't require staged deployment testing
+- **Resource efficiency:** Multiple environments would waste computational resources
+- **Academic workflow:** Research follows different patterns than software deployment
+
+#### **🚫 No External Code Quality Services**
+```yaml
+# ❌ NOT INCLUDED - No third-party code analysis
+- name: CodeClimate Analysis
+  uses: paambaati/codeclimate-action@v3.0.0
+  
+- name: Codacy Analysis
+  uses: codacy/codacy-analysis-cli-action@master
+  
+- name: DeepCode Analysis
+  uses: DeepCodeAI/action@master
+```
+
+**Why excluded:**
+- **Built-in tools sufficient:** Black, flake8, pylint, mypy provide comprehensive analysis
+- **Academic budget:** External services often require paid subscriptions
+- **Data privacy:** Academic code should not be sent to third-party analysis services
+- **Tool proliferation:** Too many tools create notification fatigue
+- **Educational value:** Researchers learn more from direct tool feedback
+
+### **🎯 Design Philosophy**
+
+This CI/CD implementation follows **academic research principles**:
+
+1. **Simplicity over complexity** - Easy for researchers to understand and modify
+2. **Privacy-first** - No external services that could access research data
+3. **Cost-conscious** - Minimal resource usage appropriate for academic budgets
+4. **Educational** - Uses standard tools that teach transferable skills
+5. **Reproducible** - Focus on correctness and documentation over optimization
+6. **Accessible** - Works in typical academic computing environments
+
+### **✅ What We DO Include (By Design)**
+
+- **Manual triggers** instead of automatic scheduling
+- **Built-in security tools** instead of external services
+- **File-based processing** instead of database complexity
+- **Local development focus** instead of cloud deployment
+- **GitHub-native features** instead of external integrations
+- **Educational tools** that researchers can understand and learn from
+
+This approach ensures the CI/CD pipeline serves the **specific needs of academic research** rather than following generic software development patterns that may be inappropriate for this use case.
+
 ## Current Status
 
 ### ✅ Fully Operational Workflows
