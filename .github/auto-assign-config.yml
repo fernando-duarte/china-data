@@ -1,0 +1,15 @@
+# Set to true to add assignees to pull requests
+addAssignees: true
+
+# A list of assignees, split into different groups
+assignees:
+  - fernandoduarte
+
+# A number of assignees to add to the pull request
+# Set to 0 to add all of the assignees.
+numberOfAssignees: 1
+
+# A list of keywords to be skipped if present in a pull request title 
+# (case insensitive)
+skipKeywords:
+  - wip 
