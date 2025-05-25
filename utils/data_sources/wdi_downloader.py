@@ -51,7 +51,7 @@ def download_wdi_data(
             reader.timeout = Config.REQUEST_TIMEOUT_SECONDS
             raw_data = reader.read()
             reader.close()
-            
+
             # Convert to DataFrame explicitly
             data = pd.DataFrame(raw_data) if raw_data is not None else pd.DataFrame()
 
