@@ -158,7 +158,8 @@ Where:
 - $K_t$ is the capital stock in year $t$ (billions USD)
 - $rkna_t$ is the real capital stock index in year $t$ (from PWT)
 - $rkna_{2017}$ is the real capital stock index in 2017 (from PWT)
-- $K_{2017}$ is the nominal capital stock in 2017, estimated as $GDP_{2017} \times$ {{ capital_output_ratio }} (capital-output ratio)
+- $K_{2017}$ is the nominal capital stock in 2017, estimated as
+  $GDP_{2017} \times$ {{ capital_output_ratio }} (capital-output ratio)
 - $pl\_gdpo_t$ is the price level of GDP in year $t$ (from PWT)
 - $pl\_gdpo_{2017}$ is the price level of GDP in 2017 (from PWT)
 

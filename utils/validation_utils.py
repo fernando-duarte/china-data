@@ -68,7 +68,10 @@ def validate_numeric_values(
         invalid_values = series_to_validate[series_to_validate < min_value]
         raise DataValidationError(
             column=column,
-            message=f"Values in column '{column}' are below minimum {min_value}. Found: {invalid_values.head().tolist()}",
+            message=(
+                f"Values in column '{column}' are below minimum {min_value}. "
+                f"Found: {invalid_values.head().tolist()}"
+            ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
 
@@ -76,7 +79,10 @@ def validate_numeric_values(
         invalid_values = series_to_validate[series_to_validate > max_value]
         raise DataValidationError(
             column=column,
-            message=f"Values in column '{column}' are above maximum {max_value}. Found: {invalid_values.head().tolist()}",
+            message=(
+                f"Values in column '{column}' are above maximum {max_value}. "
+                f"Found: {invalid_values.head().tolist()}"
+            ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
 

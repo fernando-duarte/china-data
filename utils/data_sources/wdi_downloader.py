@@ -51,7 +51,7 @@ def download_wdi_data(
             reader.timeout = Config.REQUEST_TIMEOUT_SECONDS
             raw_data = reader.read()
             reader.close()
-            
+
             # Convert to DataFrame explicitly
             data = pd.DataFrame(raw_data) if raw_data is not None else pd.DataFrame()
 
@@ -88,11 +88,13 @@ def download_wdi_data(
             wdi_rules = {indicator_code_db_col: INDICATOR_VALIDATION_RULES.get(indicator_code_db_col, {})}
             validate_dataframe_with_rules(data, rules=wdi_rules, year_column="year")
 
-            # Now rename to the friendly name from Config.WDI_INDICATORS for the final DataFrame structure expected by the downloader script
+            # Now rename to the friendly name from Config.WDI_INDICATORS for
+            # the final DataFrame structure expected by the downloader script
             # This step is done in china_data_downloader.py after this function returns.
             # The current function should return data with `indicator_code_db_col` as the indicator column.
             logger.info(
-                f"Successfully downloaded and validated {indicator_code} (as {indicator_code_db_col}) data with {len(data)} rows"
+                f"Successfully downloaded and validated {indicator_code} "
+                f"(as {indicator_code_db_col}) data with {len(data)} rows"
             )
             return data
 

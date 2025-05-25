@@ -28,7 +28,11 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
         )
 
     if not content.strip():
-        raise DataValidationError(column="fallback_file", message="Fallback file is empty", data_info=f"File: {file_path}")
+        raise DataValidationError(
+            column="fallback_file",
+            message="Fallback file is empty",
+            data_info=f"File: {file_path}",
+        )
 
     lines = content.split("\n")
     table_start = None
@@ -79,7 +83,9 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
 
     if not data:
         raise DataValidationError(
-            column="fallback_file", message="No valid data rows found in fallback file", data_info=f"Parse errors: {len(parse_errors)}"
+            column="fallback_file",
+            message="No valid data rows found in fallback file",
+            data_info=f"Parse errors: {len(parse_errors)}",
         )
 
     return pd.DataFrame(data, columns=headers)
@@ -107,13 +113,17 @@ def _convert_to_numeric(df: pd.DataFrame) -> pd.DataFrame:
     # Validate Year column
     if "Year" not in df.columns:
         raise DataValidationError(
-            column="Year", message="Year column missing from fallback data", data_info=f"Available columns: {list(df.columns)}"
+            column="Year",
+            message="Year column missing from fallback data",
+            data_info=f"Available columns: {list(df.columns)}",
         )
 
     valid_years = df["Year"].dropna()
     if len(valid_years) == 0:
         raise DataValidationError(
-            column="Year", message="No valid years found in fallback data", data_info=f"Year column values: {df['Year'].head().tolist()}"
+            column="Year",
+            message="No valid years found in fallback data",
+            data_info=f"Year column values: {df['Year'].head().tolist()}",
         )
 
     return df
@@ -145,20 +155,34 @@ def _split_into_indicators(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
 
     # Tax data
     if "Tax Revenue (% of GDP)" in df.columns:
-        tax_df = df[["Year", "Tax Revenue (% of GDP)"]].rename(columns={"Year": "year", "Tax Revenue (% of GDP)": "TAX_pct_GDP"}).dropna()
+        tax_df = (
+            df[["Year", "Tax Revenue (% of GDP)"]]
+            .rename(columns={"Year": "year", "Tax Revenue (% of GDP)": "TAX_pct_GDP"})
+            .dropna()
+        )
         if len(tax_df) > 0:
             result["TAX_pct_GDP"] = tax_df
             logger.debug(f"Loaded {len(tax_df)} rows for TAX_pct_GDP from fallback")
 
     # PWT data processing
     pwt_cols = ["PWT rgdpo", "PWT rkna", "PWT pl_gdpo", "PWT cgdpo", "PWT hc"]
-    pwt_rename_map = {"PWT rgdpo": "rgdpo", "PWT rkna": "rkna", "PWT pl_gdpo": "pl_gdpo", "PWT cgdpo": "cgdpo", "PWT hc": "hc"}
+    pwt_rename_map = {
+        "PWT rgdpo": "rgdpo",
+        "PWT rkna": "rkna",
+        "PWT pl_gdpo": "pl_gdpo",
+        "PWT cgdpo": "cgdpo",
+        "PWT hc": "hc",
+    }
 
     pwt_available = [col for col in pwt_cols if col in df.columns]
     if pwt_available:
         cols_to_select = ["Year"] + pwt_available
         rename_dict = {k: v for k, v in pwt_rename_map.items() if k in cols_to_select}
-        pwt_df = df[cols_to_select].rename(columns=rename_dict).dropna(subset=[rename_dict[c] for c in pwt_available], how="all")
+        pwt_df = (
+            df[cols_to_select]
+            .rename(columns=rename_dict)
+            .dropna(subset=[rename_dict[c] for c in pwt_available], how="all")
+        )
         if len(pwt_df) > 0:
             result["PWT"] = pwt_df
             logger.debug(f"Loaded {len(pwt_df)} rows for PWT from fallback")
@@ -210,7 +234,15 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
     except (FileOperationError, DataValidationError):
         raise
     except Exception as e:
-        log_error_with_context(logger, "Unexpected error loading fallback data", e, context={"fallback_file": fallback_file})
+        log_error_with_context(
+            logger,
+            "Unexpected error loading fallback data",
+            e,
+            context={"fallback_file": fallback_file},
+        )
         raise FileOperationError(
-            operation="parse", filepath=str(fallback_file), message="Unexpected error during fallback data parsing", original_error=e
+            operation="parse",
+            filepath=str(fallback_file),
+            message="Unexpected error during fallback data parsing",
+            original_error=e,
         )
