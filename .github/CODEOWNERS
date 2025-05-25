@@ -2,7 +2,7 @@
 # Format: pattern    owner
 
 # Default owner for everything in the repo
-*       @fernandoduarte
+*       @fernando-duarte
 
 # Data processing and downloading scripts
 china_data_*.py    @data-team-lead @data-scientists-username

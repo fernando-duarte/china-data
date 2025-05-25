@@ -81,6 +81,18 @@ This document tracks all violations found during the codebase assessment against
 - [ ] **Update README.md** - Reflect any changes made during violation fixes
 - [ ] **Add missing docstrings** - Ensure all functions have complete documentation
 - [ ] **Update module docstrings** - Reflect current implementation state
+- [ ] **Missing Module Docstrings** - The following modules lack a module-level docstring:
+    - `utils/caching_utils.py`
+    - `utils/markdown_utils.py`
+    - `utils/processor_extrapolation.py`
+    - `utils/processor_load.py`
+- [ ] **Missing Test Function Docstrings** - Some test functions have no docstring explaining their purpose (e.g. `tests/test_downloader.py`)
+- [ ] **Print Statements Used for Error Reporting** - Replace print statements in `utils/processor_cli.py` (lines 45-47) with proper logging
+- [ ] **Magic Constants Not Centralized** - Replace hard-coded numeric defaults with references to `config.py`:
+    - `timeout=30` in `utils/data_sources/pwt_downloader.py`
+    - Default values `1/3`, `3.0`, and `2025` in `utils/processor_cli.py`
+- [ ] **Duplicate Column Mappings** - Consolidate `column_mapping` in `utils/markdown_utils.py` to use `Config.OUTPUT_COLUMN_MAP`
+- [ ] **Mypy Not Configured in Strict Mode** - Enable strict type checking in `pyproject.toml` (`disallow_untyped_defs = true`) and include tests
 
 ## 🟢 LOW PRIORITY - Nice to Have
 
