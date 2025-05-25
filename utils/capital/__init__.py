@@ -6,11 +6,11 @@ capital stock data for economic analysis.
 """
 
 from utils.capital.calculation import calculate_capital_stock
-from utils.capital.projection import project_capital_stock
 from utils.capital.investment import calculate_investment
+from utils.capital.projection import project_capital_stock
 
 __all__ = [
-    'calculate_capital_stock',
-    'project_capital_stock',
-    'calculate_investment',
+    "calculate_capital_stock",
+    "project_capital_stock",
+    "calculate_investment",
 ]

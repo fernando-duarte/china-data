@@ -1,8 +1,9 @@
+import hashlib
 import logging
 import os
-import hashlib
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
 
 # Import required modules using new import structure
 from utils import find_file
@@ -11,7 +12,7 @@ from utils.path_constants import get_search_locations_relative_to_root
 logger = logging.getLogger(__name__)
 
 
-def check_and_update_hash():
+def check_and_update_hash() -> bool:
     """
     Check if the IMF CSV file hash has changed and update the download_date.txt file if necessary.
 
@@ -37,7 +38,7 @@ def check_and_update_hash():
     date_file = find_file("download_date.txt", possible_locations_relative)
 
     # Calculate the current hash of the IMF file
-    with open(imf_file, 'rb') as f:
+    with open(imf_file, "rb") as f:
         current_hash = hashlib.sha256(f.read()).hexdigest()
 
     # Check if we need to update the hash
@@ -46,17 +47,17 @@ def check_and_update_hash():
         # Read the current metadata
         metadata = {}
         try:
-            with open(date_file, 'r') as f:
+            with open(date_file, "r") as f:
                 lines = f.readlines()
 
             for line in lines:
                 line = line.strip()
-                if line and ':' in line:
-                    key, value = line.split(':', 1)
+                if line and ":" in line:
+                    key, value = line.split(":", 1)
                     metadata[key.strip()] = value.strip()
 
             # Check if the hash has changed
-            if 'hash' in metadata and metadata['hash'] == current_hash:
+            if "hash" in metadata and metadata["hash"] == current_hash:
                 hash_changed = False
                 logger.info("IMF file hash unchanged, no need to update download_date.txt")
         except Exception as e:
@@ -65,12 +66,12 @@ def check_and_update_hash():
     # Update the download_date.txt file if the hash has changed
     if hash_changed:
         logger.info("IMF file hash has changed, updating download_date.txt")
-        today = datetime.today().strftime('%Y-%m-%d')
+        today = datetime.today().strftime("%Y-%m-%d")
 
         # Create the new content
         content = f"download_date: {today}\n"
         content += f"file: {imf_filename}\n"
-        content += f"hash_algorithm: SHA-256\n"
+        content += "hash_algorithm: SHA-256\n"
         content += f"hash: {current_hash}\n"
 
         # Determine where to save the file
@@ -83,7 +84,7 @@ def check_and_update_hash():
 
         # Write the new content
         try:
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 f.write(content)
             logger.info(f"Updated download_date.txt at {output_path}")
             return True
@@ -94,7 +95,7 @@ def check_and_update_hash():
     return False
 
 
-def load_imf_tax_data():
+def load_imf_tax_data() -> pd.DataFrame:
     """
     Load IMF Fiscal Monitor tax revenue data for China.
 
@@ -116,12 +117,12 @@ def load_imf_tax_data():
     if imf_file:
         logger.info("Found IMF Fiscal Monitor file at: %s", imf_file)
         df = pd.read_csv(imf_file)
-        df = df[(df['COUNTRY'] == 'CHN') & (df['FREQUENCY'] == 'A') & (df['INDICATOR'] == 'G1_S13_POGDP_PT')]
-        tax_data = df[['TIME_PERIOD', 'OBS_VALUE']].rename(columns={'TIME_PERIOD': 'year', 'OBS_VALUE': 'TAX_pct_GDP'})
-        tax_data['year'] = tax_data['year'].astype(int)
-        tax_data['TAX_pct_GDP'] = pd.to_numeric(tax_data['TAX_pct_GDP'], errors='coerce')
+        df = df[(df["COUNTRY"] == "CHN") & (df["FREQUENCY"] == "A") & (df["INDICATOR"] == "G1_S13_POGDP_PT")]
+        tax_data = df[["TIME_PERIOD", "OBS_VALUE"]].rename(columns={"TIME_PERIOD": "year", "OBS_VALUE": "TAX_pct_GDP"})
+        tax_data["year"] = tax_data["year"].astype(int)
+        tax_data["TAX_pct_GDP"] = pd.to_numeric(tax_data["TAX_pct_GDP"], errors="coerce")
         return tax_data
     else:
         logger.error("IMF Fiscal Monitor file not found in any of the expected locations")
         # Return an empty DataFrame with the expected columns
-        return pd.DataFrame(columns=['year', 'TAX_pct_GDP'])
+        return pd.DataFrame(columns=["year", "TAX_pct_GDP"])

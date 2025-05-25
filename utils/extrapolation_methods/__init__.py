@@ -10,11 +10,7 @@ Each method is implemented in its own module and can be imported separately.
 """
 
 from utils.extrapolation_methods.arima import extrapolate_with_arima
-from utils.extrapolation_methods.linear_regression import extrapolate_with_linear_regression
 from utils.extrapolation_methods.average_growth_rate import extrapolate_with_average_growth_rate
+from utils.extrapolation_methods.linear_regression import extrapolate_with_linear_regression
 
-__all__ = [
-    'extrapolate_with_arima',
-    'extrapolate_with_linear_regression',
-    'extrapolate_with_average_growth_rate'
-]
+__all__ = ["extrapolate_with_arima", "extrapolate_with_linear_regression", "extrapolate_with_average_growth_rate"]

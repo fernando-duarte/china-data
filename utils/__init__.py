@@ -10,10 +10,10 @@ The utilities handle the project's directory structure where the project root
 contains the main scripts, utils/, tests/, input/, and output/ directories.
 """
 
-import os
 import logging
+import os
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +21,11 @@ logger = logging.getLogger(__name__)
 def get_project_root() -> str:
     """
     Get the project root directory.
-    
-    Since the current directory structure is the project root 
-    (what used to be inside the china_data folder), we can 
+
+    Since the current directory structure is the project root
+    (what used to be inside the china_data folder), we can
     simply use the directory containing this utils module.
-    
+
     Returns:
         str: Path to the project root directory
     """
@@ -50,6 +50,7 @@ def find_file(filename: str, possible_locations_relative_to_root: Optional[List[
 
     if possible_locations_relative_to_root is None:
         from utils.path_constants import get_search_locations_relative_to_root
+
         search_locations_relative = get_search_locations_relative_to_root()["general"]
     else:
         search_locations_relative = possible_locations_relative_to_root
@@ -86,7 +87,7 @@ def ensure_directory(directory: str) -> str:
 def get_output_directory() -> str:
     """
     Get the path to the output directory, ensuring it exists.
-    
+
     Since the project root is now the current directory,
     the output directory is simply ./output from the project root.
 
@@ -96,6 +97,6 @@ def get_output_directory() -> str:
     # Simple path to output directory from project root
     project_root = get_project_root()
     output_dir = os.path.join(project_root, "output")
-    
+
     # Ensure the directory exists
     return ensure_directory(output_dir)

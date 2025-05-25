@@ -1,10 +1,12 @@
-import pandas as pd
-import numpy as np
 import logging
+from typing import Any, List
+
+import numpy as np
+import pandas as pd
 
 from utils import find_file
-from utils.path_constants import get_search_locations_relative_to_root
 from utils.data_sources.imf_loader import load_imf_tax_data
+from utils.path_constants import get_search_locations_relative_to_root
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +31,9 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     md_file = find_file(input_file, possible_locations_relative)
 
     if md_file is None:
-        raise FileNotFoundError(
-            f"Raw data file not found: {input_file} in any of the expected locations.")
+        raise FileNotFoundError(f"Raw data file not found: {input_file} in any of the expected locations.")
 
-    with open(md_file, 'r') as f:
+    with open(md_file, "r") as f:
         lines = f.readlines()
 
     # Print the first 20 lines to debug
@@ -52,32 +53,32 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
 
     header_line = lines[header_idx].strip()
     # Clean up header line by removing leading/trailing |
-    if header_line.startswith('|'):
+    if header_line.startswith("|"):
         header_line = header_line[1:]
-    if header_line.endswith('|'):
+    if header_line.endswith("|"):
         header_line = header_line[:-1]
 
     # Split by | and strip whitespace
-    header = [h.strip() for h in header_line.split('|') if h.strip()]
+    header = [h.strip() for h in header_line.split("|") if h.strip()]
     print(f"Parsed header columns: {header}")
 
     mapping = {
-        'Year': 'year',
-        'GDP (USD)': 'GDP_USD',
-        'Consumption (USD)': 'C_USD',
-        'Government (USD)': 'G_USD',
-        'Investment (USD)': 'I_USD',
-        'Exports (USD)': 'X_USD',
-        'Imports (USD)': 'M_USD',
-        'FDI (% of GDP)': 'FDI_pct_GDP',
-        'Tax Revenue (% of GDP)': 'TAX_pct_GDP',
-        'Population': 'POP',
-        'Labor Force': 'LF',
-        'PWT rgdpo': 'rgdpo',
-        'PWT rkna': 'rkna',
-        'PWT pl_gdpo': 'pl_gdpo',
-        'PWT cgdpo': 'cgdpo',
-        'PWT hc': 'hc'
+        "Year": "year",
+        "GDP (USD)": "GDP_USD",
+        "Consumption (USD)": "C_USD",
+        "Government (USD)": "G_USD",
+        "Investment (USD)": "I_USD",
+        "Exports (USD)": "X_USD",
+        "Imports (USD)": "M_USD",
+        "FDI (% of GDP)": "FDI_pct_GDP",
+        "Tax Revenue (% of GDP)": "TAX_pct_GDP",
+        "Population": "POP",
+        "Labor Force": "LF",
+        "PWT rgdpo": "rgdpo",
+        "PWT rkna": "rkna",
+        "PWT pl_gdpo": "pl_gdpo",
+        "PWT cgdpo": "cgdpo",
+        "PWT hc": "hc",
     }
 
     # Print all available columns and their mappings
@@ -90,22 +91,22 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     data = []
     for i in range(data_start_idx, len(lines)):
         line = lines[i].strip()
-        if not line or line.startswith('**Notes'):
+        if not line or line.startswith("**Notes"):
             break
-        row = [c.strip() for c in line.split('|') if c.strip()]
+        row = [c.strip() for c in line.split("|") if c.strip()]
         if len(row) == len(header):
-            processed = []
+            processed: List[Any] = []
             for j, value in enumerate(row):
                 if j == 0:
                     processed.append(int(value))
-                elif value == 'N/A':
+                elif value == "N/A":
                     processed.append(np.nan)
-                elif renamed[j] in ['FDI_pct_GDP', 'TAX_pct_GDP']:
-                    processed.append(float(value) if value != 'N/A' else np.nan)
-                elif renamed[j] in ['POP', 'LF']:
-                    processed.append(int(value.replace(',', '')) if value != 'N/A' else np.nan)
+                elif renamed[j] in ["FDI_pct_GDP", "TAX_pct_GDP"]:
+                    processed.append(float(value) if value != "N/A" else np.nan)
+                elif renamed[j] in ["POP", "LF"]:
+                    processed.append(float(value.replace(",", "")) if value != "N/A" else np.nan)
                 else:
-                    processed.append(float(value) if value != 'N/A' else np.nan)
+                    processed.append(float(value) if value != "N/A" else np.nan)
             data.append(processed)
     return pd.DataFrame(data, columns=renamed)
 
@@ -120,4 +121,3 @@ def load_imf_tax_revenue_data() -> pd.DataFrame:
     """
     # Use the dedicated IMF loader module
     return load_imf_tax_data()
-

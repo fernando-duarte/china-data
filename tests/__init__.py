@@ -1,1 +1,1 @@
-"""Tests package for china_data project.""" 
+"""Tests package for china_data project."""

@@ -40,7 +40,14 @@ The package relies on several Python libraries:
 - jinja2: Template engine for markdown generation
 - openpyxl: Excel file support
 - requests: HTTP library for downloading data
-- pytest: Testing framework (for development)
+
+Development dependencies include:
+- pytest: Testing framework
+- black: Code formatter
+- isort: Import sorter
+- flake8: Linting tool
+- pylint: Advanced linting
+- mypy: Type checking
 
 ### Setup Script Options
 
@@ -71,6 +78,58 @@ Example:
 ```bash
 ./setup.sh -a=0.4 -k=2.5 -o=custom_output --end-year=2030
 ```
+
+## Development Tools
+
+### Using the Makefile
+
+The project includes a Makefile for common development tasks:
+
+```bash
+make help          # Show available commands
+make install       # Install production dependencies
+make install-dev   # Install development dependencies
+make format        # Format code with black and isort
+make lint          # Run linting checks
+make test          # Run tests
+make clean         # Clean up generated files
+make run-download  # Download raw data
+make run-process   # Process downloaded data
+```
+
+### Code Quality
+
+The project maintains high code quality standards:
+
+- **Formatting**: Code is automatically formatted using `black` with a 120-character line limit
+- **Import Organization**: Imports are sorted using `isort` with black-compatible settings
+- **Linting**: Code is checked with `flake8` and `pylint` for style and potential issues
+- **Type Checking**: Optional type checking with `mypy` for better code reliability
+- **Testing**: Comprehensive test suite with pytest
+
+Configuration files:
+- `.flake8`: Linting rules and exclusions
+- `pyproject.toml`: Configuration for black, isort, pytest, and mypy
+- `config.py`: Centralized configuration for all project settings
+
+### Configuration System
+
+All project settings are centralized in `config.py`:
+
+```python
+from config import Config
+
+# Access configuration values
+alpha = Config.DEFAULT_ALPHA
+output_dir = Config.get_output_directory()
+column_map = Config.OUTPUT_COLUMN_MAP
+```
+
+This ensures:
+- Single source of truth for all settings
+- Easy modification of parameters
+- Consistent behavior across modules
+- No hardcoded values scattered throughout the codebase
 
 ## Manual Setup
 
@@ -142,6 +201,12 @@ There are several ways to run the automated tests:
     ```bash
     ./setup.sh --test
     ```
+
+### Using the Makefile
+
+```bash
+make test
+```
 
 ### Manual Test Execution
 
@@ -258,14 +323,18 @@ The data processing pipeline consists of several stages:
 china_data/
 ├── china_data_downloader.py    # Main script for downloading raw data
 ├── china_data_processor.py      # Main script for processing data
+├── config.py                    # Centralized configuration
 ├── setup.sh                     # Setup and run script
+├── Makefile                     # Development tasks automation
 ├── requirements.txt             # Python dependencies
 ├── dev-requirements.txt         # Development dependencies
+├── .flake8                      # Linting configuration
+├── pyproject.toml               # Tool configurations
 ├── input/                       # Pre-downloaded data files (IMF)
 ├── output/                      # Generated output files
 ├── tests/                       # Test suite
 │   ├── test_downloader.py       # Tests for data downloading
-│   ├── test_processor.py        # Tests for data processing
+│   ├── test_processor_*.py      # Tests for data processing modules
 │   ├── test_dataframe_ops.py    # Tests for dataframe operations
 │   ├── test_utils.py            # Tests for utility functions
 │   └── data_integrity/          # Data integrity tests
@@ -288,6 +357,28 @@ china_data/
     │   └── output_operations.py # Output formatting
     └── [various processor modules] # Processing utilities
 ```
+
+## Code Quality Standards
+
+The project follows strict code quality standards:
+
+### File Organization
+- No file exceeds 200 lines of code for maintainability
+- Related functionality is grouped into modules
+- Clear separation of concerns between modules
+
+### Code Style
+- Consistent formatting enforced by black
+- Import organization managed by isort
+- Comprehensive docstrings for all functions and classes
+- Type hints where appropriate
+
+### Best Practices
+- Single source of truth for configuration
+- No hardcoded values
+- Comprehensive error handling
+- Extensive logging for debugging
+- Modular design for easy testing and maintenance
 
 ## Usage Examples
 

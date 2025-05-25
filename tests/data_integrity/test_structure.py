@@ -15,9 +15,22 @@ from datetime import datetime
 from utils.path_constants import get_absolute_output_path
 
 EXPECTED_COLS = [
-    "year", "GDP_USD", "C_USD", "G_USD", "I_USD", "X_USD", "M_USD",
-    "FDI_pct_GDP", "POP", "LF", "TAX_pct_GDP",
-    "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"
+    "year",
+    "GDP_USD",
+    "C_USD",
+    "G_USD",
+    "I_USD",
+    "X_USD",
+    "M_USD",
+    "FDI_pct_GDP",
+    "POP",
+    "LF",
+    "TAX_pct_GDP",
+    "rgdpo",
+    "rkna",
+    "pl_gdpo",
+    "cgdpo",
+    "hc",
 ]
 
 

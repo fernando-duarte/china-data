@@ -12,19 +12,24 @@ OUTPUT_DIR_NAME = "output"
 
 # Path utility functions
 
+
 def get_absolute_input_path() -> str:
     """
     Get the absolute path to the input directory (project_root/input).
     """
     from utils import get_project_root
+
     return os.path.join(get_project_root(), INPUT_DIR_NAME)
+
 
 def get_absolute_output_path() -> str:
     """
     Get the absolute path to the output directory (project_root/output).
     """
     from utils import get_project_root
+
     return os.path.join(get_project_root(), OUTPUT_DIR_NAME)
+
 
 # Common file paths relative to project root for searching
 def get_search_locations_relative_to_root() -> Dict[str, List[str]]:
@@ -44,5 +49,5 @@ def get_search_locations_relative_to_root() -> Dict[str, List[str]]:
             INPUT_DIR_NAME,
             OUTPUT_DIR_NAME,
             "",  # project root itself
-        ]
+        ],
     }

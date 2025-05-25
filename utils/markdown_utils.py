@@ -1,5 +1,5 @@
-from jinja2 import Template
 import pandas as pd
+from jinja2 import Template
 
 
 def render_markdown_table(merged_data, wdi_date=None, pwt_date=None, imf_date=None):
@@ -17,41 +17,40 @@ def render_markdown_table(merged_data, wdi_date=None, pwt_date=None, imf_date=No
     """
     display_data = merged_data.copy()
     column_mapping = {
-        'year': 'Year',
-        'GDP_USD': 'GDP (USD)',
-        'C_USD': 'Consumption (USD)',
-        'G_USD': 'Government (USD)',
-        'I_USD': 'Investment (USD)',
-        'X_USD': 'Exports (USD)',
-        'M_USD': 'Imports (USD)',
-        'FDI_pct_GDP': 'FDI (% of GDP)',
-        'TAX_pct_GDP': 'Tax Revenue (% of GDP)',
-        'POP': 'Population',
-        'LF': 'Labor Force',
-        'rgdpo': 'PWT rgdpo',
-        'rkna': 'PWT rkna',
-        'pl_gdpo': 'PWT pl_gdpo',
-        'cgdpo': 'PWT cgdpo',
-        'hc': 'PWT hc'
+        "year": "Year",
+        "GDP_USD": "GDP (USD)",
+        "C_USD": "Consumption (USD)",
+        "G_USD": "Government (USD)",
+        "I_USD": "Investment (USD)",
+        "X_USD": "Exports (USD)",
+        "M_USD": "Imports (USD)",
+        "FDI_pct_GDP": "FDI (% of GDP)",
+        "TAX_pct_GDP": "Tax Revenue (% of GDP)",
+        "POP": "Population",
+        "LF": "Labor Force",
+        "rgdpo": "PWT rgdpo",
+        "rkna": "PWT rkna",
+        "pl_gdpo": "PWT pl_gdpo",
+        "cgdpo": "PWT cgdpo",
+        "hc": "PWT hc",
     }
     display_data = display_data.rename(columns=column_mapping)
 
     for col in display_data.columns:
-        if col == 'Year':
+        if col == "Year":
             display_data[col] = display_data[col].astype(int)
-        elif col in ['Population', 'Labor Force']:
-            display_data[col] = display_data[col].apply(
-                lambda x: f"{x:,.0f}" if not pd.isna(x) else 'N/A')
+        elif col in ["Population", "Labor Force"]:
+            display_data[col] = display_data[col].apply(lambda x: f"{x:,.0f}" if not pd.isna(x) else "N/A")
         else:
-            display_data[col] = display_data[col].apply(
-                lambda x: f"{x:.2f}" if not pd.isna(x) else 'N/A')
+            display_data[col] = display_data[col].apply(lambda x: f"{x:.2f}" if not pd.isna(x) else "N/A")
 
     headers = list(display_data.columns)
     rows = display_data.values.tolist()
 
     # No default dates - we'll only include dates in the markdown if they're provided
 
-    template = Template('''# China Economic Data
+    template = Template(
+        """# China Economic Data
 
 Data sources:
 - World Bank World Development Indicators (WDI)
@@ -77,8 +76,14 @@ Data sources:
 - PWT hc: Human capital index, based on years of schooling and returns to education
 
 Sources:
-- World Bank WDI data: World Development Indicators, The World Bank. Available at https://databank.worldbank.org/source/world-development-indicators. {% if wdi_date %}Accessed on {{ wdi_date }}.{% endif %}
-- PWT data: Feenstra, Robert C., Robert Inklaar and Marcel P. Timmer (2015), "The Next Generation of the Penn World Table" American Economic Review, 105(10), 3150-3182. Available at https://www.ggdc.net/pwt. {% if pwt_date %}Accessed on {{ pwt_date }}.{% endif %}
-- International Monetary Fund. Fiscal Monitor (FM),  https://data.imf.org/en/datasets/IMF.FAD:FM. {% if imf_date %}Accessed on {{ imf_date }}.{% endif %}
-''')
+- World Bank WDI data: World Development Indicators, The World Bank. Available at
+  https://databank.worldbank.org/source/world-development-indicators.
+  {% if wdi_date %}Accessed on {{ wdi_date }}.{% endif %}
+- PWT data: Feenstra, Robert C., Robert Inklaar and Marcel P. Timmer (2015),
+  "The Next Generation of the Penn World Table" American Economic Review, 105(10), 3150-3182.
+  Available at https://www.ggdc.net/pwt. {% if pwt_date %}Accessed on {{ pwt_date }}.{% endif %}
+- International Monetary Fund. Fiscal Monitor (FM), https://data.imf.org/en/datasets/IMF.FAD:FM.
+  {% if imf_date %}Accessed on {{ imf_date }}.{% endif %}
+"""
+    )
     return template.render(headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date)
