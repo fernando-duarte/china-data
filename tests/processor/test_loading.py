@@ -1,9 +1,6 @@
 """Tests for data loading functionality."""
 
 import os
-from unittest import mock
-
-import pandas as pd
 import pytest
 
 from utils.processor_load import load_raw_data

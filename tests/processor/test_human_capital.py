@@ -1,6 +1,5 @@
 """Tests for human capital projection."""
 
-from unittest import mock
 
 import numpy as np
 import pandas as pd

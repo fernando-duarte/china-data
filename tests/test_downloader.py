@@ -7,12 +7,6 @@ This module tests the data downloading functionality including:
 - Data format validation
 """
 
-import builtins
-import io
-import os
-import types
-from unittest import mock
-
 import pandas as pd
 import pytest
 
