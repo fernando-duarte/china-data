@@ -180,4 +180,3 @@ class TestPWTDownloader:
 
         # Should return all rows (deduplication might be done elsewhere)
         assert len(result) == 3
-

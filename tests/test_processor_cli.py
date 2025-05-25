@@ -180,4 +180,3 @@ class TestProcessorCLI:
         with patch.object(sys, "argv", ["prog", "-k", "2.5"]):
             args = parse_arguments()
             assert args.capital_output_ratio == 2.5
-
