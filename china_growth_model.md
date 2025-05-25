@@ -184,9 +184,7 @@ where $f(\text{spillovers}_t)$ captures the effect of trade openness, foreign di
 The exogenous variables are based on historical data from the World Bank World Development Indicators, Penn World Table 10.01, and IMF Fiscal Monitor. The foreign income index ($Y^*_t$) represents an index of world GDP growth relative to 1980. Government spending and tax revenue show China's dramatic fiscal expansion over the reform period.
 
 
-## Calibration
-Calibrated Parameters (5% Target):
-
+## Alternative Calibration
 alpha (Capital share in production): 0.3000
 delta (Depreciation rate): 0.1001
 g (Baseline TFP growth rate): 0.0000
