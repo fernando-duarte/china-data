@@ -117,18 +117,7 @@ required_pull_request_reviews:
   dismiss_stale_reviews: true
 ```
 
-### 2. Issue Templates
 
-The setup includes structured issue templates:
-- **Bug reports** with economic data context
-- **Feature requests** with implementation details
-
-### 3. Pull Request Template
-
-Comprehensive PR template covering:
-- Data processing impact assessment
-- Performance considerations
-- Security implications
 
 ## Usage Guide
 
