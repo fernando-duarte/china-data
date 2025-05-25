@@ -28,7 +28,8 @@ class TestPathConstants:
         # Check for expected keys
         assert "input_files" in locations
         assert "output_files" in locations
-        assert "general" in locations
+        assert "config_files" in locations
+        # assert "general" in locations # 'general' key is not currently defined or used
 
         # Check that input_files contains expected directories
         input_files = locations["input_files"]

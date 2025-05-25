@@ -109,6 +109,11 @@ class Config:
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+    # Caching configuration
+    CACHE_NAME = "china_data_cache"
+    CACHE_BACKEND = "sqlite"  # Use sqlite for persistence
+    CACHE_EXPIRE_AFTER_DAYS = 7  # Cache data for 7 days
+
     @classmethod
     def get_output_directory(cls) -> Path:
         """Get the output directory, creating it if necessary."""

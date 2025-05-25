@@ -33,6 +33,7 @@ from utils.error_handling import (
     log_error_with_context,
     validate_dataframe_not_empty
 )
+from utils.validation_utils import validate_dataframe_with_rules, INDICATOR_VALIDATION_RULES
 
 logging.basicConfig(
     level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT
@@ -222,24 +223,36 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
             
         # PWT data
         pwt_cols = ['PWT rgdpo', 'PWT rkna', 'PWT pl_gdpo', 'PWT cgdpo', 'PWT hc']
-        pwt_rename = {
-            'Year': 'year',
+        pwt_rename_map_for_validation = {
             'PWT rgdpo': 'rgdpo',
             'PWT rkna': 'rkna', 
             'PWT pl_gdpo': 'pl_gdpo',
             'PWT cgdpo': 'cgdpo',
             'PWT hc': 'hc'
         }
-        
+        pwt_rules_for_fallback = {k: INDICATOR_VALIDATION_RULES.get(v, {}) for k,v in pwt_rename_map_for_validation.items() if k in df.columns and v in INDICATOR_VALIDATION_RULES}
+
+        temp_pwt_df_for_validation = df[['Year'] + [col for col in pwt_rename_map_for_validation if col in df.columns]].copy()
+        temp_pwt_df_for_validation.rename(columns={'Year': 'year'}, inplace=True) # year col for validation func
+        validate_dataframe_with_rules(temp_pwt_df_for_validation, rules=pwt_rules_for_fallback, year_column='year')
+        temp_pwt_df_for_validation.rename(columns={'year': 'Year'}, inplace=True) # revert for PWT processing block
+
         pwt_available = [col for col in pwt_cols if col in df.columns]
         if pwt_available:
             cols_to_select = ['Year'] + pwt_available
-            rename_dict = {k: v for k, v in pwt_rename.items() if k in cols_to_select}
+            rename_dict = {k: v for k, v in pwt_rename_map_for_validation.items() if k in cols_to_select}
             pwt_df = df[cols_to_select].rename(columns=rename_dict).dropna(subset=[rename_dict[c] for c in pwt_available], how='all')
             if len(pwt_df) > 0:
                 result['PWT'] = pwt_df
                 logger.debug(f"Loaded {len(pwt_df)} rows for PWT from fallback")
             
+        # Tax data - 'TAX_pct_GDP' is the key in rules
+        if 'Tax Revenue (% of GDP)' in df.columns:
+            tax_df_for_validation = df[['Year', 'Tax Revenue (% of GDP)']].rename(
+                columns={'Year': 'year', 'Tax Revenue (% of GDP)': 'TAX_pct_GDP'}
+            ).copy()
+            validate_dataframe_with_rules(tax_df_for_validation, rules={"TAX_pct_GDP": INDICATOR_VALIDATION_RULES.get("TAX_pct_GDP", {})}, year_column='year')
+
         if not result:
             raise DataValidationError(
                 column="fallback_data",

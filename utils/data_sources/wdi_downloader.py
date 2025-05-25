@@ -13,6 +13,8 @@ from utils.error_handling import (
     safe_dataframe_operation, 
     log_error_with_context
 )
+from utils.caching_utils import get_cached_session
+from utils.validation_utils import validate_dataframe_with_rules, INDICATOR_VALIDATION_RULES
 
 logger = logging.getLogger(__name__)
 
@@ -40,26 +42,35 @@ def download_wdi_data(indicator_code: str, country_code: str = "CN", start_year:
     logger.info(f"Downloading {indicator_code} data for {country_code} ({start_year}-{end_year})")
     
     last_error = None
+    session = get_cached_session()
     
     for attempt in range(Config.MAX_RETRIES):
         try:
-            # Download data with timeout
-            data = wb.download(
-                country=country_code, 
-                indicator=indicator_code, 
-                start=start_year, 
-                end=end_year
+            # Download data with timeout and cached session
+            reader = wb.WorldBankReader(
+                symbols=indicator_code,
+                countries=country_code,
+                start=start_year,
+                end=end_year,
+                session=session
             )
+            reader.timeout = Config.REQUEST_TIMEOUT_SECONDS
+            data = reader.read()
+            reader.close()
             
             if data is None or len(data) == 0:
                 logger.warning(f"No data returned for {indicator_code}")
-                return pd.DataFrame(columns=["country", "year", indicator_code.replace(".", "_")])
+                # Return empty DataFrame with expected columns for consistency
+                expected_cols = ["country", "year", indicator_code.replace(".", "_")]
+                return pd.DataFrame(columns=expected_cols)
             
             # Process the data
             data = data.reset_index()
-            data = data.rename(columns={indicator_code: indicator_code.replace(".", "_")})
+            # Rename original indicator code column for validation before renaming to friendly name
+            indicator_code_db_col = indicator_code.replace(".", "_") # Store the DB-like column name
+            data = data.rename(columns={indicator_code: indicator_code_db_col})
             
-            # Validate the result
+            # Validate the result before renaming to friendly name
             if "year" not in data.columns:
                 raise DataDownloadError(
                     source="World Bank WDI",
@@ -67,7 +78,25 @@ def download_wdi_data(indicator_code: str, country_code: str = "CN", start_year:
                     message="Downloaded data missing 'year' column"
                 )
             
-            logger.info(f"Successfully downloaded {indicator_code} data with {len(data)} rows")
+            # Convert year to numeric before validation
+            data["year"] = pd.to_numeric(data["year"], errors='coerce')
+            data = data.dropna(subset=["year"])
+            if data.empty: # If all year coercions failed
+                logger.warning(f"All year values became NA after conversion for {indicator_code}")
+                # Return empty DataFrame with expected columns for consistency
+                expected_cols = ["country", "year", indicator_code_db_col]
+                return pd.DataFrame(columns=expected_cols)
+            data["year"] = data["year"].astype(int)
+            
+            # Apply specific validation rules for this indicator
+            # Use the DB-like column name (with underscores) to fetch the rule
+            wdi_rules = {indicator_code_db_col: INDICATOR_VALIDATION_RULES.get(indicator_code_db_col, {}) }
+            validate_dataframe_with_rules(data, rules=wdi_rules, year_column='year')
+
+            # Now rename to the friendly name from Config.WDI_INDICATORS for the final DataFrame structure expected by the downloader script
+            # This step is done in china_data_downloader.py after this function returns.
+            # The current function should return data with `indicator_code_db_col` as the indicator column.
+            logger.info(f"Successfully downloaded and validated {indicator_code} (as {indicator_code_db_col}) data with {len(data)} rows")
             return data
             
         except requests.exceptions.RequestException as e:

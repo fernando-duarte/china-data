@@ -66,7 +66,8 @@ This document summarizes the comprehensive review and improvements made to the C
 - **Python**: All math displays correctly and nicely on screen
 - **Consistency**: Math is consistent across entire codebase, including docs
 
-### 11. Security ✓
+### 11. Security
+*This area requires further attention as per `CODEBASE_ISSUES.md` (Issue #25: Security Considerations).*
 - [ ] No hardcoded credentials or secrets
 - [ ] SSL/TLS verification enabled for all HTTP requests
 - [ ] Proper input validation and sanitization
@@ -74,26 +75,25 @@ This document summarizes the comprehensive review and improvements made to the C
 - [ ] No use of `eval()`, `exec()`, or `pickle.loads()` with untrusted data
 - [ ] Timeouts set for all network operations
 - [ ] Proper error handling without exposing sensitive information 
-- [ ]  Certificate pinning for downloads
+- [ ] Certificate pinning for downloads
 - [ ] Integrity checks on downloaded data
 - [ ] Rate limiting protection
 
-### 11. Testing ✓
+### 12. Testing ✓
 - **Coverage**: Coverage is +95% 
 - **Passing**: All tests pass (allow for failing if download remote sources are down)
-- **Consistency**: Math is consistent across entire codebase, including docs
 
-### 11. Type Checking ✓
+### 13. Type Checking ✓
 - **Tools**: Centralized configuration for Black, isort, flake8, pytest, and mypy
 - **Type Check**: mypy with no type issues
 
-### 12. Code Quality Tools
+### 14. Code Quality Tools
 - **Linting**: flake8 for style checking
 - **Formatting**: Black for consistent code formatting
 - **Import Sorting**: isort for organized imports
 - **Testing**: pytest with comprehensive test suite
 
-### 12. Error Handling
+### 15. Error Handling
 - **Reporting**: Do not use `print` command
 - **Formatting**: Error handling patterns must be consistent across files
 

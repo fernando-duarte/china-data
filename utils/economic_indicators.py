@@ -176,15 +176,16 @@ def calculate_economic_indicators(
         df["NX_USD_bn"] = np.nan
 
     # Saving calculations
-    # Total saving (equals investment in a closed economy, approximation for open economy)
-    if "I_USD_bn" in df.columns:
-        logger.info("Calculating total saving (S_USD_bn)")
-        df["S_USD_bn"] = df["I_USD_bn"]  # In national accounting, S = I + NX, but we approximate S ≈ I
+    # Total saving (National Saving = Y - C - G)
+    if all(c in df.columns for c in ["GDP_USD_bn", "C_USD_bn", "G_USD_bn"]):
+        logger.info("Calculating total national saving (S_USD_bn = Y - C - G)")
+        df["S_USD_bn"] = df["GDP_USD_bn"] - df["C_USD_bn"] - df["G_USD_bn"]
         df["S_USD_bn"] = df["S_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
         non_na_count = df["S_USD_bn"].notna().sum()
         logger.info(f"Calculated S_USD_bn for {non_na_count} years")
     else:
-        logger.warning("Cannot calculate S_USD_bn - missing I_USD_bn column")
+        missing = [c for c in ["GDP_USD_bn", "C_USD_bn", "G_USD_bn"] if c not in df.columns]
+        logger.warning(f"Cannot calculate S_USD_bn - missing columns: {missing}")
         df["S_USD_bn"] = np.nan
 
     # Public saving (government saving = tax revenue - government spending)

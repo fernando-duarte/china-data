@@ -9,6 +9,7 @@ import pandas as pd
 # Import required modules using new import structure
 from utils import find_file
 from utils.path_constants import get_search_locations_relative_to_root
+from utils.validation_utils import validate_dataframe_with_rules, INDICATOR_VALIDATION_RULES
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,11 @@ def load_imf_tax_data() -> pd.DataFrame:
         tax_data = df[["TIME_PERIOD", "OBS_VALUE"]].rename(columns={"TIME_PERIOD": "year", "OBS_VALUE": "TAX_pct_GDP"})
         tax_data["year"] = tax_data["year"].astype(int)
         tax_data["TAX_pct_GDP"] = pd.to_numeric(tax_data["TAX_pct_GDP"], errors="coerce")
+        
+        # Validate IMF tax data (rules are based on the final column name 'TAX_pct_GDP')
+        validate_dataframe_with_rules(tax_data, rules=INDICATOR_VALIDATION_RULES, year_column='year')
+        logger.info(f"Successfully loaded and validated IMF tax data with {len(tax_data)} rows.")
+        
         return tax_data
     else:
         logger.error("IMF Fiscal Monitor file not found in any of the expected locations")

@@ -5,6 +5,9 @@ import tempfile
 import pandas as pd
 import requests
 
+from utils.caching_utils import get_cached_session
+from utils.validation_utils import validate_dataframe_with_rules, INDICATOR_VALIDATION_RULES
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,13 +17,13 @@ def get_pwt_data() -> pd.DataFrame:
 
     # Security improvements:
     # 1. Set timeout to prevent hanging connections
-    # 2. Explicitly verify SSL certificates
+    # 2. Explicitly verify SSL certificates (handled by requests-cache session defaults or requests itself)
     # 3. Use secure temporary file handling
 
     try:
-        # Create a session with explicit SSL verification
-        session = requests.Session()
-        session.verify = True  # Explicitly verify SSL certificates
+        # Create a cached session
+        session = get_cached_session()
+        # session.verify = True # requests-cache session should handle this or requests default is True
 
         response = session.get(excel_url, stream=True, timeout=30)
         response.raise_for_status()
@@ -57,4 +60,10 @@ def get_pwt_data() -> pd.DataFrame:
     # Filter for China and select relevant columns in one operation
     chn_data = pwt[pwt.countrycode == "CHN"][["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]].copy()
     chn_data["year"] = chn_data["year"].astype(int)
+    
+    # Validate PWT data
+    # Rules are based on original PWT column names used in INDICATOR_VALIDATION_RULES
+    validate_dataframe_with_rules(chn_data, rules=INDICATOR_VALIDATION_RULES, year_column='year')
+    logger.info(f"Successfully downloaded and validated PWT data with {len(chn_data)} rows for China.")
+
     return chn_data

@@ -117,7 +117,11 @@ class TestChinaDataProcessorIntegration:
 
         # Check net exports
         assert "NX_USD_bn" in result.columns
-        expected_nx = (converted["X_USD_bn"] - converted["M_USD_bn"]).iloc[0]
+        # From sample_raw_data fixture in this class:
+        # X_USD[0] = 2000000 -> X_USD_bn[0] = 2000000 / 1e9 = 0.002
+        # M_USD[0] = 1500000 -> M_USD_bn[0] = 1500000 / 1e9 = 0.0015
+        # NX_USD_bn[0] = 0.002 - 0.0015 = 0.0005
+        expected_nx = 0.0005 
         assert result["NX_USD_bn"].iloc[0] == pytest.approx(expected_nx, rel=1e-4)
 
         # Check TFP

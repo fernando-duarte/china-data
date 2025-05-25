@@ -260,11 +260,11 @@ This document contains a comprehensive list of issues, bugs, and deviations from
 
 ## Summary
 
-The codebase has **25 distinct categories of issues** ranging from critical bugs to minor style inconsistencies. 
+The codebase has **25 distinct categories of issues** ranging from critical bugs to minor style inconsistencies.
 
-**✅ RESOLVED (10 issues):**
+**✅ RESOLVED (14 issues):**
 - Debug output in production code
-- Inconsistent string formatting  
+- Inconsistent string formatting
 - No input validation in CLI
 - Missing type hints
 - Inefficient DataFrame operations
@@ -281,12 +281,24 @@ The codebase has **25 distinct categories of issues** ranging from critical bugs
 **🔄 PARTIALLY RESOLVED (1 issue):**
 - Excessive DataFrame copying (optimized ~13% of unnecessary copies)
 
-**❌ REMAINING (14 issues):**
-The most critical remaining issues involve:
+**❌ REMAINING (10 issues):**
+The 10 remaining issues are:
+- 2. Missing File Encoding Specifications
+- 3. Overly Broad Exception Handling
+- 8. Inefficient Sequential Downloads
+- 9. No Connection Pooling
+- 13. No Retry Logic for IMF Data
+- 19. No Centralized Logging Configuration
+- 20. No Data Validation
+- 21. No Caching Strategy
+- 24. Missing CI/CD Configuration
+- 25. Security Considerations
+
+The most critical of these (as previously noted) involve:
 - Missing file encoding specifications
 - Overly broad exception handling
 - Lack of data validation
 - No caching strategy
 - Missing CI/CD configuration
 
-Addressing the completed issues has significantly improved the reliability, maintainability, and performance of the codebase. The remaining issues should be prioritized based on their severity and impact on production usage. 
+Addressing the completed issues has significantly improved the reliability, maintainability, and performance of the codebase. The remaining 10 issues should be prioritized based on their severity and impact on production usage. Verification of the status of these remaining issues would require further codebase analysis. 
