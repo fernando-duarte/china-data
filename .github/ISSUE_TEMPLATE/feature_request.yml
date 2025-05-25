@@ -1,0 +1,175 @@
+name: Feature Request
+description: Suggest an idea for the China Data Processing Pipeline
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature!
+        
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: Describe the feature...
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: Which area does this feature relate to?
+      options:
+        - Data Sources (new economic indicators)
+        - Data Processing (calculations, transformations)
+        - Extrapolation Methods
+        - Output Formats
+        - Performance Optimization
+        - User Interface/CLI
+        - Documentation
+        - Testing
+        - Configuration
+        - Other
+    validations:
+      required: true
+      
+  - type: textarea
+    id: problem-statement
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: |
+        Is your feature request related to a problem? Please describe.
+        A clear and concise description of what the problem is.
+    validations:
+      required: true
+      
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: |
+        A clear and concise description of what you want to happen.
+        Include any technical details or implementation ideas.
+    validations:
+      required: true
+      
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe alternatives you've considered
+      placeholder: |
+        A clear and concise description of any alternative solutions or features you've considered.
+        
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - "Low (nice to have)"
+        - "Medium (would be helpful)"
+        - "High (important for my use case)"
+        - "Critical (blocking current work)"
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: feature-type
+    attributes:
+      label: Feature Type
+      description: What type of feature is this? (Select all that apply)
+      options:
+        - label: New economic indicator or data source
+        - label: Calculation method improvement
+        - label: New extrapolation/forecasting method
+        - label: Performance optimization
+        - label: User experience improvement
+        - label: API/interface enhancement
+        - label: Documentation improvement
+        - label: Testing enhancement
+        
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case for this feature
+      placeholder: |
+        - What are you trying to accomplish?
+        - How would this feature help your economic analysis?
+        - What data or scenarios would this support?
+        
+  - type: textarea
+    id: implementation-ideas
+    attributes:
+      label: Implementation Ideas
+      description: If you have ideas about how this could be implemented
+      placeholder: |
+        - Technical approach suggestions
+        - Libraries or methods that could be used
+        - Integration points with existing code
+        - Performance considerations
+        
+  - type: checkboxes
+    id: data-requirements
+    attributes:
+      label: Data Requirements
+      description: Does this feature require new data sources?
+      options:
+        - label: No new data sources required
+        - label: Requires new World Bank indicators
+        - label: Requires new IMF data
+        - label: Requires other economic databases
+        - label: Requires user-provided data inputs
+        
+  - type: dropdown
+    id: breaking-changes
+    attributes:
+      label: Breaking Changes
+      description: Would this feature require breaking changes?
+      options:
+        - "No breaking changes"
+        - "Minor breaking changes (can be handled with deprecation)"
+        - "Major breaking changes (would need new major version)"
+        - "Unsure"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How would you know this feature is complete and working correctly?
+      placeholder: |
+        - [ ] Feature requirement 1
+        - [ ] Feature requirement 2
+        - [ ] Documentation updated
+        - [ ] Tests added
+        
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute to this feature?
+      options:
+        - label: I'm willing to implement this feature myself
+        - label: I can help with testing
+        - label: I can help with documentation
+        - label: I can provide domain expertise/requirements
+        - label: I can only provide the idea/requirements
+        
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples
+      placeholder: |
+        - Related academic papers or methodologies
+        - Screenshots or mockups
+        - Links to similar features in other tools
+        - Economic theory background 
