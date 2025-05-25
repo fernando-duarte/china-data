@@ -1,6 +1,3 @@
-import numpy as np
-
-
 def test_gdp_values_positive(raw_df):
     assert (raw_df["GDP_USD"].dropna() > 0).all()
 
