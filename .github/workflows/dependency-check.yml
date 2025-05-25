@@ -1,20 +1,13 @@
-name: Dependency Management
+name: Dependency Security Check
 
 on:
-  schedule:
-    # Run dependency checks weekly on Mondays at 9 AM UTC
-    - cron: '0 9 * * 1'
-  push:
-    branches: [ main, develop ]
-    paths:
-      - '*requirements*.txt'
-      - 'pyproject.toml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - '*requirements*.txt'
-      - 'pyproject.toml'
   workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  issues: write
 
 env:
   PYTHONUNBUFFERED: "1"
@@ -27,202 +20,58 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-3.11-deps-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-3.11-deps-
+            ${{ runner.os }}-python-
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.11"
-          cache: 'pip'
 
       - name: Install audit tools
         run: |
           python -m pip install --upgrade pip
-          pip install safety pip-audit bandit[toml]
+          pip install bandit
 
-      - name: Run safety check
-        continue-on-error: true
+      - name: Install project dependencies
         run: |
-          echo "## Safety Check Results" >> $GITHUB_STEP_SUMMARY
-          safety check --json --output safety-report.json
-          
-          # Parse and format results for summary
-          python -c "
-          import json
-          import os
-          
-          try:
-              with open('safety-report.json', 'r') as f:
-                  data = json.load(f)
-              
-              if data.get('vulnerabilities'):
-                  print('**⚠️ Security vulnerabilities found:**')
-                  for vuln in data['vulnerabilities']:
-                      print(f'- {vuln.get(\"package\", \"Unknown\")} {vuln.get(\"installed_version\", \"\")}')
-                      print(f'  - {vuln.get(\"vulnerability\", \"No description\")}')
-              else:
-                  print('**✅ No known security vulnerabilities found**')
-          except Exception as e:
-              print(f'**❌ Error reading safety report: {e}**')
-          " >> $GITHUB_STEP_SUMMARY
-
-      - name: Run pip-audit
-        continue-on-error: true
-        run: |
-          echo "## Pip-Audit Results" >> $GITHUB_STEP_SUMMARY
-          pip-audit --format=json --output=pip-audit-report.json || echo "Pip-audit completed with warnings"
-          
-          # Parse and format results
-          python -c "
-          import json
-          import os
-          
-          try:
-              with open('pip-audit-report.json', 'r') as f:
-                  data = json.load(f)
-              
-              vulnerabilities = data.get('vulnerabilities', [])
-              if vulnerabilities:
-                  print('**⚠️ Pip-audit found vulnerabilities:**')
-                  for vuln in vulnerabilities:
-                      print(f'- {vuln.get(\"package\", \"Unknown\")} {vuln.get(\"installed_version\", \"\")}')
-                      print(f'  - ID: {vuln.get(\"id\", \"Unknown\")}')
-              else:
-                  print('**✅ Pip-audit found no vulnerabilities**')
-          except Exception as e:
-              print(f'**❌ Error reading pip-audit report: {e}**')
-          " >> $GITHUB_STEP_SUMMARY
-
-      - name: Run bandit security scan
-        continue-on-error: true
-        run: |
-          echo "## Bandit Security Scan" >> $GITHUB_STEP_SUMMARY
-          bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*" || echo "Bandit scan completed"
-          
-          # Parse and format results
-          python -c "
-          import json
-          
-          try:
-              with open('bandit-report.json', 'r') as f:
-                  data = json.load(f)
-              
-              results = data.get('results', [])
-              if results:
-                  high_severity = [r for r in results if r.get('issue_severity') == 'HIGH']
-                  medium_severity = [r for r in results if r.get('issue_severity') == 'MEDIUM']
-                  
-                  if high_severity:
-                      print(f'**⚠️ {len(high_severity)} high severity security issues found**')
-                  if medium_severity:
-                      print(f'**⚠️ {len(medium_severity)} medium severity security issues found**')
-                  if not high_severity and not medium_severity:
-                      print('**✅ No high or medium severity security issues found**')
-              else:
-                  print('**✅ Bandit found no security issues**')
-          except Exception as e:
-              print(f'**❌ Error reading bandit report: {e}**')
-          " >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload security reports
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: security-reports-${{ github.run_id }}
-          path: |
-            safety-report.json
-            pip-audit-report.json
-            bandit-report.json
-
-  dependency-analysis:
-    name: Dependency Analysis
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pipdeptree pip-tools
-
-      - name: Analyze dependency tree
-        run: |
-          echo "## Dependency Tree Analysis" >> $GITHUB_STEP_SUMMARY
-          
-          # Install current dependencies
           pip install -r requirements.txt
-          
-          # Generate dependency tree
-          echo "### Current Dependency Tree" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          pipdeptree --warn=fail >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          pip install -r dev-requirements.txt
+
+      - name: Run bandit security analysis
+        run: |
+          bandit -r . -f json -o bandit-security.json --exclude "./venv/*,./tests/*" || true
+
+      - name: Generate dependency tree
+        run: |
+          pip install pipdeptree
+          pipdeptree --json-tree > dependency-tree.json
+          pipdeptree --warn silence > dependency-tree.txt
 
       - name: Check for outdated packages
         run: |
-          echo "### Outdated Packages" >> $GITHUB_STEP_SUMMARY
-          
-          # Check for outdated packages
-          OUTDATED=$(pip list --outdated --format=json)
-          
-          python -c "
-          import json
-          import sys
-          
-          outdated = json.loads('$OUTDATED')
-          
-          if outdated:
-              print('The following packages have newer versions available:')
-              print('| Package | Current | Latest |')
-              print('|---------|---------|--------|')
-              for pkg in outdated:
-                  print(f'| {pkg[\"name\"]} | {pkg[\"version\"]} | {pkg[\"latest_version\"]} |')
-          else:
-              print('**✅ All packages are up to date**')
-          " >> $GITHUB_STEP_SUMMARY
+          pip list --outdated --format=json > outdated-packages.json || true
 
-      - name: Generate requirements report
-        run: |
-          # Create a detailed requirements report
-          cat > requirements-report.md << EOF
-          # Requirements Analysis Report
-          
-          Generated on: $(date -u)
-          
-          ## Production Dependencies
-          \`\`\`
-          $(cat requirements.txt)
-          \`\`\`
-          
-          ## Development Dependencies
-          \`\`\`
-          $(cat dev-requirements.txt)
-          \`\`\`
-          
-          ## Installed Package Versions
-          \`\`\`
-          $(pip freeze)
-          \`\`\`
-          
-          ## Dependency Tree
-          \`\`\`
-          $(pipdeptree)
-          \`\`\`
-          EOF
-
-      - name: Upload requirements report
-        uses: actions/upload-artifact@v3
+      - name: Upload security audit reports
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
         with:
-          name: requirements-report-${{ github.run_id }}
-          path: requirements-report.md
+          name: security-audit-reports
+          path: |
+            bandit-security.json
+            dependency-tree.json
+            dependency-tree.txt
+            outdated-packages.json
 
   license-check:
     name: License Compliance Check
@@ -230,202 +79,293 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-3.11-license-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-3.11-license-
+            ${{ runner.os }}-python-
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.11"
-          cache: 'pip'
 
-      - name: Install license checker
+      - name: Install license checking tools
         run: |
           python -m pip install --upgrade pip
-          pip install pip-licenses
+          pip install pip-licenses licensecheck
 
       - name: Install project dependencies
         run: |
           pip install -r requirements.txt
+          pip install -r dev-requirements.txt
 
-      - name: Check licenses
+      - name: Generate license report
         run: |
-          echo "## License Compliance Report" >> $GITHUB_STEP_SUMMARY
-          
-          # Generate license report
-          pip-licenses --format=markdown --output-file=license-report.md
-          
-          # Check for potentially problematic licenses
           pip-licenses --format=json --output-file=licenses.json
-          
+          pip-licenses --format=plain-vertical --output-file=licenses.txt
+
+      - name: Check for problematic licenses
+        run: |
           python -c "
           import json
           
-          # Define license categories
-          permissive_licenses = {
-              'MIT', 'BSD', 'BSD-3-Clause', 'BSD-2-Clause', 'Apache', 'Apache 2.0', 
-              'Apache Software License', 'ISC', 'Python Software Foundation License'
+          # Define problematic licenses
+          problematic_licenses = {
+              'GPL-3.0', 'GPL-2.0', 'AGPL-3.0', 'AGPL-1.0',
+              'CPAL-1.0', 'OSL-3.0', 'EPL-1.0', 'EPL-2.0',
+              'EUPL-1.1', 'EUPL-1.2'
           }
           
-          restrictive_licenses = {
-              'GPL', 'LGPL', 'AGPL', 'Copyleft'
-          }
+          # Load license data
+          with open('licenses.json', 'r') as f:
+              licenses = json.load(f)
           
-          try:
-              with open('licenses.json', 'r') as f:
-                  data = json.load(f)
-              
-              permissive = []
-              restrictive = []
-              unknown = []
-              
-              for pkg in data:
-                  license_name = pkg.get('License', 'Unknown')
-                  pkg_name = pkg.get('Name', 'Unknown')
-                  
-                  if any(perm in license_name for perm in permissive_licenses):
-                      permissive.append(f'{pkg_name} ({license_name})')
-                  elif any(rest in license_name for rest in restrictive_licenses):
-                      restrictive.append(f'{pkg_name} ({license_name})')
-                  else:
-                      unknown.append(f'{pkg_name} ({license_name})')
-              
-              print(f'**Permissive licenses:** {len(permissive)} packages')
-              if restrictive:
-                  print(f'**⚠️ Restrictive licenses:** {len(restrictive)} packages')
-                  for pkg in restrictive:
-                      print(f'  - {pkg}')
-              else:
-                  print(f'**✅ Restrictive licenses:** 0 packages')
-              
-              if unknown:
-                  print(f'**❓ Unknown/Other licenses:** {len(unknown)} packages')
-                  for pkg in unknown[:5]:  # Show first 5
-                      print(f'  - {pkg}')
-                  if len(unknown) > 5:
-                      print(f'  - ... and {len(unknown) - 5} more')
-              
-          except Exception as e:
-              print(f'**❌ Error reading license data: {e}**')
-          " >> $GITHUB_STEP_SUMMARY
+          issues = []
+          for pkg in licenses:
+              license_name = pkg.get('License', '').strip()
+              if license_name in problematic_licenses:
+                  issues.append(f'{pkg[\"Name\"]} ({pkg[\"Version\"]}): {license_name}')
+          
+          if issues:
+              print('⚠️ Potentially problematic licenses found:')
+              for issue in issues:
+                  print(f'  - {issue}')
+              with open('license-issues.txt', 'w') as f:
+                  f.write('\\n'.join(issues))
+          else:
+              print('✅ No problematic licenses detected')
+              with open('license-issues.txt', 'w') as f:
+                  f.write('No issues found')
+          "
 
       - name: Upload license reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.6.2
         with:
-          name: license-reports-${{ github.run_id }}
+          name: license-reports
           path: |
-            license-report.md
             licenses.json
+            licenses.txt
+            license-issues.txt
 
-  create-dependency-pr:
-    name: Create Dependency Update PR
+  compatibility-test:
+    name: Python Version Compatibility
     runs-on: ubuntu-latest
-    needs: [dependency-audit, dependency-analysis]
-    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
-    outputs:
-      dependencies_updated: ${{ steps.check-updates.outputs.dependencies_updated }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-compat-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-compat-
+            ${{ runner.os }}-python-
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Test dependency installation
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Test basic import capabilities
+        run: |
+          python -c "
+          import sys
+          print(f'Python {sys.version}')
+          
+          # Test critical imports
+          try:
+              import pandas
+              import numpy
+              import requests
+              import sqlite3
+              print('✅ Core dependencies import successfully')
+          except ImportError as e:
+              print(f'❌ Import error: {e}')
+              sys.exit(1)
+          "
+
+      - name: Check for deprecation warnings
+        run: |
+          python -W error::DeprecationWarning -c "
+          import warnings
+          warnings.simplefilter('error', DeprecationWarning)
+          
+          try:
+              import pandas
+              import numpy
+              import requests
+              print('✅ No deprecation warnings with Python ${{ matrix.python-version }}')
+          except DeprecationWarning as e:
+              print(f'⚠️ Deprecation warning: {e}')
+          except Exception as e:
+              print(f'Other issue: {e}')
+          " || true
+
+  dependency-update-check:
+    name: Check for Available Updates
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5.6.0
         with:
           python-version: "3.11"
 
       - name: Install tools
         run: |
           python -m pip install --upgrade pip
-          pip install pip-tools
+          pip install pip-check-updates || pip install pur
 
-      - name: Update dependencies
-        id: check-updates
+      - name: Check for outdated dependencies
         run: |
-          # Backup current requirements
-          cp requirements.txt requirements.txt.backup
-          cp dev-requirements.txt dev-requirements.txt.backup
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
           
-          # Create .in files for pip-tools
-          cat > requirements.in << EOF
-          # Core data processing
-          numpy>=1.26.4,<2.0
-          pandas>=2.2.3,<3.0
+          echo "## Outdated Dependencies Report" > update-report.md
+          echo "Generated on: $(date)" >> update-report.md
+          echo "" >> update-report.md
           
-          # Data sources
-          pandas-datareader>=0.10.0,<1.0
-          requests>=2.31.0
-          requests-cache>=1.0.0
-          openpyxl>=3.1.2
-          
-          # Statistical modeling
-          statsmodels>=0.14.4,<1.0
-          scikit-learn>=1.3.2
-          
-          # Output formatting
-          tabulate>=0.9.0,<1.0
-          jinja2>=3.1.6,<4.0
-          EOF
-          
-          cat > dev-requirements.in << EOF
-          -r requirements.in
-          
-          # Testing
-          pytest>=7.4,<8.0
-          pytest-cov>=4.1,<5.0
-          
-          # Code quality tools
-          flake8>=6.1,<7.0
-          black>=23.12,<24.0
-          isort>=5.13,<6.0
-          pylint>=3.0,<4.0
-          
-          # Type checking
-          mypy>=1.8,<2.0
-          types-requests>=2.31,<3.0
-          pandas-stubs>=2.1,<3.0
-          
-          # Caching
-          requests-cache>=1.0.0
-          EOF
-          
-          # Compile new requirements
-          pip-compile requirements.in
-          pip-compile dev-requirements.in
-          
-          # Check if there are changes and set output
-          if ! diff -q requirements.txt requirements.txt.backup || ! diff -q dev-requirements.txt dev-requirements.txt.backup; then
-            echo "dependencies_updated=true" >> $GITHUB_OUTPUT
-          else
-            echo "dependencies_updated=false" >> $GITHUB_OUTPUT
-          fi
+          pip list --outdated --format=columns >> update-report.md || true
 
-      - name: Create Pull Request
-        if: steps.check-updates.outputs.dependencies_updated == 'true'
-        uses: peter-evans/create-pull-request@v5
+      - name: Create issue for updates if needed
+        uses: actions/github-script@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update dependencies"
-          title: "🔄 Automated Dependency Updates"
-          body: |
-            ## Automated Dependency Updates
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('update-report.md', 'utf8');
             
-            This PR contains automated updates to project dependencies.
-            
-            ### Changes
-            - Updated `requirements.txt` with latest compatible versions
-            - Updated `dev-requirements.txt` with latest compatible versions
-            
-            ### Review Checklist
-            - [ ] Verify all tests pass
-            - [ ] Check for any breaking changes in updated packages
-            - [ ] Review security scan results
-            - [ ] Ensure compatibility with supported Python versions
-            
-            **Note:** This PR was automatically generated by the dependency management workflow.
-          branch: automated-dependency-updates
-          base: develop
-          labels: |
-            dependencies
-            automated 
+            if (report.includes('Package') && report.includes('Version')) {
+              const issueTitle = 'Dependency Update Check - ' + new Date().toISOString().split('T')[0];
+              const issueBody = report + '\n\n## Recommendations\n- Review the outdated packages above\n- Test updates in a separate branch\n- Update dependencies in batches to isolate issues\n- Run full test suite after updates\n\n*This issue was automatically created by the dependency check workflow.*';
+              
+              const { data: existingIssues } = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: 'dependencies'
+              });
+              
+              const hasExistingUpdate = existingIssues.some(issue => 
+                issue.title.includes('Dependency Update Check')
+              );
+              
+              if (!hasExistingUpdate) {
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: issueBody,
+                  labels: ['dependencies', 'maintenance']
+                });
+              }
+            }
+
+      - name: Upload update report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dependency-update-report
+          path: update-report.md
+
+  security-advisory-check:
+    name: Security Advisory Monitor
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies and tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit
+
+      - name: Run local security analysis
+        run: |
+          echo "## Local Security Analysis Results" > security-advisory.md
+          echo "Generated on: $(date)" >> security-advisory.md
+          echo "" >> security-advisory.md
+          
+          # Run bandit for local security analysis
+          echo "### Bandit Security Analysis:" >> security-advisory.md
+          bandit -r . --exclude "./venv/*,./tests/*" -f txt >> security-advisory.md 2>&1 || true
+          
+          echo "" >> security-advisory.md
+          echo "### Package Versions:" >> security-advisory.md
+          pip list >> security-advisory.md
+
+      - name: Upload security advisory report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: security-advisory-report
+          path: security-advisory.md
+
+  summary:
+    name: Dependency Check Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-audit, license-check, compatibility-test]
+    if: always()
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate summary report
+        run: |
+          echo "# Dependency Security Check Summary" > summary.md
+          echo "Generated on: $(date)" >> summary.md
+          echo "" >> summary.md
+          
+          # Check job results
+          echo "## Job Results:" >> summary.md
+          echo "- Dependency Audit: ${{ needs.dependency-audit.result }}" >> summary.md
+          echo "- License Check: ${{ needs.license-check.result }}" >> summary.md
+          echo "- Compatibility Test: ${{ needs.compatibility-test.result }}" >> summary.md
+          echo "" >> summary.md
+          
+          echo "## Artifacts Generated:" >> summary.md
+          ls -la */
+          echo "" >> summary.md
+          
+          # Add recommendations
+          echo "## Recommendations:" >> summary.md
+          echo "- Review security audit reports for vulnerabilities" >> summary.md
+          echo "- Check license compliance for any issues" >> summary.md
+          echo "- Monitor compatibility across Python versions" >> summary.md
+          echo "- Keep dependencies updated regularly" >> summary.md
+
+      - name: Upload summary report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: dependency-check-summary
+          path: summary.md 

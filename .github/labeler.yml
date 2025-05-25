@@ -1,0 +1,77 @@
+# Configuration for GitHub Labeler
+# Automatically adds labels to PRs based on changed files
+
+# Core functionality labels
+"core":
+  - "china_data_processor.py"
+  - "china_data_downloader.py"
+  - "config.py"
+
+# Data sources and utilities
+"data-sources":
+  - "utils/data_sources/**/*"
+
+# Economic indicators and calculations
+"economics":
+  - "utils/economic_indicators/**/*"
+  - "utils/extrapolation_methods/**/*"
+
+# Output and formatting
+"output":
+  - "utils/output/**/*"
+  - "utils/processor_dataframe/**/*"
+
+# Error handling and utilities
+"utilities":
+  - "utils/error_handling/**/*"
+  - "utils/capital/**/*"
+
+# Testing
+"testing":
+  - "tests/**/*"
+  - "**/test_*.py"
+  - "**/*_test.py"
+
+# Documentation
+"documentation":
+  - "*.md"
+  - "docs/**/*"
+  - "README*"
+
+# Configuration and setup
+"configuration":
+  - "requirements*.txt"
+  - "pyproject.toml"
+  - "setup.py"
+  - "Makefile"
+  - ".flake8"
+  - ".gitignore"
+
+# CI/CD and workflows
+"ci-cd":
+  - ".github/**/*"
+  - ".github/workflows/**/*"
+
+# Dependencies
+"dependencies":
+  - "requirements.txt"
+  - "dev-requirements.txt"
+  - "pyproject.toml"
+
+# Performance related
+"performance":
+  - "**/*performance*"
+  - "**/*benchmark*"
+
+# Security related
+"security":
+  - "**/*security*"
+  - "**/*auth*"
+
+# Bug fixes (based on branch name patterns)
+"bug":
+  - any: ['**/fix/**/*', '**/bugfix/**/*', '**/hotfix/**/*']
+
+# Features (based on branch name patterns)  
+"enhancement":
+  - any: ['**/feature/**/*', '**/feat/**/*', '**/enhancement/**/*'] 

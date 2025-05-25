@@ -1,15 +1,37 @@
-# Set to true to add assignees to pull requests
+# Configuration for auto-assign action
+# Automatically assigns reviewers and assignees to PRs and issues
+
+# Add reviewers to pull requests
+addReviewers: true
+
+# Add assignees to pull requests and issues  
 addAssignees: true
 
-# A list of assignees, split into different groups
-assignees:
-  - fernando-duarte
+# List of reviewers to be added to pull requests (GitHub usernames)
+reviewers:
+  - fernandoduarte  # Add the main maintainer
 
-# A number of assignees to add to the pull request
-# Set to 0 to add all of the assignees.
+# List of assignees to be added to pull requests and issues
+assignees:
+  - fernandoduarte  # Add the main maintainer
+
+# Number of reviewers to add to each pull request
+numberOfReviewers: 1
+
+# Number of assignees to add to each pull request/issue
 numberOfAssignees: 1
 
-# A list of keywords to be skipped if present in a pull request title 
-# (case insensitive)
+# Skip adding reviewers if the PR is in draft mode
+skipDraft: true
+
+# Skip adding reviewers if the PR author is in the reviewers list
 skipKeywords:
-  - wip 
+  - wip
+  - draft
+  - "[skip assign]"
+
+# Use review groups for team-based assignment (if using teams)
+useReviewGroups: false
+
+# Use assignee groups for team-based assignment (if using teams)  
+useAssigneeGroups: false 

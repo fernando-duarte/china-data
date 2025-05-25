@@ -1,5 +1,13 @@
 # China Economic Data Analysis
 
+[![CI](https://github.com/fernandoduarte/china_data/workflows/CI/badge.svg)](https://github.com/fernandoduarte/china_data/actions/workflows/ci.yml)
+[![Performance Tests](https://github.com/fernandoduarte/china_data/workflows/Performance%20Testing/badge.svg)](https://github.com/fernandoduarte/china_data/actions/workflows/performance.yml)
+[![Dependency Check](https://github.com/fernandoduarte/china_data/workflows/Dependency%20Management/badge.svg)](https://github.com/fernandoduarte/china_data/actions/workflows/dependency-check.yml)
+[![codecov](https://codecov.io/gh/fernandoduarte/china_data/branch/main/graph/badge.svg)](https://codecov.io/gh/fernandoduarte/china_data)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 This package contains scripts to download, process, and analyze economic data for China from multiple sources including the World Bank, Penn World Table, and IMF Fiscal Monitor. It provides tools for data retrieval, processing, analysis, and projection of economic indicators.
 
 ## Setup and Installation

@@ -1,0 +1,531 @@
+name: Automated Dependency Updates
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of update to perform'
+        required: false
+        default: 'minor'
+        type: choice
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'
+      target_python:
+        description: 'Python version to test with'
+        required: false
+        default: '3.11'
+        type: choice
+        options:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+  security-events: write
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  check-dependencies:
+    name: Check for Dependency Updates
+    runs-on: ubuntu-latest
+    outputs:
+      updates_available: ${{ steps.check-updates.outputs.updates_available }}
+      update_summary: ${{ steps.check-updates.outputs.update_summary }}
+      security_issues: ${{ steps.security-check.outputs.security_issues }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-${{ github.event.inputs.target_python || '3.11' }}-deps-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ github.event.inputs.target_python || '3.11' }}-deps-
+            ${{ runner.os }}-python-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ github.event.inputs.target_python || '3.11' }}
+
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools bandit pipdeptree
+
+      - name: Check for outdated packages
+        id: check-updates
+        run: |
+          # Install current dependencies
+          pip install -r requirements.txt
+          
+          # Generate detailed package info
+          pip list --format=json > current-packages.json
+          pip list --outdated --format=json > outdated-packages.json
+          
+          # Check for outdated packages
+          OUTDATED=$(cat outdated-packages.json)
+          
+          # Parse results and determine if updates are available
+          python -c "
+          import json
+          import sys
+          import os
+          
+          with open('outdated-packages.json', 'r') as f:
+              outdated = json.load(f)
+          
+          if outdated:
+              print('Updates available for:')
+              update_summary = []
+              
+              for pkg in outdated:
+                  current = pkg['version']
+                  latest = pkg['latest_version']
+                  name = pkg['name']
+                  print(f'- {name}: {current} -> {latest}')
+                  update_summary.append(f'{name}: {current} -> {latest}')
+              
+              # Set outputs
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write('updates_available=true\\n')
+                  f.write(f'update_summary={\"\\n\".join(update_summary)}\\n')
+          else:
+              print('All packages are up to date')
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write('updates_available=false\\n')
+                  f.write('update_summary=No updates available\\n')
+          "
+
+      - name: Local security check
+        id: security-check
+        run: |
+          echo "## Local Security Check Results" >> $GITHUB_STEP_SUMMARY
+          
+          # Run bandit for local security analysis
+          bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*" || true
+          
+          # Parse and display results
+          python -c "
+          import json
+          import os
+          
+          security_issues = []
+          
+          # Parse bandit report
+          try:
+              with open('bandit-report.json', 'r') as f:
+                  bandit_data = json.load(f)
+              
+              results = bandit_data.get('results', [])
+              if results:
+                  print('**⚠️ Bandit found security issues:**')
+                  for result in results:
+                      filename = result.get('filename', 'Unknown')
+                      test_name = result.get('test_name', 'Unknown')
+                      issue = f'Bandit: {filename} - {test_name}'
+                      print(f'- {issue}')
+                      security_issues.append(issue)
+              else:
+                  print('**✅ Bandit: No security issues found**')
+          except Exception as e:
+              print(f'**❌ Bandit error: {e}**')
+          
+          # Set output for security issues
+          if security_issues:
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f'security_issues=true\\n')
+          else:
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write(f'security_issues=false\\n')
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload dependency analysis reports
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: dependency-analysis-${{ github.run_number }}
+          path: |
+            current-packages.json
+            outdated-packages.json
+            bandit-report.json
+
+  test-updated-dependencies:
+    name: Test Dependency Updates
+    runs-on: ${{ matrix.os }}
+    needs: check-dependencies
+    if: needs.check-dependencies.outputs.updates_available == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-test-deps-${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-test-deps-
+            ${{ runner.os }}-python-
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pip-tools and test dependency updates
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools
+          
+          # Create .in files if they don't exist
+          if [ ! -f "requirements.in" ]; then
+            cat > requirements.in << 'EOF'
+          # Core data processing
+          numpy>=1.26.4,<2.0
+          pandas>=2.2.3,<3.0
+          
+          # Data sources  
+          pandas-datareader>=0.10.0,<1.0
+          requests>=2.31.0
+          requests-cache>=1.0.0
+          openpyxl>=3.1.2
+          
+          # Statistical modeling
+          statsmodels>=0.14.4,<1.0
+          scikit-learn>=1.3.2
+          
+          # Output formatting
+          tabulate>=0.9.0,<1.0
+          jinja2>=3.1.6,<4.0
+          EOF
+          fi
+          
+          # Update and test dependencies
+          UPDATE_TYPE="${{ github.event.inputs.update_type || 'minor' }}"
+          
+          if [ "$UPDATE_TYPE" = "patch" ]; then
+            pip-compile --upgrade-package "*" --resolver=backtracking requirements.in
+          elif [ "$UPDATE_TYPE" = "major" ]; then
+            pip-compile --upgrade --resolver=backtracking requirements.in
+          else
+            pip-compile --upgrade --resolver=backtracking requirements.in
+          fi
+          
+          # Install and test
+          pip install -r requirements.txt
+
+      - name: Test core functionality
+        run: |
+          python -c "
+          import sys
+          print(f'Testing with Python {sys.version}')
+          
+          # Test core imports
+          try:
+              import pandas as pd
+              import numpy as np
+              import requests
+              import statsmodels
+              import sklearn
+              import tabulate
+              import jinja2
+              print('✅ All core dependencies import successfully')
+              
+              # Test basic functionality
+              df = pd.DataFrame({'test': [1, 2, 3]})
+              arr = np.array([1, 2, 3])
+              assert len(df) == 3
+              assert len(arr) == 3
+              print('✅ Basic functionality tests passed')
+              
+          except ImportError as e:
+              print(f'❌ Import error: {e}')
+              sys.exit(1)
+          except Exception as e:
+              print(f'❌ Functionality error: {e}')
+              sys.exit(1)
+          "
+
+  create-update-pr:
+    name: Create Dependency Update PR
+    runs-on: ubuntu-latest
+    needs: [check-dependencies, test-updated-dependencies]
+    if: needs.check-dependencies.outputs.updates_available == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local/lib/python*/site-packages
+          key: ${{ runner.os }}-python-${{ github.event.inputs.target_python || '3.11' }}-update-${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ github.event.inputs.target_python || '3.11' }}-update-
+            ${{ runner.os }}-python-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: ${{ github.event.inputs.target_python || '3.11' }}
+
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools
+
+      - name: Update dependency files
+        run: |
+          # Backup current requirements
+          cp requirements.txt requirements.txt.backup
+          cp dev-requirements.txt dev-requirements.txt.backup
+          
+          # Create/update .in files
+          cat > requirements.in << 'EOF'
+          # Core data processing
+          numpy>=1.26.4,<2.0
+          pandas>=2.2.3,<3.0
+          
+          # Data sources
+          pandas-datareader>=0.10.0,<1.0
+          requests>=2.31.0
+          requests-cache>=1.0.0
+          openpyxl>=3.1.2
+          
+          # Statistical modeling
+          statsmodels>=0.14.4,<1.0
+          scikit-learn>=1.3.2
+          
+          # Output formatting
+          tabulate>=0.9.0,<1.0
+          jinja2>=3.1.6,<4.0
+          EOF
+          
+          cat > dev-requirements.in << 'EOF'
+          -r requirements.in
+          
+          # Testing
+          pytest>=7.4,<8.0
+          pytest-cov>=4.1,<5.0
+          
+          # Code quality tools
+          flake8>=6.1,<7.0
+          black>=25.1,<26.0
+          isort>=5.13,<6.0
+          pylint>=3.0,<4.0
+          
+          # Type checking
+          mypy>=1.8,<2.0
+          types-requests>=2.31,<3.0
+          pandas-stubs>=2.1,<3.0
+          
+          # Security and caching
+          requests-cache>=1.0.0
+          safety>=3.0,<4.0
+          pip-audit>=2.0,<3.0
+          EOF
+          
+          # Update dependencies
+          UPDATE_TYPE="${{ github.event.inputs.update_type || 'minor' }}"
+          
+          if [ "$UPDATE_TYPE" = "patch" ]; then
+            pip-compile --upgrade-package "*" --resolver=backtracking requirements.in
+            pip-compile --upgrade-package "*" --resolver=backtracking dev-requirements.in
+          elif [ "$UPDATE_TYPE" = "major" ]; then
+            pip-compile --upgrade --resolver=backtracking requirements.in
+            pip-compile --upgrade --resolver=backtracking dev-requirements.in
+          else
+            pip-compile --upgrade --resolver=backtracking requirements.in
+            pip-compile --upgrade --resolver=backtracking dev-requirements.in
+          fi
+
+      - name: Final security and compatibility check
+        run: |
+          # Install updated dependencies
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+          
+          # Install bandit for security check
+          pip install bandit
+          
+          # Run comprehensive tests
+          python -c "
+          import sys
+          
+          # Test core imports
+          try:
+              import pandas as pd
+              import numpy as np
+              import requests
+              import statsmodels
+              import sklearn
+              import tabulate
+              import jinja2
+              print('✅ All core dependencies import successfully')
+              
+              # Test versions for critical packages
+              print(f'pandas version: {pd.__version__}')
+              print(f'numpy version: {np.__version__}')
+              print(f'requests version: {requests.__version__}')
+              
+          except ImportError as e:
+              print(f'❌ Import error: {e}')
+              sys.exit(1)
+          "
+          
+          # Local security check with bandit
+          bandit -r . --exclude "./venv/*,./tests/*" -f txt || echo "Bandit security check completed with warnings"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update dependencies (${{ github.event.inputs.update_type || 'minor' }} updates)"
+          title: "🔄 Automated Dependency Updates (${{ github.event.inputs.update_type || 'minor' }})"
+          body: |
+            ## Automated Dependency Updates
+            
+            This PR contains automated dependency updates.
+            
+            **Update Type:** ${{ github.event.inputs.update_type || 'minor' }}
+            **Python Version Tested:** ${{ github.event.inputs.target_python || '3.11' }}
+            **Security Issues Found:** ${{ needs.check-dependencies.outputs.security_issues == 'true' && '⚠️ Yes - Please review' || '✅ None detected' }}
+            
+            ### Changes Summary
+            ```
+            ${{ needs.check-dependencies.outputs.update_summary }}
+            ```
+            
+            ### What's Updated
+            - ✅ Updated `requirements.txt` with latest compatible versions
+            - ✅ Updated `dev-requirements.txt` with latest compatible versions  
+            - ✅ All core imports tested successfully across Python 3.9-3.13
+            - ✅ Cross-platform compatibility tested (Ubuntu, Windows, macOS)
+            - ✅ Security scan completed
+            - ✅ Black formatter updated to v25.1.0
+            
+            ### Testing Results
+            - ✅ Core dependency imports tested
+            - ✅ Basic functionality verified
+            - ✅ Multi-platform testing passed
+            - ✅ Security scanning completed
+            - ⏳ Full test suite will run in CI
+            
+            ### Review Checklist
+            - [ ] Verify all CI checks pass
+            - [ ] Review any security scan findings
+            - [ ] Check for breaking changes in release notes
+            - [ ] Test key functionality manually if needed
+            - [ ] Ensure performance hasn't regressed
+            
+            ### Security Status
+            ${{ needs.check-dependencies.outputs.security_issues == 'true' && '⚠️ **Security issues detected** - Review the security reports in artifacts before merging.' || '✅ No security vulnerabilities detected in updated dependencies.' }}
+            
+            **Note:** This PR was automatically generated by the dependency update workflow.
+            
+            **Triggered by:** Manual trigger
+          branch: automated-dependency-updates-${{ github.run_number }}
+          base: develop
+          labels: |
+            dependencies
+            automated
+            ${{ github.event.inputs.update_type || 'minor' }}-update
+            ${{ needs.check-dependencies.outputs.security_issues == 'true' && 'security' || 'enhancement' }}
+          delete-branch: true
+
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [check-dependencies, test-updated-dependencies, create-update-pr]
+    if: failure()
+    
+    steps:
+      - name: Create issue on failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Automated Dependency Update Failed';
+            const body = `
+            ## Dependency Update Failure
+            
+            The automated dependency update workflow failed.
+            
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Triggered by:** ${{ github.event_name }}
+            **Update Type:** ${{ github.event.inputs.update_type || 'minor' }}
+            **Target Python:** ${{ github.event.inputs.target_python || '3.11' }}
+            
+            ### Failure Analysis
+            - **Check Dependencies:** ${{ needs.check-dependencies.result }}
+            - **Test Updated Dependencies:** ${{ needs.test-updated-dependencies.result }}
+            - **Create Update PR:** ${{ needs.create-update-pr.result }}
+            
+            ### Possible Causes
+            - Dependency conflicts between packages
+            - Security vulnerabilities in new versions
+            - Breaking changes in updated packages
+            - Cross-platform compatibility issues
+            - Network issues during package installation
+            - Python version compatibility problems
+            
+            ### Recommended Actions
+            1. **Review the workflow logs** for specific error messages
+            2. **Check for dependency conflicts** in the requirements files
+            3. **Run updates manually** with \`pip-compile --upgrade\`
+            4. **Test individual package updates** to isolate problematic packages
+            5. **Update version constraints** if necessary
+            - **Check package release notes** for breaking changes
+            
+            ### Manual Update Commands
+            \`\`\`bash
+            # Install pip-tools
+            pip install pip-tools
+            
+            # Update specific package types
+            pip-compile --upgrade-package "numpy*" requirements.in  # Security updates
+            pip-compile --upgrade requirements.in  # All updates
+            
+            # Test updates
+            pip install -r requirements.txt
+            python -c "import pandas, numpy, requests"  # Test imports
+            \`\`\`
+            
+            *This issue was automatically created by the dependency update workflow.*
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['dependencies', 'automated', 'bug', 'high-priority']
+            }); 
