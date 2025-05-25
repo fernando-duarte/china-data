@@ -128,7 +128,7 @@ def main() -> None:
         projection_info["K_USD_bn"] = k_metadata
 
     # Tax revenue metadata
-    if "TAX_pct_GDP" in processed.columns and not imf_tax_data.empty:
+    if "TAX_pct_GDP" in processed.columns and len(imf_tax_data) > 0:
         try:
             projected_years = [y for y in imf_tax_data["year"] if y > 2023]
             if projected_years:

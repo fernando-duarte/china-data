@@ -47,7 +47,7 @@ def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: fl
 
     # Check if we have data to project from
     k_data_not_na = df.dropna(subset=["K_USD_bn"])
-    if k_data_not_na.empty:
+    if len(k_data_not_na) == 0:
         logger.error("No non-NA capital stock data available for projection")
         return df
 
@@ -92,12 +92,12 @@ def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: fl
             # Get investment value for this year
             inv_row = df.loc[df["year"] == y, "I_USD_bn"]
 
-            if inv_row.empty or pd.isna(inv_row.iloc[0]):
+            if len(inv_row) == 0 or pd.isna(inv_row.iloc[0]):
                 logger.warning(f"No investment data for year {y}, using estimated value")
                 # Estimate investment based on previous year's investment with a small growth rate
                 prev_year = y - 1
                 prev_inv_row = df.loc[df["year"] == prev_year, "I_USD_bn"]
-                if prev_inv_row.empty or pd.isna(prev_inv_row.iloc[0]):
+                if len(prev_inv_row) == 0 or pd.isna(prev_inv_row.iloc[0]):
                     logger.warning(f"No investment data for previous year {prev_year} either, using last known value")
                     # Use the last known investment value
                     last_inv = df.dropna(subset=["I_USD_bn"])["I_USD_bn"].iloc[-1]

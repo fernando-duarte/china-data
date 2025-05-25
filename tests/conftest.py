@@ -1,18 +1,15 @@
-import os
 import shutil
 import tempfile
+from pathlib import Path
 
 import pytest
 
 from utils.processor_load import load_raw_data
 
 
-def pytest_configure(config):
-    os.environ.setdefault("PYTHONPATH", os.path.dirname(os.path.dirname(__file__)))
-
-
 @pytest.fixture(scope="session")
 def raw_df():
+    """Load raw data for testing."""
     return load_raw_data("china_data_raw.md")
 
 
@@ -29,7 +26,7 @@ def temp_project_root(tmp_path):
     (tmp_path / "README.md").write_text("Test project")
 
     # Save current directory
-    original_cwd = os.getcwd()
+    original_cwd = Path.cwd()
 
     # Change to temp directory
     os.chdir(str(tmp_path))
@@ -37,4 +34,4 @@ def temp_project_root(tmp_path):
     yield tmp_path
 
     # Restore original directory
-    os.chdir(original_cwd)
+    os.chdir(str(original_cwd))

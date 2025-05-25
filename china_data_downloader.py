@@ -15,6 +15,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, Dict
 
 import pandas as pd
@@ -26,6 +27,12 @@ from utils.data_sources.pwt_downloader import get_pwt_data
 from utils.data_sources.wdi_downloader import download_wdi_data
 from utils.markdown_utils import render_markdown_table
 from utils.path_constants import get_search_locations_relative_to_root
+from utils.error_handling import (
+    FileOperationError,
+    DataValidationError, 
+    log_error_with_context,
+    validate_dataframe_not_empty
+)
 
 logging.basicConfig(
     level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT
@@ -42,18 +49,36 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
         
     Returns:
         Dictionary of dataframes by indicator name, or None if file not found
+        
+    Raises:
+        FileOperationError: If file operations fail
+        DataValidationError: If data validation fails
     """
-    fallback_file = os.path.join(output_dir, "china_data_raw.md")
-    if not os.path.exists(fallback_file):
+    fallback_file = Path(output_dir) / "china_data_raw.md"
+    if not fallback_file.exists():
         logger.warning(f"Fallback file {fallback_file} not found")
         return None
         
     logger.info(f"Loading fallback data from {fallback_file}")
     
     try:
-        # Read the markdown file
-        with open(fallback_file, 'r', encoding='utf-8') as f:
-            content = f.read()
+        # Read the markdown file with explicit encoding
+        try:
+            content = fallback_file.read_text(encoding='utf-8')
+        except (IOError, OSError) as e:
+            raise FileOperationError(
+                operation="read",
+                filepath=str(fallback_file),
+                message="Failed to read fallback file",
+                original_error=e
+            )
+            
+        if not content.strip():
+            raise DataValidationError(
+                column="fallback_file",
+                message="Fallback file is empty",
+                data_info=f"File: {fallback_file}"
+            )
             
         # Find the table section
         lines = content.split('\n')
@@ -68,34 +93,100 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
                 break
                 
         if table_start is None:
-            logger.error("Could not find data table in fallback file")
-            return None
+            raise DataValidationError(
+                column="fallback_file",
+                message="Could not find data table in fallback file",
+                data_info=f"File: {fallback_file}, Lines: {len(lines)}"
+            )
             
         # Parse the table
         table_lines = lines[table_start:table_end]
+        if len(table_lines) < 3:  # Header + separator + at least one data row
+            raise DataValidationError(
+                column="fallback_file",
+                message="Insufficient table data in fallback file",
+                data_info=f"Table lines: {len(table_lines)}"
+            )
+            
         headers = [h.strip() for h in table_lines[0].split('|')[1:-1]]
         
         # Skip the separator line
         data_lines = table_lines[2:]
         
-        # Parse data
+        # Parse data with validation
         data = []
-        for line in data_lines:
-            if line.strip():
-                values = [v.strip() for v in line.split('|')[1:-1]]
-                data.append(values)
-                
-        # Create DataFrame
-        df = pd.DataFrame(data, columns=headers)
+        parse_errors = []
         
-        # Convert numeric columns
+        for line_num, line in enumerate(data_lines, start=table_start + 3):
+            if line.strip():
+                try:
+                    values = [v.strip() for v in line.split('|')[1:-1]]
+                    if len(values) != len(headers):
+                        parse_errors.append(f"Line {line_num}: Expected {len(headers)} columns, got {len(values)}")
+                        continue
+                    data.append(values)
+                except Exception as e:
+                    parse_errors.append(f"Line {line_num}: Parse error - {str(e)}")
+                    
+        # Report parse errors but continue if we have some data
+        if parse_errors:
+            logger.warning(f"Parse errors in fallback file: {parse_errors[:Config.MAX_LOG_ERRORS_DISPLAYED]}")  # Show first N errors
+            if len(parse_errors) > Config.MAX_LOG_ERRORS_DISPLAYED:
+                logger.warning(f"... and {len(parse_errors) - Config.MAX_LOG_ERRORS_DISPLAYED} more parse errors")
+                
+        if not data:
+            raise DataValidationError(
+                column="fallback_file",
+                message="No valid data rows found in fallback file",
+                data_info=f"Parse errors: {len(parse_errors)}"
+            )
+                
+        # Create DataFrame with validation
+        try:
+            df = pd.DataFrame(data, columns=headers)
+        except Exception as e:
+            raise DataValidationError(
+                column="fallback_file",
+                message=f"Failed to create DataFrame from parsed data: {str(e)}",
+                data_info=f"Headers: {headers}, Data rows: {len(data)}"
+            )
+        
+        # Convert numeric columns with error tracking
+        conversion_errors = {}
         for col in df.columns:
             if col != 'Year':
-                df[col] = pd.to_numeric(df[col].replace('N/A', pd.NA), errors='coerce')
+                try:
+                    # Replace 'N/A' and similar values with NaN
+                    cleaned = df[col].replace(['N/A', 'nan', 'NaN', ''], pd.NA)
+                    df[col] = pd.to_numeric(cleaned, errors='coerce')
+                except Exception as e:
+                    conversion_errors[col] = str(e)
             else:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
+                try:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+                except Exception as e:
+                    conversion_errors[col] = str(e)
+                    
+        if conversion_errors:
+            logger.warning(f"Numeric conversion errors in fallback data: {conversion_errors}")
                 
-        # Split into separate dataframes by indicator
+        # Validate that we have a Year column with valid data
+        if 'Year' not in df.columns:
+            raise DataValidationError(
+                column="Year",
+                message="Year column missing from fallback data",
+                data_info=f"Available columns: {list(df.columns)}"
+            )
+            
+        valid_years = df['Year'].dropna()
+        if len(valid_years) == 0:
+            raise DataValidationError(
+                column="Year",
+                message="No valid years found in fallback data",
+                data_info=f"Year column values: {df['Year'].head().tolist()}"
+            )
+                
+        # Split into separate dataframes by indicator with validation
         result = {}
         
         # WDI indicators
@@ -113,13 +204,21 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
         
         for col, name in wdi_mapping.items():
             if col in df.columns:
-                result[name] = df[['Year', col]].rename(columns={'Year': 'year', col: name}).dropna()
-                
+                indicator_df = df[['Year', col]].rename(columns={'Year': 'year', col: name}).dropna()
+                if len(indicator_df) > 0:
+                    result[name] = indicator_df
+                    logger.debug(f"Loaded {len(indicator_df)} rows for {name} from fallback")
+                else:
+                    logger.warning(f"No valid data for {name} in fallback file")
+                    
         # Tax data
         if 'Tax Revenue (% of GDP)' in df.columns:
-            result['TAX_pct_GDP'] = df[['Year', 'Tax Revenue (% of GDP)']].rename(
+            tax_df = df[['Year', 'Tax Revenue (% of GDP)']].rename(
                 columns={'Year': 'year', 'Tax Revenue (% of GDP)': 'TAX_pct_GDP'}
             ).dropna()
+            if len(tax_df) > 0:
+                result['TAX_pct_GDP'] = tax_df
+                logger.debug(f"Loaded {len(tax_df)} rows for TAX_pct_GDP from fallback")
             
         # PWT data
         pwt_cols = ['PWT rgdpo', 'PWT rkna', 'PWT pl_gdpo', 'PWT cgdpo', 'PWT hc']
@@ -136,14 +235,37 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
         if pwt_available:
             cols_to_select = ['Year'] + pwt_available
             rename_dict = {k: v for k, v in pwt_rename.items() if k in cols_to_select}
-            result['PWT'] = df[cols_to_select].rename(columns=rename_dict).dropna(subset=[rename_dict[c] for c in pwt_available], how='all')
+            pwt_df = df[cols_to_select].rename(columns=rename_dict).dropna(subset=[rename_dict[c] for c in pwt_available], how='all')
+            if len(pwt_df) > 0:
+                result['PWT'] = pwt_df
+                logger.debug(f"Loaded {len(pwt_df)} rows for PWT from fallback")
+            
+        if not result:
+            raise DataValidationError(
+                column="fallback_data",
+                message="No valid indicators found in fallback data",
+                data_info=f"Available columns: {list(df.columns)}"
+            )
             
         logger.info(f"Successfully loaded fallback data with {len(result)} indicators")
         return result
         
+    except (FileOperationError, DataValidationError):
+        # Re-raise our custom exceptions
+        raise
     except Exception as e:
-        logger.error(f"Error loading fallback data: {e}")
-        return None
+        log_error_with_context(
+            logger,
+            "Unexpected error loading fallback data",
+            e,
+            context={'fallback_file': fallback_file}
+        )
+        raise FileOperationError(
+            operation="parse",
+            filepath=fallback_file,
+            message="Unexpected error during fallback data parsing",
+            original_error=e
+        )
 
 
 def main() -> None:
@@ -169,25 +291,26 @@ def main() -> None:
     wdi_download_failed = False
     for code, name in Config.WDI_INDICATORS.items():
         data = download_wdi_data(code, end_year=end_year)
-        if not data.empty:
+        if len(data) > 0:
             data = data[["year", code.replace(".", "_")]].rename(columns={code.replace(".", "_"): name})
+            # Convert year to int once here instead of multiple times later
             data["year"] = data["year"].astype(int)
             all_data[name] = data
         else:
             logger.warning(f"Failed to download WDI indicator {code} ({name})")
             wdi_download_failed = True
-        time.sleep(1)
+        time.sleep(Config.DOWNLOAD_DELAY_SECONDS)
 
     # Load IMF tax data using the dedicated loader
     tax_data = load_imf_tax_data()
-    if not tax_data.empty:
+    if len(tax_data) > 0:
         all_data["TAX_pct_GDP"] = tax_data
 
     # Get IMF download date from download_date.txt if it exists
     imf_download_date = None
     possible_locations_relative = get_search_locations_relative_to_root()["input_files"]
     date_file = find_file("download_date.txt", possible_locations_relative)
-    if date_file and os.path.exists(date_file):
+    if date_file and Path(date_file).exists():
         try:
             with open(date_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
@@ -217,18 +340,21 @@ def main() -> None:
         logger.warning(f"Could not get PWT data: {e}")
         pwt_data = pd.DataFrame(columns=["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"])
         pwt_download_failed = True
-    pwt_data["year"] = pwt_data["year"].astype(int)
+    
+    # Ensure year column is int for PWT data (already done in get_pwt_data, but ensure consistency)
+    if len(pwt_data) > 0 and "year" in pwt_data.columns:
+        pwt_data["year"] = pwt_data["year"].astype(int)
     all_data["PWT"] = pwt_data
 
     # Check if we need to use fallback data
-    if (wdi_download_failed or pwt_download_failed) or all(data.empty for data in all_data.values()):
+    if (wdi_download_failed or pwt_download_failed) or all(len(data) == 0 for data in all_data.values()):
         logger.warning("Some downloads failed, attempting to use fallback data")
         fallback_data = load_fallback_data(output_dir)
         
         if fallback_data:
             # Replace failed downloads with fallback data
             for name, data in fallback_data.items():
-                if name not in all_data or all_data[name].empty:
+                if name not in all_data or len(all_data[name]) == 0:
                     logger.info(f"Using fallback data for {name}")
                     all_data[name] = data
                     
@@ -240,30 +366,40 @@ def main() -> None:
         else:
             logger.error("Failed to load fallback data")
 
+    # Optimize merging process - avoid redundant type conversions
     merged_data = None
     for data in all_data.values():
         if merged_data is None:
-            merged_data = data
+            merged_data = data.copy()
         else:
-            merged_data["year"] = merged_data["year"].astype(int)
-            data["year"] = data["year"].astype(int)
+            # Ensure both dataframes have int year columns before merging
+            if "year" in merged_data.columns:
+                merged_data["year"] = merged_data["year"].astype(int)
+            if "year" in data.columns:
+                data = data.copy()  # Don't modify original
+                data["year"] = data["year"].astype(int)
             merged_data = pd.merge(merged_data, data, on="year", how="outer")
 
-    merged_data["year"] = pd.to_numeric(merged_data["year"], errors="coerce")
-    merged_data = merged_data.dropna(subset=["year"])
-    merged_data["year"] = merged_data["year"].astype(int)
-    merged_data = merged_data.sort_values("year")
+    # Final cleanup of year column - do this once at the end
+    if merged_data is not None and "year" in merged_data.columns:
+        merged_data["year"] = pd.to_numeric(merged_data["year"], errors="coerce")
+        merged_data = merged_data.dropna(subset=["year"])
+        merged_data["year"] = merged_data["year"].astype(int)
+        merged_data = merged_data.sort_values("year")
 
-    all_years = pd.DataFrame({"year": range(1960, end_year + 1)})
-    merged_data = pd.merge(all_years, merged_data, on="year", how="left")
+        all_years = pd.DataFrame({"year": range(1960, end_year + 1)})
+        merged_data = pd.merge(all_years, merged_data, on="year", how="left")
+    else:
+        logger.error("No data available for processing")
+        return
 
     # Pass download dates to the markdown renderer
     markdown_output = render_markdown_table(
         merged_data, wdi_date=wdi_download_date, pwt_date=pwt_download_date, imf_date=imf_download_date
     )
 
-    with open(os.path.join(output_dir, "china_data_raw.md"), "w", encoding="utf-8") as f:
-        f.write(markdown_output)
+    output_file = Path(output_dir) / "china_data_raw.md"
+    output_file.write_text(markdown_output, encoding="utf-8")
     logger.info("Data download and integration complete!")
 
 

@@ -91,19 +91,19 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
 
         # Get GDP (cgdpo_bn) for baseline year
         gdp_baseline_rows = df.loc[df.year == baseline_year, "cgdpo_bn"]
-        if gdp_baseline_rows.empty or pd.isna(gdp_baseline_rows.iloc[0]):
+        if len(gdp_baseline_rows) == 0 or pd.isna(gdp_baseline_rows.iloc[0]):
             raise ValueError(f"No cgdpo_bn data for {baseline_year}")
         gdp_baseline = gdp_baseline_rows.iloc[0]
 
         # Get capital stock at constant prices (rkna) for baseline year
         rkna_baseline_rows = df.loc[df.year == baseline_year, "rkna"]
-        if rkna_baseline_rows.empty or pd.isna(rkna_baseline_rows.iloc[0]):
+        if len(rkna_baseline_rows) == 0 or pd.isna(rkna_baseline_rows.iloc[0]):
             raise ValueError(f"No rkna data for {baseline_year}")
         rkna_baseline = rkna_baseline_rows.iloc[0]
 
         # Get price level (pl_gdpo) for baseline year
         pl_gdpo_baseline_rows = df.loc[df.year == baseline_year, "pl_gdpo"]
-        if pl_gdpo_baseline_rows.empty or pd.isna(pl_gdpo_baseline_rows.iloc[0]):
+        if len(pl_gdpo_baseline_rows) == 0 or pd.isna(pl_gdpo_baseline_rows.iloc[0]):
             raise ValueError(f"No pl_gdpo data for {baseline_year}")
         pl_gdpo_baseline = pl_gdpo_baseline_rows.iloc[0]
 
@@ -144,7 +144,7 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
         k_data = df.dropna(subset=["K_USD_bn"])
         logger.info(f"Calculated capital stock for {k_data.shape[0]} years")
 
-        if not k_data.empty:
+        if len(k_data) > 0:
             min_k = k_data["K_USD_bn"].min()
             max_k = k_data["K_USD_bn"].max()
             logger.info(f"Capital stock range: {min_k:.2f} to {max_k:.2f} billion USD")

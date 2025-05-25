@@ -11,10 +11,12 @@ from typing import List, Tuple
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
+from config import Config
+
 logger = logging.getLogger(__name__)
 
 
-def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = 2) -> Tuple[pd.DataFrame, bool, str]:
+def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = Config.MIN_DATA_POINTS_FOR_REGRESSION) -> Tuple[pd.DataFrame, bool, str]:
     """
     Extrapolate a time series using linear regression.
 
@@ -22,7 +24,7 @@ def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_proj
         df (pd.DataFrame): DataFrame containing the time series data
         col (str): Column name of the series to extrapolate
         years_to_project (list): List of years to project values for
-        min_data_points (int): Minimum number of data points required (default: 2)
+        min_data_points (int): Minimum number of data points required (default: from Config)
 
     Returns:
         tuple: (updated_df, success, method_info)
@@ -67,7 +69,7 @@ def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_proj
         for year in yrs:
             pred = model.predict([[year]])[0]
             # Ensure predictions are non-negative and rounded appropriately
-            df_result.loc[df_result.year == year, col] = round(max(0, pred), 4)
+            df_result.loc[df_result.year == year, col] = round(max(0, pred), Config.DECIMAL_PLACES_PROJECTIONS)
 
         logger.info(f"Successfully applied linear regression to {col} for years {min(yrs)}-{max(yrs)}")
         return df_result, True, "Linear regression"

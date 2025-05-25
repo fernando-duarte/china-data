@@ -1,53 +1,70 @@
 """
-Path constants for the China Economic Data Analysis project.
-This module centralizes all path-related constants to improve maintainability.
+Path constants and utilities for the China data processing project.
+
+This module provides centralized path management using pathlib for consistent
+cross-platform path handling.
 """
 
 import os
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
-# Directory structure constants
+# Directory names
 INPUT_DIR_NAME = "input"
 OUTPUT_DIR_NAME = "output"
 
-# Path utility functions
 
-
-def get_absolute_input_path() -> str:
+def get_project_root() -> Path:
     """
-    Get the absolute path to the input directory (project_root/input).
+    Get the project root directory.
+    
+    Returns:
+        Path object pointing to the project root directory
     """
-    from utils import get_project_root
-
-    return os.path.join(get_project_root(), INPUT_DIR_NAME)
+    return Path(__file__).parent.parent
 
 
-def get_absolute_output_path() -> str:
+def get_absolute_input_path() -> Path:
     """
-    Get the absolute path to the output directory (project_root/output).
+    Get the absolute path to the input directory.
+    
+    Returns:
+        Path object pointing to the input directory
     """
-    from utils import get_project_root
-
-    return os.path.join(get_project_root(), OUTPUT_DIR_NAME)
+    return get_project_root() / INPUT_DIR_NAME
 
 
-# Common file paths relative to project root for searching
-def get_search_locations_relative_to_root() -> Dict[str, List[str]]:
+def get_absolute_output_path() -> Path:
     """
-    Get default search locations for different file types,
-    all paths are relative to the project root.
-    The find_file function will prepend get_project_root() to these.
+    Get the absolute path to the output directory.
+    
+    Returns:
+        Path object pointing to the output directory
+    """
+    return get_project_root() / OUTPUT_DIR_NAME
+
+
+def get_search_locations_relative_to_root() -> dict:
+    """
+    Get search locations for various file types relative to project root.
+    
+    Returns:
+        Dictionary mapping file types to lists of relative path strings
     """
     return {
         "input_files": [
             INPUT_DIR_NAME,
+            f"{INPUT_DIR_NAME}/imf",
+            f"{INPUT_DIR_NAME}/data",
+            ".",  # Project root
         ],
         "output_files": [
             OUTPUT_DIR_NAME,
+            ".",  # Project root
         ],
-        "general": [
-            INPUT_DIR_NAME,
-            OUTPUT_DIR_NAME,
-            "",  # project root itself
-        ],
+        "config_files": [
+            ".",  # Project root
+            "config",
+            "parameters_info",
+        ]
     }

@@ -10,10 +10,12 @@ from typing import List, Tuple
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 
+from config import Config
+
 logger = logging.getLogger(__name__)
 
 
-def extrapolate_with_arima(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = 5, order: Tuple[int, int, int] = (1, 1, 1)) -> Tuple[pd.DataFrame, bool, str]:
+def extrapolate_with_arima(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = Config.MIN_DATA_POINTS_FOR_ARIMA, order: Tuple[int, int, int] = Config.DEFAULT_ARIMA_ORDER) -> Tuple[pd.DataFrame, bool, str]:
     """
     Extrapolate a time series using ARIMA model.
 
@@ -21,8 +23,8 @@ def extrapolate_with_arima(df: pd.DataFrame, col: str, years_to_project: List[in
         df (pd.DataFrame): DataFrame containing the time series data
         col (str): Column name of the series to extrapolate
         years_to_project (list): List of years to project values for
-        min_data_points (int): Minimum number of data points required for ARIMA (default: 5)
-        order (tuple): ARIMA order parameters as (p, d, q) (default: (1, 1, 1))
+        min_data_points (int): Minimum number of data points required for ARIMA (default: from Config)
+        order (tuple): ARIMA order parameters as (p, d, q) (default: from Config)
 
     Returns:
         tuple: (updated_df, success, method_info)
@@ -63,7 +65,7 @@ def extrapolate_with_arima(df: pd.DataFrame, col: str, years_to_project: List[in
 
         # Update the dataframe with projected values
         for i, year in enumerate(yrs):
-            df_result.loc[df_result.year == year, col] = round(max(0, vals[i]), 4)
+            df_result.loc[df_result.year == year, col] = round(max(0, vals[i]), Config.DECIMAL_PLACES_PROJECTIONS)
 
         logger.info(
             f"Successfully applied ARIMA({order[0]},{order[1]},{order[2]}) to {col} for years {min(yrs)}-{max(yrs)}"

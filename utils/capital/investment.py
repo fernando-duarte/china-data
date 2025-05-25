@@ -104,7 +104,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.
 
             # Log statistics for validation
             non_na = result.dropna(subset=["I_USD_bn"])
-            if not non_na.empty:
+            if len(non_na) > 0:
                 min_i = non_na["I_USD_bn"].min()
                 max_i = non_na["I_USD_bn"].max()
                 mean_i = non_na["I_USD_bn"].mean()
@@ -121,7 +121,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.
                     z_scores = (non_na["I_USD_bn"] - mean_i) / std_i
                     outliers = non_na[abs(z_scores) > 3]
 
-                    if not outliers.empty:
+                    if len(outliers) > 0:
                         outlier_years = outliers["year"].tolist()
                         logger.warning(f"Outlier investment values detected for years: {outlier_years}")
 

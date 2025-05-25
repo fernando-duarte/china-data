@@ -44,7 +44,7 @@ def get_projection_metadata(
             # For columns present in original data, find last non-NA year
             col_data = original_df[["year", column_name]].dropna()
 
-            if not col_data.empty:
+            if len(col_data) > 0:
                 last_data_year = col_data["year"].max()
 
                 # If projection extends beyond last available data
@@ -67,7 +67,7 @@ def get_projection_metadata(
             proj_data = projection_df[["year", column_name]].dropna()
             orig_data = processed_df[["year", column_name]].dropna()
 
-            if not proj_data.empty and not orig_data.empty:
+            if len(proj_data) > 0 and len(orig_data) > 0:
                 # Find years that were projected (in projection but not in original)
                 orig_years = set(orig_data["year"].tolist())
                 projected_years = [y for y in proj_data["year"].tolist() if y not in orig_years]

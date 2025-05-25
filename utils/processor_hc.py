@@ -96,7 +96,7 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
 
         # Check if we have any non-NA human capital data
         hc_data_not_na = hc_data.dropna(subset=["hc"])
-        if hc_data_not_na.empty:
+        if len(hc_data_not_na) == 0:
             logger.warning("No non-NA human capital data available for projection")
             return hc_data
 

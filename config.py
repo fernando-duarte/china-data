@@ -23,6 +23,37 @@ class Config:
     DEFAULT_END_YEAR = 2050
     DEFAULT_DEPRECIATION_RATE = 0.05
 
+    # Network and retry configuration
+    MAX_RETRIES = 3
+    RETRY_DELAY_SECONDS = 5
+    REQUEST_TIMEOUT_SECONDS = 30
+    DOWNLOAD_DELAY_SECONDS = 1  # Delay between WDI downloads
+
+    # Data validation thresholds
+    MIN_DATA_POINTS_FOR_REGRESSION = 2
+    MIN_DATA_POINTS_FOR_ARIMA = 5
+    OUTLIER_Z_SCORE_THRESHOLD = 3.0
+    
+    # Growth rate defaults for extrapolation
+    DEFAULT_GROWTH_RATE = 0.05  # 5% default growth rate
+    DEFAULT_INVESTMENT_GROWTH_RATE = 0.05  # 5% for investment estimation
+    DEFAULT_HC_GROWTH_RATE = 0.01  # 1% for human capital
+    
+    # ARIMA model parameters
+    DEFAULT_ARIMA_ORDER = (1, 1, 1)
+    
+    # File operation parameters
+    MAX_LOG_ERRORS_DISPLAYED = 5  # Maximum parse errors to show in logs
+    
+    # Data range validation
+    MIN_YEAR = 1960
+    MAX_REASONABLE_YEAR = 2100
+    
+    # Numeric precision
+    DECIMAL_PLACES_CURRENCY = 2  # For USD billions
+    DECIMAL_PLACES_RATIOS = 4    # For TFP, ratios, etc.
+    DECIMAL_PLACES_PROJECTIONS = 4  # For projected values
+
     # Column mappings for output
     OUTPUT_COLUMN_MAP = {
         "year": "Year",

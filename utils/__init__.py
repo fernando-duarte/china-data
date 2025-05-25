@@ -11,7 +11,6 @@ contains the main scripts, utils/, tests/, input/, and output/ directories.
 """
 
 import logging
-import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -41,30 +40,32 @@ def find_file(filename: str, possible_locations_relative_to_root: Optional[List[
     Args:
         filename: Name of the file to find (e.g., "china_data_raw.md")
         possible_locations_relative_to_root: List of directories relative to project root to search.
-                                            If None, uses default "general" locations.
+                                            If None, uses default "input_files" locations.
 
     Returns:
         Full path to the found file, or None if not found
     """
-    project_root = get_project_root()
+    project_root = Path(get_project_root())
 
     if possible_locations_relative_to_root is None:
         from utils.path_constants import get_search_locations_relative_to_root
-
-        search_locations_relative = get_search_locations_relative_to_root()["general"]
+        search_locations_relative = get_search_locations_relative_to_root()["input_files"]
     else:
         search_locations_relative = possible_locations_relative_to_root
 
     checked_paths = []
     for rel_location in search_locations_relative:
-        # Construct absolute path by joining project_root, the relative location, and filename
-        # If rel_location is an empty string (representing project root itself),
-        # os.path.join handles it correctly.
-        path = os.path.join(project_root, rel_location, filename)
-        checked_paths.append(path)
-        if os.path.exists(path):
+        # Construct absolute path using pathlib
+        if rel_location == ".":
+            # Project root
+            path = project_root / filename
+        else:
+            path = project_root / rel_location / filename
+            
+        checked_paths.append(str(path))
+        if path.exists():
             logger.info(f"Found file at: {path}")
-            return path
+            return str(path)
 
     logger.warning(f"File '{filename}' not found. Searched in: {checked_paths}")
     return None
@@ -80,8 +81,9 @@ def ensure_directory(directory: str) -> str:
     Returns:
         The absolute path to the directory
     """
-    os.makedirs(directory, exist_ok=True)
-    return os.path.abspath(directory)
+    path = Path(directory)
+    path.mkdir(parents=True, exist_ok=True)
+    return str(path.resolve())
 
 
 def get_output_directory() -> str:
@@ -95,8 +97,8 @@ def get_output_directory() -> str:
         str: Path to the output directory
     """
     # Simple path to output directory from project root
-    project_root = get_project_root()
-    output_dir = os.path.join(project_root, "output")
+    project_root = Path(get_project_root())
+    output_dir = project_root / "output"
 
     # Ensure the directory exists
-    return ensure_directory(output_dir)
+    return ensure_directory(str(output_dir))

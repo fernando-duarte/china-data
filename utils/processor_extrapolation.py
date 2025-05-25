@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Any, Optional
 import numpy as np
 import pandas as pd
 
+from config import Config
 from utils.extrapolation_methods import (
     extrapolate_with_arima,
     extrapolate_with_average_growth_rate,
@@ -122,12 +123,12 @@ def _finalize(df: pd.DataFrame, years_to_add: List[int], raw_data: pd.DataFrame,
         for col in key_vars:
             if col in df.columns and pd.isna(df.loc[df.year == year, col].values[0]):
                 last_valid = df[df.year < year][[col]].dropna()
-                if not last_valid.empty:
+                if len(last_valid) > 0:
                     last_value = last_valid.iloc[-1].values[0]
                     last_year = df.loc[last_valid.index[-1], "year"]
                     default_growth = 0.03
                     if col in ["GDP_USD_bn", "C_USD_bn", "G_USD_bn", "I_USD_bn", "X_USD_bn", "M_USD_bn"]:
-                        default_growth = 0.05
+                        default_growth = Config.DEFAULT_GROWTH_RATE
                     elif col == "POP_mn":
                         default_growth = 0.005
                     elif col == "LF_mn":

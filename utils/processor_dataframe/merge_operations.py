@@ -63,7 +63,7 @@ def merge_projections(
         # Get valid projections (non-NA values)
         valid_proj = projection_df[["year", column_name]].dropna()
 
-        if not valid_proj.empty:
+        if len(valid_proj) > 0:
             # Use efficient dataframe operations for merging
             result_df = pd.merge(result_df, valid_proj, on="year", how="left", suffixes=("", "_proj"))
 
@@ -116,7 +116,7 @@ def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> Tuple[pd.
         result_df["TAX_pct_GDP"] = np.nan
 
     # Process tax data if available
-    if tax_data.empty:
+    if len(tax_data) == 0:
         logger.warning("No IMF tax data available")
         return result_df, None
 
