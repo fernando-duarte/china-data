@@ -8,9 +8,12 @@ All input parameters are validated to ensure they are within reasonable ranges:
 """
 
 import argparse
+import logging
 import sys
 from datetime import datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def validate_arguments(args: Any) -> None:
@@ -40,11 +43,11 @@ def validate_arguments(args: Any) -> None:
     if args.end_year < min_year or args.end_year > max_year:
         errors.append(f"End year must be between {min_year} and {max_year}, got {args.end_year}")
 
-    # If there are validation errors, print them and exit
+    # If there are validation errors, log them and exit
     if errors:
-        print("Input validation errors:", file=sys.stderr)
+        logger.error("Input validation errors:")
         for error in errors:
-            print(f"  - {error}", file=sys.stderr)
+            logger.error(f"  - {error}")
         sys.exit(1)
 
 

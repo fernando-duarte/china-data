@@ -6,6 +6,8 @@
 - **Code Quality:** Consistent application of clean code principles across all modules and functions
 - **Documentation Standards:** All documentation follows current best practices from official sources and style guides
 - **Security Compliance:** Code adheres to latest security best practices and vulnerability prevention guidelines
+- **Use Online Resources for Latest Updates:** Check relevant documentation and guides online to ensure most current best practices for codebase's dependencies
+
 
 ## Project Management
 
@@ -17,7 +19,7 @@
 - **Data Flow:** Clear import structure with no circular dependencies
 
 ### 2. Complete Documentation
-- **Updated README.md:** Comprehensive sections on development tools, configuration system, and code quality standards
+- **Updated README.md:** `README.md` files reflect current state of the codebase (do not add or remove anything from these files, just update if needed)
 - **Module Docstrings:** Every Python file has clear module-level docstring explaining purpose and functionality
 - **Function Documentation:** All functions have docstrings with parameter descriptions, return values, and usage examples
 - **Inline Comments:** Explanatory comments for complex logic and business rules
@@ -66,7 +68,7 @@
 - **Whitespace Management:** No trailing whitespace, consistent indentation levels
 
 ### 9. Math Formatting
-- **Markdown Compatibility:** All mathematical expressions compile correctly with pandoc to PDF
+- **Markdown Compatibility:** All markdown files with mathematical expressions compile correctly with pandoc to PDF
 - **Screen Display:** Mathematical formulas render clearly and attractively in terminal/screen output
 - **Consistency:** Mathematical notation consistent across entire codebase and documentation
 - **Source Authority:** `china_growth_model.md` serves as definitive source for all formulas and mathematical models

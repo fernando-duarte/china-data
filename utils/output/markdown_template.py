@@ -38,9 +38,9 @@ Where:
 - $rkna_t$ is the real capital stock index in year $t$ (from PWT)
 - $rkna_{2017}$ is the real capital stock index in 2017 (from PWT)
 - $K_{2017}$ is the nominal capital stock in 2017, estimated as
-  $GDP_{2017} \times$ {{ capital_output_ratio }} (capital-output ratio)
-- $pl\_gdpo_t$ is the price level of GDP in year $t$ (from PWT)
-- $pl\_gdpo_{2017}$ is the price level of GDP in 2017 (from PWT)
+  $GDP_{2017} \\times$ {{ capital_output_ratio }} (capital-output ratio)
+- $pl\\_gdpo_t$ is the price level of GDP in year $t$ (from PWT)
+- $pl\\_gdpo_{2017}$ is the price level of GDP in 2017 (from PWT)
 
 ### TFP (Total Factor Productivity)
 Calculated using the Cobb-Douglas production function:
@@ -52,7 +52,7 @@ Where:
 - $K_t$ is Physical Capital in year $t$ (billions USD)
 - $L_t$ is Labor Force in year $t$ (millions of people)
 - $H_t$ is Human Capital index in year $t$
-- $\alpha$ = {{ alpha }} (capital share parameter)
+- $\\alpha$ = {{ alpha }} (capital share parameter)
 
 ## Extrapolation to {{ end_year }}
 Each series was extrapolated using the following methods:
@@ -78,7 +78,7 @@ Each series was extrapolated using the following methods:
 {% if extrapolation_methods['Investment-based projection'] %}
 ### Investment-based projection
 {% for var in extrapolation_methods['Investment-based projection'] %}
-- {{ var }}: Projected using the formula $K_t = K_{t-1} \times (1-\delta) + I_t$, where $\delta = 0.05$
+- {{ var }}: Projected using the formula $K_t = K_{t-1} \\times (1-\\delta) + I_t$, where $\\delta = 0.05$
   (5% depreciation rate) and $I_t$ is investment in year $t${% endfor %}
 {% endif %}
 

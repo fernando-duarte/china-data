@@ -7,12 +7,12 @@ as fallback when primary data sources are unavailable.
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 import pandas as pd
 
 from config import Config
-from utils.error_handling import DataValidationError, FileOperationError, log_error_with_context
+from utils.error_handling import DataValidationError, FileOperationError
 
 logger = logging.getLogger(__name__)
 
@@ -187,5 +187,3 @@ def _split_into_indicators(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
             logger.debug(f"Loaded {len(pwt_df)} rows for PWT from fallback")
 
     return result
-
-

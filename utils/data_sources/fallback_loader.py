@@ -11,7 +11,6 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from config import Config
 from utils.error_handling import DataValidationError, FileOperationError, log_error_with_context
 from .fallback_utils import (
     _read_and_parse_markdown_table,
