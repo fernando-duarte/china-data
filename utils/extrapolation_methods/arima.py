@@ -5,13 +5,15 @@ This module provides a function to extrapolate time series data using the ARIMA 
 """
 
 import logging
+from typing import List, Tuple
 
+import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 
 logger = logging.getLogger(__name__)
 
 
-def extrapolate_with_arima(df, col, years_to_project, min_data_points=5, order=(1, 1, 1)):
+def extrapolate_with_arima(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = 5, order: Tuple[int, int, int] = (1, 1, 1)) -> Tuple[pd.DataFrame, bool, str]:
     """
     Extrapolate a time series using ARIMA model.
 

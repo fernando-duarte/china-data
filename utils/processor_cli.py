@@ -10,9 +10,10 @@ All input parameters are validated to ensure they are within reasonable ranges:
 import argparse
 import sys
 from datetime import datetime
+from typing import Any
 
 
-def validate_arguments(args):
+def validate_arguments(args: Any) -> None:
     """Validate CLI arguments and raise SystemExit with error message if invalid.
     
     Args:
@@ -47,7 +48,7 @@ def validate_arguments(args):
         sys.exit(1)
 
 
-def parse_arguments():
+def parse_arguments() -> Any:
     parser = argparse.ArgumentParser(description="Process China economic data")
     parser.add_argument("-i", "--input-file", default="china_data_raw.md", help="Input file name")
     parser.add_argument("-a", "--alpha", type=float, default=1 / 3, help="Capital share parameter (0-1)")

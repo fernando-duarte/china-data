@@ -6,6 +6,7 @@ using various statistical methods.
 """
 
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -15,7 +16,7 @@ from utils.extrapolation_methods import extrapolate_with_average_growth_rate, ex
 logger = logging.getLogger(__name__)
 
 
-def project_human_capital(processed_data, end_year=2025):
+def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) -> pd.DataFrame:
     """
     Project human capital values to a specified end year using linear regression.
 

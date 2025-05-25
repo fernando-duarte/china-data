@@ -6,13 +6,15 @@ It fits a linear trend to historical data and projects it forward.
 """
 
 import logging
+from typing import List, Tuple
 
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 
 logger = logging.getLogger(__name__)
 
 
-def extrapolate_with_linear_regression(df, col, years_to_project, min_data_points=2):
+def extrapolate_with_linear_regression(df: pd.DataFrame, col: str, years_to_project: List[int], min_data_points: int = 2) -> Tuple[pd.DataFrame, bool, str]:
     """
     Extrapolate a time series using linear regression.
 

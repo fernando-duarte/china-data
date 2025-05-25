@@ -13,7 +13,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def calculate_investment(capital_data, delta=0.05):
+def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.DataFrame:
     """
     Calculate investment data using changes in capital stock and depreciation.
 

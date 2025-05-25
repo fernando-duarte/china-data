@@ -1,8 +1,10 @@
+from typing import Optional
+
 import pandas as pd
 from jinja2 import Template
 
 
-def render_markdown_table(merged_data, wdi_date=None, pwt_date=None, imf_date=None):
+def render_markdown_table(merged_data: pd.DataFrame, wdi_date: Optional[str] = None, pwt_date: Optional[str] = None, imf_date: Optional[str] = None) -> str:
     """
     Render the merged data as a markdown table.
 

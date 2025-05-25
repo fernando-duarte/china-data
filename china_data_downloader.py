@@ -146,7 +146,7 @@ def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
         return None
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Download and integrate China economic data.")
     parser.add_argument(
         "--end-year",

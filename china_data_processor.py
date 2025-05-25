@@ -46,7 +46,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def main():
+def main() -> None:
     # INITIALIZATION
     args = parse_arguments()
     input_file = args.input_file
