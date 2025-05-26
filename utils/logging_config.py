@@ -11,8 +11,8 @@ from typing import Any
 
 import structlog
 from opentelemetry import trace  # pylint: disable=import-error
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # pylint: disable=import-error
-from opentelemetry.instrumentation.logging import LoggingInstrumentor  # pylint: disable=import-error
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # pylint: disable=import-error,no-name-in-module
+from opentelemetry.instrumentation.logging import LoggingInstrumentor  # pylint: disable=import-error,no-name-in-module
 from opentelemetry.sdk.resources import Resource  # pylint: disable=import-error
 from opentelemetry.sdk.trace import TracerProvider  # pylint: disable=import-error
 from opentelemetry.sdk.trace.export import BatchSpanProcessor  # pylint: disable=import-error
