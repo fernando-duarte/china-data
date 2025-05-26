@@ -1,55 +1,44 @@
-"""Convert data units to standardized formats.
-
-This module handles unit conversions for economic data:
-- GDP components: Convert to billions USD
-- Population/Labor Force: Convert to millions of people
-- PWT data: Convert to billions
-"""
+"""Unit conversion utilities for data processing."""
 
 import pandas as pd
 
+from config import Config
 
-def convert_units(raw_data: pd.DataFrame) -> pd.DataFrame:
-    """Convert units to standardized formats.
+
+def convert_units(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert units in the DataFrame to standardized units.
+
+    Converts:
+    - Currency values from USD to billions USD
+    - Population from total to millions
+    - Labor force from total to millions
 
     Args:
-        raw_data: Raw data with original units
+        df: DataFrame with raw data
 
     Returns:
-        DataFrame with converted units and renamed columns
+        DataFrame with converted units
     """
-    # Create a copy only of the columns we need to modify to avoid full DataFrame copy
-    df = raw_data.copy()
+    result = df.copy()
 
-    # Convert USD values to billions
-    for col in ["GDP_USD", "C_USD", "G_USD", "I_USD", "X_USD", "M_USD"]:
-        if col in df.columns:
-            df[col] = df[col] / 1e9
+    # Convert currency columns from USD to billions USD
+    currency_cols = [
+        col for col in result.columns
+        if col.endswith("_USD") and not col.endswith("_bn")
+    ]
+    for col in currency_cols:
+        new_col = col.replace("_USD", "_USD_bn")
+        result[new_col] = result[col] / Config.BILLION_DIVISOR
+        result.drop(col, axis=1, inplace=True)
 
-    # Convert PWT data to billions
-    for col in ["rgdpo", "cgdpo"]:
-        if col in df.columns:
-            df[col] = df[col] / 1000
+    # Convert population from total to millions
+    if "POP" in result.columns:
+        result["POP_mn"] = result["POP"] / Config.BILLION_DIVISOR
+        result.drop("POP", axis=1, inplace=True)
 
-    # Convert population/labor force to millions
-    for col in ["POP", "LF"]:
-        if col in df.columns:
-            df[col] = df[col] / 1e6
+    # Convert labor force from total to millions
+    if "LF" in result.columns:
+        result["LF_mn"] = result["LF"] / Config.BILLION_DIVISOR
+        result.drop("LF", axis=1, inplace=True)
 
-    # Rename columns to indicate units
-    df = df.rename(
-        columns={
-            "GDP_USD": "GDP_USD_bn",
-            "C_USD": "C_USD_bn",
-            "G_USD": "G_USD_bn",
-            "I_USD": "I_USD_bn",
-            "X_USD": "X_USD_bn",
-            "M_USD": "M_USD_bn",
-            "rgdpo": "rgdpo_bn",
-            "cgdpo": "cgdpo_bn",
-            "POP": "POP_mn",
-            "LF": "LF_mn",
-        }
-    )
-
-    return df
+    return result

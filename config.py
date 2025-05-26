@@ -33,6 +33,8 @@ class Config:
     MIN_DATA_POINTS_FOR_REGRESSION = 2
     MIN_DATA_POINTS_FOR_ARIMA = 5
     OUTLIER_Z_SCORE_THRESHOLD = 3.0
+    NEGATIVE_INVESTMENT_THRESHOLD = 0.1  # 10% of capital stock for flagging negative investment
+    MIN_YEARS_FOR_INVESTMENT_STATS = 5  # Minimum years needed for investment statistics
 
     # Growth rate defaults for extrapolation
     DEFAULT_GROWTH_RATE = 0.05  # 5% default growth rate
@@ -44,15 +46,34 @@ class Config:
 
     # File operation parameters
     MAX_LOG_ERRORS_DISPLAYED = 5  # Maximum parse errors to show in logs
+    FILE_ENCODING = "utf-8"  # Standard encoding for file operations
 
     # Data range validation
     MIN_YEAR = 1960
     MAX_REASONABLE_YEAR = 2100
+    BASELINE_YEAR = 2017  # Base year for capital stock calculations
+    BASELINE_YEAR_RANGE_MIN = 2010  # Minimum acceptable baseline year
+    BASELINE_YEAR_RANGE_MAX = 2020  # Maximum acceptable baseline year
+    IMF_PROJECTION_START_YEAR = 2023  # Year from which IMF projections start
+
+    # Data validation ranges
+    POPULATION_MIN = 1000  # Minimum reasonable population
+    LABOR_FORCE_MIN = 1000  # Minimum reasonable labor force
+    FDI_PCT_GDP_MIN = -100  # Minimum FDI as % of GDP
+    FDI_PCT_GDP_MAX = 200  # Maximum FDI as % of GDP
+    HUMAN_CAPITAL_MIN = 0.5  # Minimum human capital index
+    HUMAN_CAPITAL_MAX = 5.0  # Maximum human capital index
+    TAX_PCT_GDP_MIN = 0  # Minimum tax as % of GDP
+    TAX_PCT_GDP_MAX = 100  # Maximum tax as % of GDP
 
     # Numeric precision
     DECIMAL_PLACES_CURRENCY = 2  # For USD billions
     DECIMAL_PLACES_RATIOS = 4  # For TFP, ratios, etc.
     DECIMAL_PLACES_PROJECTIONS = 4  # For projected values
+    DECIMAL_PLACES_INVESTMENT = 2  # For investment calculations
+
+    # Unit conversion factors
+    BILLION_DIVISOR = 1000  # Convert millions to billions
 
     # Column mappings for output
     OUTPUT_COLUMN_MAP = {

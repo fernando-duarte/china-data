@@ -6,14 +6,17 @@ and a specified capital-output ratio.
 """
 
 import logging
+from typing import List
 
 import numpy as np
 import pandas as pd
 
+from config import Config
+
 logger = logging.getLogger(__name__)
 
 
-def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float = 3.0) -> pd.DataFrame:
+def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float = Config.DEFAULT_CAPITAL_OUTPUT_RATIO) -> pd.DataFrame:
     """
     Calculate capital stock using PWT data and capital-output ratio.
 
@@ -23,7 +26,7 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
 
     Args:
         raw_data: DataFrame with PWT data including rkna, pl_gdpo, and cgdpo columns
-        capital_output_ratio: Capital-output ratio to use (default: 3.0)
+        capital_output_ratio: Capital-output ratio to use (default from Config)
 
     Returns:
         DataFrame with K_USD_bn column added (capital stock in billions of USD)
@@ -67,7 +70,7 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
         return df
 
     # Check if we have data for 2017 (baseline year)
-    baseline_year = 2017
+    baseline_year = Config.BASELINE_YEAR
     if baseline_year not in df["year"].values:
         logger.warning(f"Missing {baseline_year} data for capital stock calculation")
 
@@ -75,10 +78,10 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
         logger.info(f"Available years: {min(years_available)} to {max(years_available)}")
 
         # Try to find an alternative baseline year (closest to 2017)
-        alt_years = [y for y in years_available if y >= 2010 and y <= 2020]
+        alt_years = [y for y in years_available if y >= Config.BASELINE_YEAR_RANGE_MIN and y <= Config.BASELINE_YEAR_RANGE_MAX]
         if alt_years:
             # Choose closest year to 2017
-            baseline_year = min(alt_years, key=lambda y: abs(y - 2017))
+            baseline_year = min(alt_years, key=lambda y: abs(y - Config.BASELINE_YEAR))
             logger.info(f"Using alternative baseline year: {baseline_year}")
         else:
             logger.error("No suitable baseline year found in range 2010-2020")
@@ -138,7 +141,7 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
 
         # Round to 2 decimal places
         if "K_USD_bn" in df.columns:
-            df["K_USD_bn"] = df["K_USD_bn"].round(2)
+            df["K_USD_bn"] = df["K_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
 
         # Log summary statistics
         k_data = df.dropna(subset=["K_USD_bn"])

@@ -6,14 +6,18 @@ and depreciation rates.
 """
 
 import logging
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
+from scipy import stats
+
+from config import Config
 
 logger = logging.getLogger(__name__)
 
 
-def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.DataFrame:
+def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAULT_DEPRECIATION_RATE) -> pd.DataFrame:
     """
     Calculate investment data using changes in capital stock and depreciation.
 
@@ -22,7 +26,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.
 
     Args:
         capital_data: DataFrame with 'year' and 'K_USD_bn' columns
-        delta: Depreciation rate (default: 0.05 or 5% per year)
+        delta: Depreciation rate (default from Config)
 
     Returns:
         DataFrame with 'year' and 'I_USD_bn' columns
@@ -64,7 +68,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.
 
     try:
         # Dictionary to store calculated investments
-        investments = {}
+        investments: Dict[int, float] = {}
 
         # Initialize counters for logging
         valid_years = []
@@ -89,7 +93,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.
                 # Apply sanity checks
                 if inv < 0:
                     logger.warning(f"Calculated negative investment for year {curr_year}: {inv:.2f}")
-                    if inv < -0.1 * curr_k:  # If negative investment is large relative to capital
+                    if inv < -Config.NEGATIVE_INVESTMENT_THRESHOLD * curr_k:  # If negative investment is large relative to capital
                         logger.warning(f"Large negative investment ({inv:.2f}) in year {curr_year}, capping to zero")
                         investments[curr_year] = 0
             else:
@@ -138,7 +142,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = 0.05) -> pd.
 
         # Round results to 2 decimal places
         if "I_USD_bn" in result.columns:
-            result["I_USD_bn"] = result["I_USD_bn"].round(2)
+            result["I_USD_bn"] = result["I_USD_bn"].round(Config.DECIMAL_PLACES_INVESTMENT)
 
     except Exception as e:
         logger.error(f"Error calculating investment: {str(e)}")

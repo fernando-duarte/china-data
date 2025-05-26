@@ -13,7 +13,12 @@ The script uses configurable parameters for economic calculations (alpha, capita
 and supports various extrapolation methods (ARIMA, linear regression, growth rates).
 """
 
+import argparse
 import logging
+import sys
+from pathlib import Path
+
+import pandas as pd
 
 from config import Config
 
@@ -30,131 +35,96 @@ from utils.processor_dataframe.output_operations import prepare_final_dataframe,
 from utils.processor_extrapolation import extrapolate_series_to_end_year
 from utils.processor_hc import project_human_capital
 from utils.processor_load import load_imf_tax_revenue_data, load_raw_data
-from utils.output import format_data_for_output
+from utils.output import format_data_for_output, create_markdown_table
 from utils.processor_units import convert_units
 
-logging.basicConfig(level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT)
 logger = logging.getLogger(__name__)
 
 
-def main() -> None:
-    # INITIALIZATION
-    args = parse_arguments()
-    input_file = args.input_file
-    alpha = args.alpha
-    output_base = args.output_file
-    capital_output_ratio = args.capital_output_ratio
-    end_year = args.end_year
+def process_data(raw_data: pd.DataFrame, imf_tax_data: pd.DataFrame, args: argparse.Namespace) -> pd.DataFrame:
+    """Process raw economic data.
 
-    output_dir = get_output_directory()
-    logger.info(f"Output files will be saved to: {output_dir}")
+    Args:
+        raw_data: Raw data from various sources
+        imf_tax_data: IMF tax revenue data
+        args: Command line arguments
 
-    # DATA LOADING
-    logger.info("Loading raw data sources")
-    raw_data = load_raw_data(input_file=input_file)
-    imf_tax_data = load_imf_tax_revenue_data()
-
-    # DATA PREPROCESSING
-    logger.info("Converting units")
+    Returns:
+        Processed DataFrame with all indicators
+    """
+    # Convert units (e.g., USD to billions USD)
     processed = convert_units(raw_data)
 
-    # PROJECTIONS & CALCULATIONS
-    projection_info = {}
+    # Calculate capital stock
+    processed = calculate_capital_stock(processed, capital_output_ratio=args.capital_output_ratio)
 
-    # Capital Stock Calculation
-    logger.info("Calculating capital stock")
-    capital_df = calculate_capital_stock(processed, capital_output_ratio)
-    processed, _ = merge_dataframe_column(processed, capital_df, "K_USD_bn", "capital stock")
+    # Project human capital
+    processed = project_human_capital(processed, end_year=args.end_year)
 
-    # Human Capital Projection
-    # Human capital projection
-    logger.info(f"Projecting human capital to {end_year}")
-    hc_proj = project_human_capital(raw_data, end_year=end_year)
+    # Calculate economic indicators
+    processed = calculate_economic_indicators(processed, alpha=args.alpha)
 
-    # Merge human capital projections
-    processed, hc_info = merge_projections(processed, hc_proj, "hc", "Linear regression", "human capital")
-
-    # Merge tax data
-    logger.info("Processing tax revenue data")
-    processed, tax_info = merge_tax_data(processed, imf_tax_data)
-
-    # Extrapolate base series to end year
-    logger.info(f"Extrapolating base series to end year {end_year}")
-    try:
-        processed, extrapolation_info = extrapolate_series_to_end_year(processed, end_year=end_year, raw_data=raw_data)
-        logger.info(f"Extrapolation complete - info contains {len(extrapolation_info)} series")
-    except Exception as e:
-        logger.error(f"Error during extrapolation: {e}")
-        extrapolation_info = {}
-
-    # Capital Stock Projection (after investment has been extrapolated)
-    logger.info(f"Projecting capital stock to {end_year} using extrapolated investment")
-    logger.info("Using unsmoothed capital data")
-    k_proj = project_capital_stock(processed, end_year=end_year)
-
-    # Merge capital stock projections
-    processed, k_info = merge_projections(processed, k_proj, "K_USD_bn", "Investment-based projection", "capital stock")
-
-    # Calculate economic indicators using extrapolated variables
-    logger.info("Calculating derived economic indicators from extrapolated variables")
-    processed = calculate_economic_indicators(processed, alpha=alpha, logger=logger)
-
-    # DOCUMENTATION - Record projection methods
-    logger.info("Recording projection methods for all variables")
-
-    # Human Capital metadata
-    hc_metadata = get_projection_metadata(processed, hc_proj, raw_data, "hc", "Linear regression", end_year)
-    if hc_metadata:
-        projection_info["hc"] = hc_metadata
-
-    # Physical Capital metadata
-    k_metadata = get_projection_metadata(
-        processed, k_proj, processed, "K_USD_bn", "Investment-based projection", end_year
-    )
-    if k_metadata:
-        projection_info["K_USD_bn"] = k_metadata
-
-    # Tax revenue metadata
+    # Merge IMF tax revenue projections if available
     if "TAX_pct_GDP" in processed.columns and len(imf_tax_data) > 0:
-        try:
-            projected_years = [y for y in imf_tax_data["year"] if y > 2023]
-            if projected_years:
-                projection_info["TAX_pct_GDP"] = {"method": "IMF projections", "years": projected_years}
-                logger.info(
-                    f"Set tax revenue projection method to IMF projections for years "
-                    f"{min(projected_years)}-{max(projected_years)}"
-                )
-        except Exception as e:
-            logger.warning(f"Error recording tax projection info: {e}")
+        # Only use projections for future years
+        projected_years = [y for y in imf_tax_data["year"] if y > Config.IMF_PROJECTION_START_YEAR]
+        if projected_years:
+            logger.info(f"Using IMF tax revenue projections for years: {projected_years}")
+            for year in projected_years:
+                if year in imf_tax_data["year"].values:
+                    tax_value = imf_tax_data.loc[imf_tax_data.year == year, "TAX_pct_GDP"].iloc[0]
+                    processed.loc[processed.year == year, "TAX_pct_GDP"] = tax_value
 
-    # Update projection info with extrapolation info
-    projection_info.update(extrapolation_info)
+    # Extrapolate series to end year
+    processed, extrapolation_info = extrapolate_series_to_end_year(
+        processed, end_year=args.end_year, raw_data=raw_data
+    )
 
-    # OUTPUT PREPARATION
-    # Prepare output data
-    logger.info("Preparing data for output")
+    return processed, extrapolation_info
+
+
+def main():
+    """Main entry point for data processing."""
+    # Parse command line arguments
+    args = parse_arguments()
+
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format=Config.LOG_FORMAT,
+        datefmt=Config.LOG_DATE_FORMAT,
+    )
 
     try:
-        # Prepare final dataframe using column map from config
-        final_df = prepare_final_dataframe(processed, Config.OUTPUT_COLUMN_MAP)
+        # Load raw data
+        raw_data = load_raw_data(args.input_file)
+        if raw_data.empty:
+            logger.error("Failed to load raw data")
+            sys.exit(1)
 
-        # Format data for output
-        formatted = format_data_for_output(final_df)
+        # Load IMF tax revenue data
+        imf_tax_data = load_imf_tax_revenue_data()
 
-        # Save to output files
-        save_output_files(
-            formatted,
-            output_dir,
-            output_base,
-            projection_info,
-            alpha,
-            capital_output_ratio,
-            input_file,
-            end_year,
-        )
+        # Process data
+        processed_data, extrapolation_info = process_data(raw_data, imf_tax_data, args)
+
+        # Create output directory if it doesn't exist
+        output_dir = Config.get_output_directory()
+
+        # Save processed data
+        output_base = output_dir / args.output_file
+        csv_file = output_base.with_suffix(".csv")
+        processed_data.to_csv(csv_file, index=False, encoding=Config.FILE_ENCODING)
+        logger.info(f"Saved processed data to {csv_file}")
+
+        # Create markdown output
+        md_file = output_base.with_suffix(".md")
+        create_markdown_table(processed_data, md_file, extrapolation_info)
+        logger.info(f"Created markdown table at {md_file}")
+
     except Exception as e:
-        logger.error(f"Error preparing output data: {e}")
-        raise
+        logger.error(f"Error processing data: {e}", exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
