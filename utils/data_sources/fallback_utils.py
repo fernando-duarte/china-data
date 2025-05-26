@@ -130,17 +130,13 @@ def _split_into_indicators(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """Split DataFrame into separate dataframes by indicator type."""
     result = {}
 
-    # WDI indicators mapping
+    # Get WDI indicators mapping from config
+    raw_data_mapping = Config.get_raw_data_column_map()
+    # Filter for WDI indicators only (exclude PWT columns)
     wdi_mapping = {
-        "GDP (USD)": "GDP_USD",
-        "Consumption (USD)": "C_USD",
-        "Government (USD)": "G_USD",
-        "Investment (USD)": "I_USD",
-        "Exports (USD)": "X_USD",
-        "Imports (USD)": "M_USD",
-        "FDI (% of GDP)": "FDI_pct_GDP",
-        "Population": "POP",
-        "Labor Force": "LF",
+        display: internal
+        for internal, display in raw_data_mapping.items()
+        if not display.startswith("PWT") and display != "Year"
     }
 
     for col, name in wdi_mapping.items():
@@ -161,19 +157,13 @@ def _split_into_indicators(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
             result["TAX_pct_GDP"] = tax_df
             logger.debug(f"Loaded {len(tax_df)} rows for TAX_pct_GDP from fallback")
 
-    # PWT data processing
-    pwt_cols = ["PWT rgdpo", "PWT rkna", "PWT pl_gdpo", "PWT cgdpo", "PWT hc"]
-    pwt_rename_map = {
-        "PWT rgdpo": "rgdpo",
-        "PWT rkna": "rkna",
-        "PWT pl_gdpo": "pl_gdpo",
-        "PWT cgdpo": "cgdpo",
-        "PWT hc": "hc",
-    }
+    # Get PWT data mapping from config
+    pwt_rename_map = {display: internal for internal, display in raw_data_mapping.items() if display.startswith("PWT")}
+    pwt_cols = list(pwt_rename_map.keys())
 
     pwt_available = [col for col in pwt_cols if col in df.columns]
     if pwt_available:
-        cols_to_select = ["Year"] + pwt_available
+        cols_to_select = ["Year", *pwt_available]
         rename_dict = {k: v for k, v in pwt_rename_map.items() if k in cols_to_select}
         pwt_df = (
             df[cols_to_select]

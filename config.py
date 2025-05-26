@@ -5,7 +5,7 @@ used throughout the China data processing pipeline.
 """
 
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar, Optional
 
 
 class Config:
@@ -76,7 +76,7 @@ class Config:
     BILLION_DIVISOR = 1000  # Convert millions to billions
 
     # Column mappings for output
-    OUTPUT_COLUMN_MAP = {
+    OUTPUT_COLUMN_MAP: ClassVar[dict[str, str]] = {
         "year": "Year",
         "GDP_USD_bn": "GDP",
         "C_USD_bn": "Consumption",
@@ -100,8 +100,28 @@ class Config:
         "hc": "Human Capital",
     }
 
+    # Column mappings for raw data display (used in markdown_utils.py)
+    RAW_DATA_COLUMN_MAP: ClassVar[dict[str, str]] = {
+        "year": "Year",
+        "GDP_USD": "GDP (USD)",
+        "C_USD": "Consumption (USD)",
+        "G_USD": "Government (USD)",
+        "I_USD": "Investment (USD)",
+        "X_USD": "Exports (USD)",
+        "M_USD": "Imports (USD)",
+        "FDI_pct_GDP": "FDI (% of GDP)",
+        "TAX_pct_GDP": "Tax Revenue (% of GDP)",
+        "POP": "Population",
+        "LF": "Labor Force",
+        "rgdpo": "PWT rgdpo",
+        "rkna": "PWT rkna",
+        "pl_gdpo": "PWT pl_gdpo",
+        "cgdpo": "PWT cgdpo",
+        "hc": "PWT hc",
+    }
+
     # World Bank indicators
-    WDI_INDICATORS = {
+    WDI_INDICATORS: ClassVar[dict[str, str]] = {
         "NY.GDP.MKTP.CD": "GDP_USD",
         "NE.CON.PRVT.CD": "C_USD",
         "NE.CON.GOVT.CD": "G_USD",
@@ -114,7 +134,7 @@ class Config:
     }
 
     # Extrapolation methods
-    EXTRAPOLATION_METHODS = {
+    EXTRAPOLATION_METHODS: ClassVar[dict[str, str]] = {
         "GDP_USD_bn": "arima",
         "C_USD_bn": "arima",
         "G_USD_bn": "arima",
@@ -149,7 +169,17 @@ class Config:
         return cls.OUTPUT_DIR
 
     @classmethod
-    def get_input_file_path(cls, filename: str) -> Optional[Path]:
+    def get_input_file_path(cls, filename: str) -> Path | None:
         """Get the full path for an input file."""
         path = cls.INPUT_DIR / filename
         return path if path.exists() else None
+
+    @classmethod
+    def get_inverse_column_map(cls) -> dict[str, str]:
+        """Get the inverse mapping from display names to internal names."""
+        return {v: k for k, v in cls.OUTPUT_COLUMN_MAP.items()}
+
+    @classmethod
+    def get_raw_data_column_map(cls) -> dict[str, str]:
+        """Get the column mapping for raw data display."""
+        return cls.RAW_DATA_COLUMN_MAP.copy()

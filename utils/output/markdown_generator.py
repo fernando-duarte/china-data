@@ -4,11 +4,14 @@ This module provides functions to generate markdown tables and documentation
 from processed economic data with detailed methodology notes.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from jinja2 import Template
+
+from config import Config
 
 from .markdown_template import MARKDOWN_TEMPLATE
 
@@ -42,31 +45,11 @@ def create_markdown_table(
         - Mathematical formulas for derived variables
         - Extrapolation method documentation
     """
-    column_mapping = {
-        "Year": "year",
-        "GDP": "GDP_USD_bn",
-        "Consumption": "C_USD_bn",
-        "Government": "G_USD_bn",
-        "Investment": "I_USD_bn",
-        "Exports": "X_USD_bn",
-        "Imports": "M_USD_bn",
-        "Net Exports": "NX_USD_bn",
-        "Population": "POP_mn",
-        "Labor Force": "LF_mn",
-        "Physical Capital": "K_USD_bn",
-        "TFP": "TFP",
-        "FDI (% of GDP)": "FDI_pct_GDP",
-        "Human Capital": "hc",
-        "Tax Revenue (bn USD)": "T_USD_bn",
-        "Openness Ratio": "Openness_Ratio",
-        "Saving (bn USD)": "S_USD_bn",
-        "Private Saving (bn USD)": "S_priv_USD_bn",
-        "Public Saving (bn USD)": "S_pub_USD_bn",
-        "Saving Rate": "Saving_Rate",
-    }
+    # Get inverse column mapping from config (display name -> internal name)
+    column_mapping = Config.get_inverse_column_map()
 
     headers = list(data.columns)
-    rows = data.values.tolist()
+    rows = data.to_numpy().tolist()
     notes = []
 
     for var, info in extrapolation_info.items():
@@ -78,10 +61,7 @@ def create_markdown_table(
                 display_name = disp
                 break
         years = info["years"]
-        if len(years) == 1:
-            years_str = f"{years[0]}"
-        else:
-            years_str = f"{years[0]}-{years[-1]}"
+        years_str = f"{years[0]}" if len(years) == 1 else f"{years[0]}-{years[-1]}"
         notes.append(f"- {display_name}: {info['method']} ({years_str})")
 
     # Group extrapolation methods for detailed notes
@@ -119,9 +99,9 @@ def create_markdown_table(
         else:
             extrapolation_methods["Extrapolated"].append(f"{display_name} ({years_str})")
 
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     tmpl = Template(MARKDOWN_TEMPLATE)
-    with open(output_path, "w", encoding="utf-8") as f:
+    with Path(output_path).open("w", encoding="utf-8") as f:
         f.write(
             tmpl.render(
                 headers=headers,

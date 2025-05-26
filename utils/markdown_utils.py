@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import pandas as pd
 from jinja2 import Template
+
+from config import Config
 
 
 def render_markdown_table(
@@ -19,25 +23,8 @@ def render_markdown_table(
     Returns:
         str: The rendered markdown table
     """
-    # Define column mapping
-    column_mapping = {
-        "year": "Year",
-        "GDP_USD": "GDP (USD)",
-        "C_USD": "Consumption (USD)",
-        "G_USD": "Government (USD)",
-        "I_USD": "Investment (USD)",
-        "X_USD": "Exports (USD)",
-        "M_USD": "Imports (USD)",
-        "FDI_pct_GDP": "FDI (% of GDP)",
-        "TAX_pct_GDP": "Tax Revenue (% of GDP)",
-        "POP": "Population",
-        "LF": "Labor Force",
-        "rgdpo": "PWT rgdpo",
-        "rkna": "PWT rkna",
-        "pl_gdpo": "PWT pl_gdpo",
-        "cgdpo": "PWT cgdpo",
-        "hc": "PWT hc",
-    }
+    # Get column mapping from config
+    column_mapping = Config.get_raw_data_column_map()
 
     # Create display data by renaming columns without copying the entire DataFrame
     display_data = merged_data.rename(columns=column_mapping)
@@ -55,7 +42,7 @@ def render_markdown_table(
     # Create the final display DataFrame
     display_df = pd.DataFrame(formatted_data)
     headers = list(display_df.columns)
-    rows = display_df.values.tolist()
+    rows = display_df.to_numpy().tolist()
 
     # No default dates - we'll only include dates in the markdown if they're provided
 

@@ -1,9 +1,11 @@
 import logging
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
+from config import Config
 from utils import find_file
 from utils.data_sources.imf_loader import load_imf_tax_data
 from utils.path_constants import get_search_locations_relative_to_root
@@ -13,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     """Load raw data from a markdown table file.
+    
     This file is expected to be in one of the standard output locations.
 
     Args:
@@ -30,9 +33,10 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     md_file = find_file(input_file, possible_locations_relative)
 
     if md_file is None:
-        raise FileNotFoundError(f"Raw data file not found: {input_file} in any of the expected locations.")
+        msg = f"Raw data file not found: {input_file} in any of the expected locations."
+        raise FileNotFoundError(msg)
 
-    with open(md_file, encoding="utf-8") as f:
+    with Path(md_file).open(encoding="utf-8") as f:
         lines = f.readlines()
 
     header_idx = None
@@ -42,7 +46,8 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
             break
 
     if header_idx is None:
-        raise ValueError("Could not find table header in the markdown file.")
+        msg = "Could not find table header in the markdown file."
+        raise ValueError(msg)
 
     header_line = lines[header_idx].strip()
     # Clean up header line by removing leading/trailing |
@@ -54,24 +59,10 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     # Split by | and strip whitespace
     header = [h.strip() for h in header_line.split("|") if h.strip()]
 
-    mapping = {
-        "Year": "year",
-        "GDP (USD)": "GDP_USD",
-        "Consumption (USD)": "C_USD",
-        "Government (USD)": "G_USD",
-        "Investment (USD)": "I_USD",
-        "Exports (USD)": "X_USD",
-        "Imports (USD)": "M_USD",
-        "FDI (% of GDP)": "FDI_pct_GDP",
-        "Tax Revenue (% of GDP)": "TAX_pct_GDP",
-        "Population": "POP",
-        "Labor Force": "LF",
-        "PWT rgdpo": "rgdpo",
-        "PWT rkna": "rkna",
-        "PWT pl_gdpo": "pl_gdpo",
-        "PWT cgdpo": "cgdpo",
-        "PWT hc": "hc",
-    }
+    # Get column mapping from config (display name -> internal name)
+    mapping = Config.get_raw_data_column_map()
+    # Invert the mapping since we need display -> internal
+    mapping = {v: k for k, v in mapping.items()}
 
     renamed = []
     for col in header:
@@ -103,6 +94,7 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
 
 def load_imf_tax_revenue_data() -> pd.DataFrame:
     """Load IMF tax revenue data from CSV file.
+    
     This file is expected to be in one of the standard input locations.
 
     Returns:
