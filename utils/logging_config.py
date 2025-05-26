@@ -1,21 +1,32 @@
-"""Structured logging configuration for China Data Processing.
+"""Enhanced logging configuration with structured logging and OpenTelemetry support.
 
-This module provides structured logging setup using structlog for better
-observability, debugging, and monitoring of the data processing pipeline.
+This module provides structured logging capabilities with JSON output,
+OpenTelemetry integration, and performance monitoring.
 """
 
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-import structlog
-from structlog.types import EventDict, Processor
+try:
+    import structlog
+
+    STRUCTLOG_AVAILABLE = True
+except ImportError:
+    STRUCTLOG_AVAILABLE = False
+
+try:
+    from opentelemetry import trace
+
+    OPENTELEMETRY_AVAILABLE = True
+except ImportError:
+    OPENTELEMETRY_AVAILABLE = False
 
 from config import Config
 
 
-def add_timestamp(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+def add_timestamp(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add timestamp to log events."""
     import time
 
@@ -23,13 +34,13 @@ def add_timestamp(logger: Any, method_name: str, event_dict: EventDict) -> Event
     return event_dict
 
 
-def add_log_level(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+def add_log_level(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add log level to event dict."""
     event_dict["level"] = method_name.upper()
     return event_dict
 
 
-def add_module_info(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+def add_module_info(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add module and function information to log events."""
     import inspect
 
@@ -54,7 +65,7 @@ def add_module_info(logger: Any, method_name: str, event_dict: EventDict) -> Eve
     return event_dict
 
 
-def add_process_info(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+def add_process_info(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add process information to log events."""
     import os
 
@@ -62,10 +73,10 @@ def add_process_info(logger: Any, method_name: str, event_dict: EventDict) -> Ev
     return event_dict
 
 
-def filter_by_level(min_level: int = logging.INFO) -> Processor:
+def filter_by_level(min_level: int = logging.INFO) -> Any:
     """Create a processor that filters events by minimum log level."""
 
-    def processor(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
+    def processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
         level_map = {
             "debug": logging.DEBUG,
             "info": logging.INFO,
@@ -324,3 +335,112 @@ class LoggedOperation:
             log_operation_error(
                 self.bound_logger or self.logger, self.operation, exc_val, duration_seconds=duration, **self.context
             )
+
+
+def configure_logging(level: str = "INFO", json_format: bool = True, enable_opentelemetry: bool = False) -> None:
+    """Configure structured logging with OpenTelemetry.
+
+    Args:
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        json_format: Whether to use JSON format for logs
+        enable_opentelemetry: Whether to enable OpenTelemetry integration
+    """
+    if not STRUCTLOG_AVAILABLE:
+        # Fallback to standard logging if structlog is not available
+        logging.basicConfig(
+            level=getattr(logging, level.upper()),
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            stream=sys.stdout,
+        )
+        return
+
+    processors = [
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+    ]
+
+    # Add OpenTelemetry trace information if available
+    if enable_opentelemetry and OPENTELEMETRY_AVAILABLE:
+        processors.append(_add_trace_info)
+
+    # Choose output format
+    if json_format:
+        processors.append(structlog.processors.JSONRenderer())
+    else:
+        processors.append(structlog.dev.ConsoleRenderer())
+
+    structlog.configure(
+        processors=processors,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+
+    # Configure standard library logging
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stdout,
+        level=getattr(logging, level.upper()),
+    )
+
+
+def _add_trace_info(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """Add OpenTelemetry trace information to log events."""
+    if not OPENTELEMETRY_AVAILABLE:
+        return event_dict
+
+    span = trace.get_current_span()
+    if span:
+        span_context = span.get_span_context()
+        event_dict["trace_id"] = format(span_context.trace_id, "032x")
+        event_dict["span_id"] = format(span_context.span_id, "016x")
+
+    return event_dict
+
+
+def setup_performance_logging() -> None:
+    """Setup performance monitoring logging."""
+    logger = get_logger("performance")
+
+    # Log system information
+    try:
+        import psutil
+
+        logger.info(
+            "System performance baseline",
+            cpu_count=psutil.cpu_count(),
+            memory_total=psutil.virtual_memory().total,
+            disk_usage=psutil.disk_usage("/").percent,
+        )
+    except ImportError:
+        logger.warning("psutil not available, skipping system performance logging")
+
+
+# Example usage and configuration presets
+DEVELOPMENT_CONFIG = {"level": "DEBUG", "json_format": False, "enable_opentelemetry": False}
+
+PRODUCTION_CONFIG = {"level": "INFO", "json_format": True, "enable_opentelemetry": True}
+
+TESTING_CONFIG = {"level": "WARNING", "json_format": False, "enable_opentelemetry": False}
+
+
+def configure_for_environment(environment: str = "development") -> None:
+    """Configure logging for specific environment.
+
+    Args:
+        environment: Environment name (development, production, testing)
+    """
+    configs = {"development": DEVELOPMENT_CONFIG, "production": PRODUCTION_CONFIG, "testing": TESTING_CONFIG}
+
+    config = configs.get(environment, DEVELOPMENT_CONFIG)
+    configure_logging(**config)
+
+    logger = get_logger(__name__)
+    logger.info("Logging configured for %s environment", environment, **config)
