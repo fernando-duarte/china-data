@@ -5,7 +5,7 @@ for data quality assurance.
 """
 
 import logging
-from typing import Any
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -74,7 +74,7 @@ def validate_required_columns(df: pd.DataFrame, required_columns: list[str], nam
         )
 
 
-def safe_numeric_conversion(series: pd.Series[str | float], column_name: str) -> pd.Series[float]:
+def safe_numeric_conversion(series: "pd.Series[Union[str, float]]", column_name: str) -> "pd.Series[float]":
     """Safely convert a pandas Series to numeric, with error handling.
 
     Args:

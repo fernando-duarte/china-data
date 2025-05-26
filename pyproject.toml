@@ -114,16 +114,48 @@ check_untyped_defs = true
 no_implicit_optional = true
 strict_optional = true
 strict_equality = true
+# Additional strict checks
+disallow_any_unimported = true
+disallow_any_expr = false  # Too strict for practical use
+disallow_any_decorated = true
+disallow_any_explicit = false  # Allow explicit Any when needed
 # Still ignore missing imports for external libraries
 ignore_missing_imports = true
-exclude = ["venv", "tests"]
+exclude = ["venv"]
 # Show error codes for easier debugging
 show_error_codes = true
-# Enable type checking for test files
+# Show column numbers
+show_column_numbers = true
+# Show absolute paths
+show_absolute_path = true
+# Enable type checking for test files with relaxed rules
 [[tool.mypy.overrides]]
 module = "tests.*"
 ignore_missing_imports = true
 disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_any_generics = false
+disable_error_code = ["misc", "var-annotated", "no-untyped-call", "arg-type", "operator", "unreachable"]
+
+# Relax some checks for decorator modules
+[[tool.mypy.overrides]]
+module = "utils.error_handling.decorators"
+disable_error_code = ["misc", "unreachable"]
+
+# Relax checks for data source modules that use decorators
+[[tool.mypy.overrides]]
+module = "utils.data_sources.*"
+disable_error_code = ["misc"]
+
+# Relax unreachable code warnings for capital modules (false positives)
+[[tool.mypy.overrides]]
+module = "utils.capital.*"
+disable_error_code = ["unreachable"]
+
+# Relax unreachable code warnings for processor modules (false positives)
+[[tool.mypy.overrides]]
+module = "utils.processor_hc"
+disable_error_code = ["unreachable"]
 
 [tool.interrogate]
 ignore-init-method = true

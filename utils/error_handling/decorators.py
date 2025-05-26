@@ -126,7 +126,8 @@ def retry_on_exception(
                     else:
                         logger.error("%s after %d attempts: %s", error_message, max_attempts, str(e))
                         raise
-            return cast("Any", None)  # type: ignore[unreachable]  # This line will never be reached but makes mypy happy
+            # This should never be reached due to the logic above, but mypy needs it
+            raise RuntimeError(f"Unexpected exit from retry loop after {max_attempts} attempts")
 
         return cast("F", wrapper)
 

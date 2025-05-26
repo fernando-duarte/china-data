@@ -156,7 +156,7 @@ def validate_dataframe_with_rules(
 
 
 def validate_series(
-    series_to_validate: pd.Series[float],
+    series_to_validate: "pd.Series[float]",
     strict_positive: bool = False,
     min_value: float | None = None,
     max_value: float | None = None,
