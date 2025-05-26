@@ -30,6 +30,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  UV_CACHE_DIR: ~/.cache/uv
+
 jobs:
   # Build documentation
   build:
@@ -40,16 +43,17 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install UV
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: '3.9'
-        cache: 'pip'
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install 3.11
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r dev-requirements.txt
+      run: uv sync --dev
 
     - name: Configure Git for mkdocs
       run: |
@@ -58,12 +62,12 @@ jobs:
 
     - name: Build documentation
       run: |
-        mkdocs build --strict --verbose
+        uv run mkdocs build --strict --verbose
 
     - name: Test documentation
       run: |
         # Test that all internal links work
-        python -c "
+        uv run python -c "
         import os
         import re
         from pathlib import Path
@@ -103,24 +107,25 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install UV
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: '3.9'
-        cache: 'pip'
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install 3.11
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r dev-requirements.txt
+      run: uv sync --dev
 
     - name: Run doctests
       run: |
         # Run doctests on documentation files
-        pytest --doctest-modules --doctest-glob='*.md' docs/ -v || true
+        uv run pytest --doctest-modules --doctest-glob='*.md' docs/ -v || true
 
         # Run doctests on Python modules
-        pytest --doctest-modules utils/ china_data_*.py config.py -v
+        uv run pytest --doctest-modules utils/ china_data_*.py config.py -v
 
   # Deploy to GitHub Pages (only on main branch)
   deploy:
@@ -141,6 +146,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Install UV
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install 3.11
 
     - name: Validate documentation structure
       run: |
@@ -164,7 +178,7 @@ jobs:
         done
 
         # Check mkdocs.yml syntax
-        python -c "
+        uv run python -c "
         import yaml
         try:
             with open('mkdocs.yml', 'r') as f:
@@ -190,24 +204,25 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Install UV
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: '3.9'
-        cache: 'pip'
+        version: "latest"
+        enable-cache: true
+
+    - name: Set up Python
+      run: uv python install 3.11
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r dev-requirements.txt
+      run: uv sync --dev
 
     - name: Check docstring coverage
       run: |
         echo "Checking docstring coverage..."
-        interrogate --config pyproject.toml --verbose
+        uv run interrogate --config pyproject.toml --verbose
 
         echo "Generating docstring coverage report..."
-        interrogate --config pyproject.toml --generate-badge docs/coverage.svg || true
+        uv run interrogate --config pyproject.toml --generate-badge docs/coverage.svg || true
 
     - name: Upload coverage badge
       if: github.ref == 'refs/heads/main'

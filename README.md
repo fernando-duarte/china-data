@@ -4,36 +4,58 @@
 [![Performance Tests](https://github.com/fernandoduarte/china_data/workflows/Performance%20Testing/badge.svg)](https://github.com/fernandoduarte/china_data/actions/workflows/performance.yml)
 [![Dependency Check](https://github.com/fernandoduarte/china_data/workflows/Dependency%20Management/badge.svg)](https://github.com/fernandoduarte/china_data/actions/workflows/dependency-check.yml)
 [![codecov](https://codecov.io/gh/fernandoduarte/china_data/branch/main/graph/badge.svg)](https://codecov.io/gh/fernandoduarte/china_data)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 Python package for downloading, processing, and analyzing economic data for China from the World Bank,
 Penn World Table, and IMF Fiscal Monitor. Includes automated data retrieval, processing pipelines,
-statistical extrapolation, and CI/CD workflows.
+statistical extrapolation, and modern CI/CD workflows following 2025 best practices.
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.9+ (Python 3.13+ recommended)
+- Python 3.10+ (Python 3.13+ recommended for best performance)
 - Internet connection (for downloading data)
-- pip package manager
+- UV package manager (recommended) or pip
 
 ### Installation
 
-1. **Clone and navigate to the repository:**
+#### Option 1: Using UV (Recommended - 10-100x faster)
+
+1. **Install UV:**
+
+   ```bash
+   # macOS and Linux
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+
+   # Windows
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+   # Or via pip
+   pip install uv
+   ```
+
+2. **Clone and setup:**
 
    ```bash
    git clone https://github.com/fernandoduarte/china_data.git
    cd china_data
+
+   # Install dependencies and run pipeline
+   uv sync
+   uv run python china_data_downloader.py --end-year=2025
+   uv run python china_data_processor.py --end-year=2025
    ```
 
-2. **Run the setup script:**
+#### Option 2: Using Traditional Setup Script
 
-   ```bash
-   ./setup.sh
-   ```
+```bash
+git clone https://github.com/fernandoduarte/china_data.git
+cd china_data
+./setup.sh
+```
 
 The setup script will:
 
@@ -53,7 +75,59 @@ For the just the processed data without running the pipeline:
 
 ## Setup and Installation
 
-### Automated Setup (Recommended)
+### Modern Dependency Management with UV (2025 Best Practice)
+
+This project uses [UV](https://github.com/astral-sh/uv), a fast Python package manager written in Rust, for
+dependency management. UV provides 10-100x faster dependency resolution and installation compared to pip.
+
+**Quick UV Setup:**
+
+```bash
+# Install UV
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and setup project
+git clone https://github.com/fernandoduarte/china_data.git
+cd china_data
+
+# Install all dependencies (production + development)
+uv sync --dev
+
+# Run the data pipeline
+uv run python china_data_downloader.py --end-year=2025
+uv run python china_data_processor.py --end-year=2025
+
+# Run tests
+uv run pytest
+
+# Run linting and formatting
+uv run ruff check .
+uv run ruff format .
+```
+
+**UV Commands Reference:**
+
+```bash
+# Install dependencies
+uv sync                    # Production dependencies only
+uv sync --dev             # Include development dependencies
+uv sync --frozen          # Use exact versions from uv.lock
+
+# Add new dependencies
+uv add requests           # Add to production dependencies
+uv add --dev pytest      # Add to development dependencies
+
+# Run commands in the virtual environment
+uv run python script.py  # Run Python script
+uv run pytest           # Run tests
+uv run ruff check .      # Run linter
+
+# Python version management
+uv python install 3.13   # Install Python 3.13
+uv python list           # List available Python versions
+```
+
+### Automated Setup (Traditional)
 
 ```bash
 # Clone repository
@@ -69,32 +143,34 @@ cd china_data
 # Testing only - skip data processing
 ./setup.sh --test
 
-# Use uv for faster dependency resolution (requires: pip install uv)
+# Use uv for faster dependency resolution
 ./setup.sh --uv --dev
 ```
 
 ### Dependency Management Options
 
-This project supports both traditional pip and modern uv for dependency management:
+This project supports both modern UV and traditional pip for dependency management:
 
-**Using pip (traditional):**
+**Using UV (recommended - 2025 best practice):**
+
+```bash
+uv sync              # Production dependencies
+uv sync --dev        # Development dependencies
+uv add package_name  # Add new dependency
+```
+
+**Using traditional pip:**
 
 ```bash
 make install      # Production dependencies
 make install-dev  # Development dependencies
 ```
 
-**Using uv (faster, recommended):**
-
-```bash
-make install-uv      # Production dependencies with uv
-make install-dev-uv  # Development dependencies with uv
-```
-
 **Security scanning:**
 
 ```bash
 make security-scan   # Run vulnerability scan on dependencies
+uv run bandit -r .   # Security analysis with UV
 ```
 
 ### Setup Options
@@ -107,6 +183,7 @@ make security-scan   # Run vulnerability scan on dependencies
 
 - `--dev`: Install development dependencies and run tests
 - `--test`: Install development dependencies and run tests only (skip data processing)
+- `--uv`: Use UV package manager for faster dependency resolution
 - `-a=VALUE, --alpha=VALUE`: Capital share parameter (default: 0.33)
 - `-k=VALUE, --capital-output-ratio=VALUE`: Capital-to-output ratio (default: 3.0)
 - `-o=NAME, --output-file=NAME`: Base name for output files (default: china_data_processed)
@@ -115,12 +192,12 @@ make security-scan   # Run vulnerability scan on dependencies
 **Example with custom parameters:**
 
 ```bash
-./setup.sh -a=0.4 -k=2.5 -o=custom_output --end-year=2030 --dev
+./setup.sh --uv -a=0.4 -k=2.5 -o=custom_output --end-year=2030 --dev
 ```
 
 ### Development with VS Code Dev Containers (Recommended)
 
-For the best development experience, use the VS Code Dev Container:
+For the best development experience, use the VS Code Dev Container with UV pre-installed:
 
 1. **Prerequisites:**
 
@@ -136,11 +213,12 @@ For the best development experience, use the VS Code Dev Container:
    ```
 
 3. **Automatic setup:** The container includes:
-   - Python 3.11 with all dependencies
+   - Python 3.13 with UV package manager
    - Pre-configured VS Code extensions for Python, Jupyter, and data science
    - Jupyter Lab server (port 8888)
    - MkDocs documentation server (port 8000)
-   - All development tools (Black, Ruff, MyPy, pytest)
+   - All development tools (Ruff, MyPy, pytest)
+   - OpenTelemetry for observability
 
 See [`.devcontainer/README.md`](.devcontainer/README.md) for detailed setup instructions.
 
@@ -152,51 +230,61 @@ docker compose run --rm dev
 ```
 
 This opens a shell inside a container with all dependencies installed. The repository is mounted at `/app`,
-so you can run `make test` or `./setup.sh` as usual.
+so you can run `uv sync` or `./setup.sh` as usual.
 
 ### Manual Setup
 
 <details>
 <summary>Click to expand manual setup instructions</summary>
 
-1. **Create virtual environment:**
+#### Using UV (Recommended)
 
-   ```bash
-   python -m venv venv
-   # or: python3 -m venv venv
-   ```
+```bash
+# Install UV
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-2. **Activate virtual environment:**
+# Clone repository
+git clone https://github.com/fernandoduarte/china_data.git
+cd china_data
 
-   ```bash
-   # macOS/Linux:
-   source venv/bin/activate
+# Install Python and dependencies
+uv python install 3.13  # or your preferred version
+uv sync --dev           # Install all dependencies
 
-   # Windows:
-   venv\Scripts\activate
-   ```
+# Run the pipeline
+uv run python china_data_downloader.py --end-year=2025
+uv run python china_data_processor.py --end-year=2025
+```
 
-3. **Install dependencies:**
+#### Using Traditional pip
 
-   ```bash
-   pip install --upgrade pip
-   pip install setuptools>=67.0.0  # Required for Python 3.13+
+```bash
+# Create virtual environment
+python -m venv venv
+# or: python3 -m venv venv
 
-   # Production dependencies:
-   pip install -r requirements.txt
+# Activate virtual environment
+# macOS/Linux:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
 
-   # Development dependencies:
-   pip install -r dev-requirements.txt
-   ```
+# Install dependencies
+pip install --upgrade pip
+pip install setuptools>=67.0.0  # Required for Python 3.13+
 
-4. **Run the pipeline:**
+# Production dependencies:
+pip install -r requirements.txt
 
-   ```bash
-   python china_data_downloader.py --end-year=2025
-   python china_data_processor.py --end-year=2025
-   ```
+# Development dependencies:
+pip install -r dev-requirements.txt
 
-   </details>
+# Run the pipeline
+python china_data_downloader.py --end-year=2025
+python china_data_processor.py --end-year=2025
+```
+
+</details>
 
 ### Configuration System
 
@@ -210,6 +298,18 @@ alpha = Config.DEFAULT_ALPHA
 output_dir = Config.get_output_directory()
 column_map = Config.OUTPUT_COLUMN_MAP
 ```
+
+### Modern Development Features (2025)
+
+This project implements cutting-edge Python development practices:
+
+- **UV Package Manager**: 10-100x faster dependency resolution
+- **Ruff**: Lightning-fast linting and formatting (replaces Black, isort, flake8)
+- **Structured Logging**: JSON logging with OpenTelemetry integration
+- **Advanced Testing**: Property-based testing with Hypothesis, snapshot testing
+- **Security Scanning**: Comprehensive security analysis with multiple tools
+- **Container Optimization**: Multi-stage Docker builds with UV
+- **Modern CI/CD**: GitHub Actions with matrix testing and parallel execution
 
 ---
 

@@ -1,21 +1,35 @@
 """Structured logging configuration with OpenTelemetry integration.
 
 This module provides production-ready structured logging configuration
-for the China data analysis pipeline.
+for the China data analysis pipeline following 2025 best practices.
 """
 
+import contextlib
+import functools
 import logging
 import os
 import sys
+import time
+from collections.abc import Callable
 from typing import Any
 
 import structlog
-from opentelemetry import trace  # pylint: disable=import-error
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # pylint: disable=import-error,no-name-in-module
-from opentelemetry.instrumentation.logging import LoggingInstrumentor  # pylint: disable=import-error,no-name-in-module
-from opentelemetry.sdk.resources import Resource  # pylint: disable=import-error
-from opentelemetry.sdk.trace import TracerProvider  # pylint: disable=import-error
-from opentelemetry.sdk.trace.export import BatchSpanProcessor  # pylint: disable=import-error
+
+try:
+    from opentelemetry import trace  # pylint: disable=import-error
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+        OTLPSpanExporter,  # pylint: disable=import-error,no-name-in-module
+    )
+    from opentelemetry.instrumentation.logging import (
+        LoggingInstrumentor,  # pylint: disable=import-error,no-name-in-module
+    )
+    from opentelemetry.sdk.resources import Resource  # pylint: disable=import-error
+    from opentelemetry.sdk.trace import TracerProvider  # pylint: disable=import-error
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor  # pylint: disable=import-error
+
+    OPENTELEMETRY_AVAILABLE = True
+except ImportError:
+    OPENTELEMETRY_AVAILABLE = False
 
 
 def configure_logging(
@@ -49,10 +63,12 @@ def configure_logging(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
+        _add_correlation_id,  # Add correlation ID for request tracing
+        _add_performance_metrics,  # Add performance context
     ]
 
     # Add tracing context if enabled
-    if enable_tracing:
+    if enable_tracing and OPENTELEMETRY_AVAILABLE:
         processors.append(_add_trace_context)
 
     # Add final renderer based on format type
@@ -71,66 +87,176 @@ def configure_logging(
     )
 
     # Configure OpenTelemetry if enabled
-    if enable_tracing:
+    if enable_tracing and OPENTELEMETRY_AVAILABLE:
         service_name = kwargs.get("service_name", "china-data-pipeline")
         service_version = kwargs.get("service_version", "1.0.0")
         otlp_endpoint = kwargs.get("otlp_endpoint")
         _configure_tracing(service_name, service_version, otlp_endpoint)
 
 
+def _add_correlation_id(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """Add correlation ID for request tracing."""
+    # Try to get correlation ID from various sources
+    correlation_id = (
+        os.getenv("CORRELATION_ID") or getattr(_logger, "_correlation_id", None) or event_dict.get("correlation_id")
+    )
+
+    if correlation_id:
+        event_dict["correlation_id"] = correlation_id
+
+    return event_dict
+
+
+def _add_performance_metrics(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """Add performance metrics context."""
+    # Add system metrics for performance monitoring
+    with contextlib.suppress(ImportError, OSError):
+        import psutil
+
+        event_dict["system"] = {
+            "cpu_percent": psutil.cpu_percent(interval=None),
+            "memory_percent": psutil.virtual_memory().percent,
+            "timestamp": time.time(),
+        }
+
+    return event_dict
+
+
 def _add_trace_context(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add OpenTelemetry trace context to log records."""
+    if not OPENTELEMETRY_AVAILABLE:
+        return event_dict
+
     span = trace.get_current_span()
     if span != trace.INVALID_SPAN:
         span_context = span.get_span_context()
         event_dict["trace_id"] = format(span_context.trace_id, "032x")
         event_dict["span_id"] = format(span_context.span_id, "016x")
+
+        # Add trace flags for sampling decisions
+        event_dict["trace_flags"] = span_context.trace_flags
     return event_dict
 
 
 def _configure_tracing(service_name: str, service_version: str, otlp_endpoint: str | None) -> None:
-    """Configure OpenTelemetry tracing."""
-    # Create resource with service information
+    """Configure OpenTelemetry tracing with enhanced 2025 practices."""
+    if not OPENTELEMETRY_AVAILABLE:
+        return
+
+    # Create resource with comprehensive service information
     resource = Resource.create(
         {
             "service.name": service_name,
             "service.version": service_version,
             "service.instance.id": os.getenv("HOSTNAME", "unknown"),
+            "deployment.environment": os.getenv("ENVIRONMENT", "development"),
+            "telemetry.sdk.name": "opentelemetry",
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.version": "1.0.0",
         }
     )
 
-    # Configure tracer provider
-    tracer_provider = TracerProvider(resource=resource)
+    # Configure tracer provider with sampling
+    tracer_provider = TracerProvider(
+        resource=resource,
+        # Add sampling for production environments
+        sampler=_get_sampler(),
+    )
     trace.set_tracer_provider(tracer_provider)
 
-    # Configure span exporter
+    # Configure span exporter with retry and batching
     if otlp_endpoint:
-        # Use OTLP exporter for production
-        span_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
+        # Use OTLP exporter for production with enhanced configuration
+        span_exporter = OTLPSpanExporter(
+            endpoint=otlp_endpoint,
+            headers=_get_otlp_headers(),
+            timeout=30,  # 30 second timeout
+        )
     else:
         # Use console exporter for development
         from opentelemetry.sdk.trace.export import ConsoleSpanExporter
 
         span_exporter = ConsoleSpanExporter()
 
-    # Add span processor
-    span_processor = BatchSpanProcessor(span_exporter)
+    # Add span processor with optimized batching
+    span_processor = BatchSpanProcessor(
+        span_exporter,
+        max_queue_size=2048,
+        max_export_batch_size=512,
+        export_timeout_millis=30000,
+        schedule_delay_millis=5000,
+    )
     tracer_provider.add_span_processor(span_processor)
 
-    # Instrument logging
-    LoggingInstrumentor().instrument(set_logging_format=True)
+    # Instrument logging with enhanced configuration
+    LoggingInstrumentor().instrument(
+        set_logging_format=True,
+        log_hook=_log_hook,
+    )
 
 
-def get_logger(name: str) -> structlog.stdlib.BoundLogger:
-    """Get a structured logger instance.
+def _get_sampler() -> Any:
+    """Get appropriate sampler based on environment."""
+    if not OPENTELEMETRY_AVAILABLE:
+        return None
+
+    from opentelemetry.sdk.trace.sampling import ALWAYS_OFF, ALWAYS_ON, TraceIdRatioBasedSampler
+
+    env = os.getenv("ENVIRONMENT", "development").lower()
+    sample_rate = float(os.getenv("TRACE_SAMPLE_RATE", "1.0"))
+
+    if env == "production":
+        # Use rate-based sampling in production
+        return TraceIdRatioBasedSampler(sample_rate)
+    if env == "testing":
+        # Disable tracing in tests unless explicitly enabled
+        return ALWAYS_OFF if not os.getenv("ENABLE_TRACING_IN_TESTS") else ALWAYS_ON
+    # Always trace in development
+    return ALWAYS_ON
+
+
+def _get_otlp_headers() -> dict[str, str]:
+    """Get OTLP headers for authentication and metadata."""
+    headers = {}
+
+    # Add authentication if API key is provided
+    api_key = os.getenv("OTLP_API_KEY")
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    # Add custom headers
+    custom_headers = os.getenv("OTLP_HEADERS")
+    if custom_headers:
+        for header in custom_headers.split(","):
+            if "=" in header:
+                key, value = header.split("=", 1)
+                headers[key.strip()] = value.strip()
+
+    return headers
+
+
+def _log_hook(span: Any, record: Any) -> None:
+    """Hook to add span information to log records."""
+    if span and span.is_recording():
+        # Add span attributes to log record
+        record.span_id = format(span.get_span_context().span_id, "016x")
+        record.trace_id = format(span.get_span_context().trace_id, "032x")
+
+
+def get_logger(name: str, **context: Any) -> structlog.stdlib.BoundLogger:
+    """Get a structured logger instance with optional context.
 
     Args:
         name: Logger name (typically __name__)
+        **context: Additional context to bind to the logger
 
     Returns:
-        Configured structured logger
+        Configured structured logger with bound context
     """
-    return structlog.get_logger(name)
+    bound_logger = structlog.get_logger(name)
+    if context:
+        bound_logger = bound_logger.bind(**context)
+    return bound_logger
 
 
 def configure_for_development() -> None:
@@ -176,25 +302,76 @@ def auto_configure() -> None:
         configure_for_development()
 
 
+class LoggerMixin:
+    """Mixin class to add structured logging to any class."""
+
+    @property
+    def logger(self) -> structlog.stdlib.BoundLogger:
+        """Get a logger bound to this class."""
+        if not hasattr(self, "_logger"):
+            class_name = self.__class__.__name__
+            module_name = self.__class__.__module__
+            self._logger = get_logger(f"{module_name}.{class_name}")
+        return self._logger
+
+
+def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator to log function performance metrics."""
+
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        perf_logger = get_logger(func.__module__)
+        start_time = time.time()
+
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            duration = time.time() - start_time
+            perf_logger.exception(
+                "Function failed",
+                function=func.__name__,
+                duration_seconds=duration,
+                status="error",
+                error=str(e),
+            )
+            raise
+        else:
+            duration = time.time() - start_time
+            perf_logger.info("Function completed", function=func.__name__, duration_seconds=duration, status="success")
+            return result
+
+    return wrapper
+
+
 # Example usage and testing
 if __name__ == "__main__":
     # Configure logging
     configure_for_development()
 
-    # Get logger
-    logger = get_logger(__name__)
+    # Get logger with context
+    main_logger = get_logger(__name__, component="logging_config", version="2025.1")
 
-    # Test logging
-    logger.info("Structured logging configured", component="logging_config")
-    logger.debug("Debug message", user_id=123, action="test")
-    logger.warning("Warning message", error_code="W001")
+    # Test logging with enhanced features
+    main_logger.info("Structured logging configured", feature="enhanced_2025")
+    main_logger.debug("Debug message", user_id=123, action="test")
+    main_logger.warning("Warning message", error_code="W001")
 
+    # Test performance logging
+    @log_performance
+    def test_function() -> str:
+        """Test function for performance logging."""
+        time.sleep(0.1)
+        return "success"
+
+    test_function()
+
+    # Test exception logging
     def _test_exception() -> None:
         """Test exception for logging demonstration."""
-        msg = "Test exception"
+        msg = "Test exception with enhanced context"
         raise ValueError(msg)
 
     try:
         _test_exception()
     except ValueError:
-        logger.exception("Exception occurred", operation="test_exception")
+        main_logger.exception("Exception occurred", operation="test_exception", severity="high")
