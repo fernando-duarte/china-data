@@ -317,7 +317,6 @@ class LoggerMixin:
 
 def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to log function performance metrics."""
-
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         perf_logger = get_logger(func.__module__)
