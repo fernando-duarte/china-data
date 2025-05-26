@@ -11,7 +11,7 @@ import argparse
 import logging
 import sys
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any
 
 from utils.validation_utils import validate_alpha, validate_capital_output_ratio, validate_end_year
 
@@ -53,7 +53,7 @@ def validate_arguments(args: Any) -> None:
         sys.exit(1)
 
 
-def parse_and_validate_args(args: Optional[List[str]] = None) -> argparse.Namespace:
+def parse_and_validate_args(args: list[str] | None = None) -> argparse.Namespace:
     """Parse and validate command line arguments."""
     parser = argparse.ArgumentParser(description="Process China economic data")
 

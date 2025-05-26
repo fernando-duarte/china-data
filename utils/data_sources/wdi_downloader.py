@@ -1,7 +1,6 @@
 import logging
 import time
 from datetime import datetime
-from typing import Optional
 
 import pandas as pd
 import requests
@@ -17,10 +16,9 @@ logger = logging.getLogger(__name__)
 
 @safe_dataframe_operation("WDI data download")
 def download_wdi_data(
-    indicator_code: str, country_code: str = "CN", start_year: int = Config.MIN_YEAR, end_year: Optional[int] = None
+    indicator_code: str, country_code: str = "CN", start_year: int = Config.MIN_YEAR, end_year: int | None = None
 ) -> pd.DataFrame:
-    """
-    Download World Development Indicators data from World Bank.
+    """Download World Development Indicators data from World Bank.
 
     Args:
         indicator_code: WDI indicator code (e.g., 'NY.GDP.MKTP.CD')
@@ -39,7 +37,7 @@ def download_wdi_data(
 
     logger.info(f"Downloading {indicator_code} data for {country_code} ({start_year}-{end_year})")
 
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
     session = get_cached_session()
 
     for attempt in range(Config.MAX_RETRIES):

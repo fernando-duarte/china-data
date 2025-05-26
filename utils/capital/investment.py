@@ -1,12 +1,10 @@
-"""
-Investment calculation module.
+"""Investment calculation module.
 
 This module provides functions for calculating investment data based on capital stock
 and depreciation rates.
 """
 
 import logging
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -17,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAULT_DEPRECIATION_RATE) -> pd.DataFrame:
-    """
-    Calculate investment data using changes in capital stock and depreciation.
+    """Calculate investment data using changes in capital stock and depreciation.
 
     This function calculates investment using the perpetual inventory method in reverse:
     I_t = K_t - (1-delta) * K_{t-1}
@@ -67,7 +64,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAU
 
     try:
         # Dictionary to store calculated investments
-        investments: Dict[int, float] = {}
+        investments: dict[int, float] = {}
 
         # Initialize counters for logging
         valid_years = []
@@ -146,7 +143,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAU
             result["I_USD_bn"] = result["I_USD_bn"].round(Config.DECIMAL_PLACES_INVESTMENT)
 
     except Exception as e:
-        logger.error(f"Error calculating investment: {str(e)}")
+        logger.error(f"Error calculating investment: {e!s}")
         # Ensure the result has an I_USD_bn column even if calculation failed
         result["I_USD_bn"] = np.nan
 

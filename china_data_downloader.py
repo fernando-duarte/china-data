@@ -75,7 +75,7 @@ def main() -> None:
     date_file = find_file("download_date.txt", possible_locations_relative)
     if date_file and Path(date_file).exists():
         try:
-            with open(date_file, "r", encoding="utf-8") as f:
+            with open(date_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             # Parse the file content

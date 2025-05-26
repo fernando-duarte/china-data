@@ -1,9 +1,7 @@
-"""
-Functions for merging dataframes and data in the China data processor.
-"""
+"""Functions for merging dataframes and data in the China data processor."""
 
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -13,9 +11,8 @@ logger = logging.getLogger(__name__)
 
 def merge_dataframe_column(
     target_df: pd.DataFrame, source_df: pd.DataFrame, column_name: str, description: str
-) -> Tuple[pd.DataFrame, int]:
-    """
-    Merge a single column from source dataframe into target dataframe.
+) -> tuple[pd.DataFrame, int]:
+    """Merge a single column from source dataframe into target dataframe.
 
     Args:
         target_df: The target dataframe to merge into
@@ -42,9 +39,8 @@ def merge_dataframe_column(
 
 def merge_projections(
     target_df: pd.DataFrame, projection_df: pd.DataFrame, column_name: str, method_name: str, description: str
-) -> Tuple[pd.DataFrame, Optional[Dict[str, Any]]]:
-    """
-    Merge projection data into the main dataframe with proper metadata tracking.
+) -> tuple[pd.DataFrame, dict[str, Any] | None]:
+    """Merge projection data into the main dataframe with proper metadata tracking.
 
     Args:
         target_df: The target dataframe to merge projections into
@@ -98,9 +94,8 @@ def merge_projections(
     return result_df, projection_info
 
 
-def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> Tuple[pd.DataFrame, Optional[Dict[str, Any]]]:
-    """
-    Merge tax revenue data from IMF into the target dataframe.
+def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any] | None]:
+    """Merge tax revenue data from IMF into the target dataframe.
 
     Args:
         target_df: The target dataframe

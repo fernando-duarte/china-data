@@ -64,6 +64,6 @@ def test_year_unique(raw_df):
 
 def test_no_nan_entries_in_markdown():
     path = os.path.join(get_absolute_output_path(), "china_data_raw.md")
-    with open(path, "r") as f:
+    with open(path) as f:
         content = f.read()
     assert "| nan " not in content

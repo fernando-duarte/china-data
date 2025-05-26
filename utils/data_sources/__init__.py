@@ -1,5 +1,4 @@
-"""
-Data source modules for downloading and loading economic data.
+"""Data source modules for downloading and loading economic data.
 
 This package contains modules for downloading and loading data from various sources:
 - World Development Indicators (WDI) from the World Bank

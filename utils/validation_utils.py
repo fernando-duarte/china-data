@@ -1,7 +1,7 @@
 """Data validation utilities."""
 
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import pandas as pd
 
@@ -35,8 +35,8 @@ def validate_numeric_values(
     df: pd.DataFrame,
     column: str,
     *,
-    min_value: Optional[Union[int, float]] = None,
-    max_value: Optional[Union[int, float]] = None,
+    min_value: int | float | None = None,
+    max_value: int | float | None = None,
     allow_na: bool = True,
     strict_positive: bool = False,
 ) -> None:
@@ -100,7 +100,7 @@ def validate_numeric_values(
 # hc (Human capital index): Typically between 1 and 4-5.
 # pl_gdpo (Price level of GDP): Typically positive, relative to US.
 
-INDICATOR_VALIDATION_RULES: Dict[str, Dict[str, Any]] = {
+INDICATOR_VALIDATION_RULES: dict[str, dict[str, Any]] = {
     # WDI original codes (before renaming)
     "NY_GDP_MKTP_CD": {"strict_positive": True},
     "NE_CON_PRVT_CD": {"strict_positive": True},  # Consumption
@@ -129,7 +129,7 @@ INDICATOR_VALIDATION_RULES: Dict[str, Dict[str, Any]] = {
 
 
 def validate_dataframe_with_rules(
-    df: pd.DataFrame, rules: Dict[str, Dict[str, Any]], year_column: str = "year"
+    df: pd.DataFrame, rules: dict[str, dict[str, Any]], year_column: str = "year"
 ) -> None:
     """Validate entire DataFrame based on a dictionary of rules for specific columns."""
     if not isinstance(df, pd.DataFrame):
@@ -160,8 +160,8 @@ def validate_dataframe_with_rules(
 def validate_series(
     series_to_validate: pd.Series,
     strict_positive: bool = False,
-    min_value: Optional[float] = None,
-    max_value: Optional[float] = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
 ) -> bool:
     """Validate a data series against specified criteria.
 
@@ -204,7 +204,7 @@ def validate_series(
 
 
 # Validation rules for different indicators
-VALIDATION_RULES: Dict[str, Dict[str, Union[bool, float, None]]] = {
+VALIDATION_RULES: dict[str, dict[str, bool | float | None]] = {
     # Population must be positive and reasonably large
     "SP_POP_TOTL": {"strict_positive": True, "min_value": Config.POPULATION_MIN},
     # Labor force must be positive and reasonably large

@@ -31,7 +31,7 @@ class pwt_downloader:
 class DummySession:
     """Simple session mock returning a dummy response."""
 
-    def get(self, url, stream=True, timeout=30):  # noqa: D401 - brief docstring
+    def get(self, url, stream=True, timeout=30):
         return DummyResponse()
 
 

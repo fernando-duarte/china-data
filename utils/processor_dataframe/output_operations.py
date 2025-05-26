@@ -1,10 +1,8 @@
-"""
-Functions for preparing and saving output in the China data processor.
-"""
+"""Functions for preparing and saving output in the China data processor."""
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 
@@ -13,9 +11,8 @@ from utils.output import create_markdown_table
 logger = logging.getLogger(__name__)
 
 
-def prepare_final_dataframe(processed_df: pd.DataFrame, column_map: Dict[str, str]) -> pd.DataFrame:
-    """
-    Prepare the final DataFrame for output by selecting columns and handling duplicates.
+def prepare_final_dataframe(processed_df: pd.DataFrame, column_map: dict[str, str]) -> pd.DataFrame:
+    """Prepare the final DataFrame for output by selecting columns and handling duplicates.
 
     Args:
         processed_df: The processed dataframe
@@ -58,15 +55,14 @@ def save_output_files(
     formatted_df: pd.DataFrame,
     output_dir: str,
     output_base: str,
-    projection_info: Dict[str, Any],
+    projection_info: dict[str, Any],
     *,
     alpha: float,
     capital_output_ratio: float,
     input_file: str,
     end_year: int,
 ) -> bool:
-    """
-    Save the processed data to output files (CSV and markdown).
+    """Save the processed data to output files (CSV and markdown).
 
     Args:
         formatted_df: The formatted dataframe to save

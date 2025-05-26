@@ -1,12 +1,10 @@
-"""
-Economic indicators calculation module.
+"""Economic indicators calculation module.
 
 This module provides functions for calculating various economic indicators
 including tax revenue, openness ratios, and saving measures.
 """
 
 import logging
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -19,10 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_economic_indicators(
-    merged: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, log_instance: Optional[logging.Logger] = None
+    merged: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, log_instance: logging.Logger | None = None
 ) -> pd.DataFrame:
-    """
-    Calculate comprehensive economic indicators from merged economic data.
+    """Calculate comprehensive economic indicators from merged economic data.
 
     This function calculates multiple economic indicators including:
     - Total Factor Productivity (TFP)

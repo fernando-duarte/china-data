@@ -117,11 +117,19 @@ jobs:
             python-version: "3.13"
           - os: macos-latest
             python-version: "3.13"
-          # Exclude chunk 2,3 for non-full test runs
-          - chunk: 2
-            core-only: true
-          - chunk: 3
-            core-only: true
+          # Exclude chunk 2 and 3 for core-only Python versions on Ubuntu
+          - os: ubuntu-latest
+            python-version: "3.12"
+            chunk: 2
+          - os: ubuntu-latest
+            python-version: "3.12"
+            chunk: 3
+          - os: ubuntu-latest
+            python-version: "3.13"
+            chunk: 2
+          - os: ubuntu-latest
+            python-version: "3.13"
+            chunk: 3
 
     steps:
       - name: Checkout code

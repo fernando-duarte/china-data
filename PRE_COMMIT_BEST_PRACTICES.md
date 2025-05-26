@@ -7,6 +7,7 @@ This document outlines the best practices implemented in our pre-commit configur
 Our `.pre-commit-config.yaml` follows modern best practices for Python projects:
 
 ### 1. **Core Configuration Settings**
+
 - **Version pinning**: All hooks use specific versions for reproducibility
 - **Default Python version**: Set to Python 3.8 for consistency
 - **Fail fast disabled**: Shows all failures at once for better developer experience
@@ -15,6 +16,7 @@ Our `.pre-commit-config.yaml` follows modern best practices for Python projects:
 ### 2. **Code Quality Hooks**
 
 #### Basic File Checks
+
 - `check-yaml`, `check-toml`, `check-json`: Validate configuration files
 - `check-ast`: Ensure Python files are syntactically valid
 - `check-added-large-files`: Prevent accidental large file commits (>1MB)
@@ -25,6 +27,7 @@ Our `.pre-commit-config.yaml` follows modern best practices for Python projects:
 - `mixed-line-ending`: Enforce consistent line endings (LF)
 
 #### Python Code Formatting and Quality (2025 Update)
+
 - **Ruff** (v0.8.4): Ultra-fast Python linter and formatter that replaces:
   - Black (formatting)
   - isort (import sorting)
@@ -46,11 +49,13 @@ Our `.pre-commit-config.yaml` follows modern best practices for Python projects:
 - `detect-private-key`: Basic private key detection
 
 ### 4. **Documentation and Configuration**
+
 - **Prettier** (v4.0.0-alpha.8): YAML and Markdown formatting
 - **markdownlint** (v0.43.0): Markdown linting with auto-fix
 
 ### 5. **CI/CD Integration**
-- **pre-commit.ci configuration**: 
+
+- **pre-commit.ci configuration**:
   - Automatic PR fixes
   - Weekly dependency updates
   - Skip hooks requiring system dependencies
@@ -81,6 +86,7 @@ The project now uses Ruff as the primary Python linter and formatter. The `ruff.
 ## Usage
 
 ### Initial Setup
+
 ```bash
 # Install pre-commit
 pip install pre-commit
@@ -93,6 +99,7 @@ pre-commit run --all-files
 ```
 
 ### Creating Secrets Baseline
+
 ```bash
 # Generate initial secrets baseline
 detect-secrets scan > .secrets.baseline
@@ -102,6 +109,7 @@ detect-secrets audit .secrets.baseline
 ```
 
 ### Updating Dependencies
+
 ```bash
 # Update all hook versions
 pre-commit autoupdate
@@ -130,4 +138,4 @@ pre-commit run --all-files
 
 1. Use `--files` flag to run on specific files during development
 2. Consider using `fail_fast: true` during initial cleanup
-3. Run resource-intensive hooks (pylint, mypy) less frequently if needed 
+3. Run resource-intensive hooks (pylint, mypy) less frequently if needed

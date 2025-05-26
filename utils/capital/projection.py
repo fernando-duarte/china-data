@@ -1,5 +1,4 @@
-"""
-Capital stock projection module.
+"""Capital stock projection module.
 
 This module provides functions for projecting capital stock into the future
 using a perpetual inventory method.
@@ -13,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: float = 0.05) -> pd.DataFrame:
-    """
-    Project capital stock into the future using a perpetual inventory method.
+    """Project capital stock into the future using a perpetual inventory method.
 
     This method projects capital stock using the perpetual inventory equation:
     K_t = (1-δ) * K_{t-1} + I_t
@@ -71,7 +69,7 @@ def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: fl
 
         logger.info(f"Last capital stock value: {last_k:.2f} billion USD (year {last_year_with_data})")
     except Exception as e:
-        logger.error(f"Error retrieving last capital stock value: {str(e)}")
+        logger.error(f"Error retrieving last capital stock value: {e!s}")
         return df
 
     # Define years to project
@@ -146,5 +144,5 @@ def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: fl
         return result
 
     except Exception as e:
-        logger.error(f"Error projecting capital stock: {str(e)}")
+        logger.error(f"Error projecting capital stock: {e!s}")
         return df

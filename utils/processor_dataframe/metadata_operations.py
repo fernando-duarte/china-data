@@ -1,9 +1,7 @@
-"""
-Functions for handling metadata in the China data processor.
-"""
+"""Functions for handling metadata in the China data processor."""
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -12,16 +10,15 @@ logger = logging.getLogger(__name__)
 
 def get_projection_metadata(
     processed_df: pd.DataFrame,
-    projection_df: Optional[pd.DataFrame],
+    projection_df: pd.DataFrame | None,
     original_df: pd.DataFrame,
     column_name: str,
     method_name: str,
     *,
     end_year: int,
-    cutoff_year: Optional[int] = None,
-) -> Optional[Dict[str, Any]]:
-    """
-    Generate projection metadata for a specific column.
+    cutoff_year: int | None = None,
+) -> dict[str, Any] | None:
+    """Generate projection metadata for a specific column.
 
     Args:
         processed_df: The processed dataframe

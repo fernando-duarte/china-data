@@ -21,7 +21,6 @@ def test_extrapolate_series_to_end_year(monkeypatch):
     )
 
     class Dummy:
-
         def fit(self):
             return self
 

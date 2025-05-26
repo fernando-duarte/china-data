@@ -21,17 +21,20 @@ Python package for downloading, processing, and analyzing economic data for Chin
 ### Installation
 
 1. **Clone and navigate to the repository:**
+
    ```bash
    git clone https://github.com/fernandoduarte/china_data.git
    cd china_data
    ```
 
 2. **Run the setup script:**
+
    ```bash
    ./setup.sh
    ```
 
 The setup script will:
+
 - Create a Python virtual environment
 - Install all required dependencies
 - Download and process the latest economic data
@@ -72,6 +75,7 @@ cd china_data
 ```
 
 **Available options:**
+
 - `--dev`: Install development dependencies and run tests
 - `--test`: Install development dependencies and run tests only (skip data processing)
 - `-a=VALUE, --alpha=VALUE`: Capital share parameter (default: 0.33)
@@ -80,6 +84,7 @@ cd china_data
 - `--end-year=YYYY`: Last year to process/download data (default: 2025)
 
 **Example with custom parameters:**
+
 ```bash
 ./setup.sh -a=0.4 -k=2.5 -o=custom_output --end-year=2030 --dev
 ```
@@ -90,12 +95,14 @@ cd china_data
 <summary>Click to expand manual setup instructions</summary>
 
 1. **Create virtual environment:**
+
    ```bash
    python -m venv venv
    # or: python3 -m venv venv
    ```
 
 2. **Activate virtual environment:**
+
    ```bash
    # macOS/Linux:
    source venv/bin/activate
@@ -105,6 +112,7 @@ cd china_data
    ```
 
 3. **Install dependencies:**
+
    ```bash
    pip install --upgrade pip
    pip install setuptools>=67.0.0  # Required for Python 3.13+
@@ -117,11 +125,13 @@ cd china_data
    ```
 
 4. **Run the pipeline:**
+
    ```bash
    python china_data_downloader.py --end-year=2025
    python china_data_processor.py --end-year=2025
    ```
-</details>
+
+   </details>
 
 ### Configuration System
 
@@ -141,6 +151,7 @@ column_map = Config.OUTPUT_COLUMN_MAP
 ### Citation Guidelines
 
 If you use the provided data, please cite original data sources:
+
 1. World Bank WDI: Available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 2. Penn World Table: [Feenstra, Inklaar & Timmer (2015)](https://www.rug.nl/ggdc/productivity/pwt/)
 3. IMF Fiscal Monitor: Per [IMF Terms](https://www.imf.org/external/terms.htm)
@@ -168,6 +179,7 @@ MIT License - See LICENSE file for details.
 Academic Use: This project is for educational and research purposes. Use, modify, and distribute with attribution.
 
 Data Licensing: Users must comply with original data source terms:
+
 - World Bank WDI: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - Penn World Table: Academic use with proper citation
 - IMF Fiscal Monitor: Per [IMF Terms](https://www.imf.org/external/terms.htm)

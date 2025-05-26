@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_and_update_hash() -> bool:
-    """
-    Check if the IMF CSV file hash has changed and update the download_date.txt file if necessary.
+    """Check if the IMF CSV file hash has changed and update the download_date.txt file if necessary.
 
     This function:
     - Calculates the SHA-256 hash of the IMF CSV file
@@ -48,7 +47,7 @@ def check_and_update_hash() -> bool:
         # Read the current metadata
         metadata = {}
         try:
-            with open(date_file, "r", encoding="utf-8") as f:
+            with open(date_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             for line in lines:
@@ -97,8 +96,7 @@ def check_and_update_hash() -> bool:
 
 
 def load_imf_tax_data() -> pd.DataFrame:
-    """
-    Load IMF Fiscal Monitor tax revenue data for China.
+    """Load IMF Fiscal Monitor tax revenue data for China.
 
     This function also checks if the IMF file hash has changed and updates
     the download_date.txt file if necessary.

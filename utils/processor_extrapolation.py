@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ from utils.extrapolation_methods import (
 logger = logging.getLogger(__name__)
 
 
-def _prepare(df: pd.DataFrame, end_year: int) -> Tuple[pd.DataFrame, Dict[str, Any], List[int], List[str]]:
+def _prepare(df: pd.DataFrame, end_year: int) -> tuple[pd.DataFrame, dict[str, Any], list[int], list[str]]:
     max_year = df.year.max()
     if max_year >= end_year:
         missing = False
@@ -39,10 +39,9 @@ def _prepare(df: pd.DataFrame, end_year: int) -> Tuple[pd.DataFrame, Dict[str, A
 
 
 def _apply_methods(
-    df: pd.DataFrame, years_to_add: List[int], cols: List[str], info: Dict[str, Any]
-) -> Tuple[pd.DataFrame, Dict[str, Any]]:
-    """
-    Apply appropriate extrapolation methods to each column based on column type.
+    df: pd.DataFrame, years_to_add: list[int], cols: list[str], info: dict[str, Any]
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Apply appropriate extrapolation methods to each column based on column type.
 
     Args:
         df: DataFrame containing the data
@@ -108,13 +107,13 @@ def _apply_methods(
 
 def _finalize(
     df: pd.DataFrame,
-    years_to_add: List[int],
+    years_to_add: list[int],
     raw_data: pd.DataFrame,
-    cols: List[str],
-    info: Dict[str, Any],
+    cols: list[str],
+    info: dict[str, Any],
     *,
     end_year: int,
-) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     key_vars = [
         "GDP_USD_bn",
         "C_USD_bn",
@@ -141,9 +140,7 @@ def _finalize(
                         default_growth = Config.DEFAULT_GROWTH_RATE
                     elif col == "POP_mn":
                         default_growth = 0.005
-                    elif col == "LF_mn":
-                        default_growth = 0.01
-                    elif col == "hc":
+                    elif col == "LF_mn" or col == "hc":
                         default_growth = 0.01
                     elif col == "K_USD_bn":
                         default_growth = 0.04
@@ -180,8 +177,8 @@ def _finalize(
 
 
 def extrapolate_series_to_end_year(
-    data: pd.DataFrame, end_year: int = 2025, raw_data: Optional[pd.DataFrame] = None
-) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+    data: pd.DataFrame, end_year: int = 2025, raw_data: pd.DataFrame | None = None
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     df, info, years_to_add, cols = _prepare(data.copy(), end_year)
     if not years_to_add and not info:
         return df, info

@@ -5,7 +5,6 @@ used throughout the China data processing pipeline.
 """
 
 from pathlib import Path
-from typing import Optional
 
 
 class Config:
@@ -142,7 +141,7 @@ class Config:
         return cls.OUTPUT_DIR
 
     @classmethod
-    def get_input_file_path(cls, filename: str) -> Optional[Path]:
+    def get_input_file_path(cls, filename: str) -> Path | None:
         """Get the full path for an input file."""
         path = cls.INPUT_DIR / filename
         return path if path.exists() else None

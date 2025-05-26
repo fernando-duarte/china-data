@@ -8,101 +8,101 @@ fail_fast: false
 exclude: ^(venv/|\.venv/|__pycache__/|\.git/|\.mypy_cache/|\.pytest_cache/)
 
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-    -   id: check-yaml
-    -   id: check-toml
-    -   id: check-json
-    -   id: check-ast
-    -   id: check-added-large-files
-        args: ['--maxkb=1000']
-    -   id: check-merge-conflict
-    -   id: check-case-conflict
-    -   id: check-docstring-first
-    -   id: debug-statements
-    -   id: detect-private-key
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
-    -   id: mixed-line-ending
-        args: ['--fix=lf']
-    -   id: requirements-txt-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-ast
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: requirements-txt-fixer
 
-# Ruff - The modern Python linter and formatter (replaces Black, isort, Flake8, and more)
--   repo: https://github.com/astral-sh/ruff-pre-commit
+  # Ruff - The modern Python linter and formatter (replaces Black, isort, Flake8, and more)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.4
     hooks:
-    -   id: ruff
+      - id: ruff
         args: [--fix]
-    -   id: ruff-format
+      - id: ruff-format
 
--   repo: https://github.com/pylint-dev/pylint
+  - repo: https://github.com/pylint-dev/pylint
     rev: v3.3.1
     hooks:
-    -   id: pylint
+      - id: pylint
         name: pylint
         entry: pylint
         language: system
         files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
 
--   repo: https://github.com/pre-commit/mirrors-mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
-    -   id: mypy
+      - id: mypy
         files: ^(china_data_processor\.py|china_data_downloader\.py)$
         args: [--ignore-missing-imports]
         additional_dependencies: [types-requests, pandas-stubs, types-pytz]
 
-# Bandit security scanning is now included in Ruff (S prefix rules)
+  # Bandit security scanning is now included in Ruff (S prefix rules)
 
-# Security vulnerability scanning
--   repo: https://github.com/pypa/pip-audit
+  # Security vulnerability scanning
+  - repo: https://github.com/pypa/pip-audit
     rev: v2.7.3
     hooks:
-    -   id: pip-audit
+      - id: pip-audit
         args: [--desc, --fix]
         # Skip in CI as it requires network access
         # ci: skip
 
-# Secrets detection
--   repo: https://github.com/Yelp/detect-secrets
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:
-    -   id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
 
-# Python upgrade syntax
--   repo: https://github.com/asottile/pyupgrade
+  # Python upgrade syntax
+  - repo: https://github.com/asottile/pyupgrade
     rev: v3.19.0
     hooks:
-    -   id: pyupgrade
+      - id: pyupgrade
         args: [--py38-plus]
 
-# Docstring checking is now included in Ruff (D prefix rules)
+  # Docstring checking is now included in Ruff (D prefix rules)
 
-# YAML formatting
--   repo: https://github.com/pre-commit/mirrors-prettier
+  # YAML formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
-    -   id: prettier
+      - id: prettier
         types_or: [yaml, markdown]
         exclude: ^\.github/
 
-# Markdown linting
--   repo: https://github.com/igorshubovych/markdownlint-cli
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.43.0
     hooks:
-    -   id: markdownlint
-        args: ['--fix']
+      - id: markdownlint
+        args: ["--fix"]
 
 ci:
-    autofix_commit_msg: |
-        [pre-commit.ci] auto fixes from pre-commit.com hooks
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
 
-        for more information, see https://pre-commit.ci
-    autofix_prs: true
-    autoupdate_branch: ''
-    autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
-    autoupdate_schedule: weekly
-    skip: [pip-audit, pylint, mypy]  # These require system dependencies
-    submodules: false
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  autoupdate_schedule: weekly
+  skip: [pip-audit, pylint, mypy] # These require system dependencies
+  submodules: false

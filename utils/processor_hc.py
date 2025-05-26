@@ -1,5 +1,4 @@
-"""
-Human capital projection module.
+"""Human capital projection module.
 
 This module provides functions for projecting human capital values to future years
 using various statistical methods.
@@ -16,8 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) -> pd.DataFrame:
-    """
-    Project human capital values to a specified end year using linear regression.
+    """Project human capital values to a specified end year using linear regression.
 
     Parameters:
     -----------
@@ -47,7 +45,7 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
         logger.info(f"Data contains {processed_data.shape[0]} rows and {processed_data.shape[1]} columns")
         logger.debug(f"Available columns in data: {processed_data.columns.tolist()}")
     except Exception as e:
-        logger.error(f"Failed to validate input data: {str(e)}")
+        logger.error(f"Failed to validate input data: {e!s}")
         # Return empty DataFrame with year and hc columns
         logger.info("Returning empty DataFrame due to validation failure")
         return pd.DataFrame({"year": range(1960, end_year + 1), "hc": np.nan})
@@ -179,7 +177,7 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
         logger.error(f"Last value carry-forward failed: {method}")
 
     except Exception as e:
-        logger.error(f"Unexpected error projecting human capital: {str(e)}")
+        logger.error(f"Unexpected error projecting human capital: {e!s}")
 
     # If all else fails, return the original data
     logger.warning("All projection methods failed, returning original data")

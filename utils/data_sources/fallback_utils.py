@@ -1,5 +1,4 @@
-"""
-Fallback data loader for China economic data.
+"""Fallback data loader for China economic data.
 
 This module provides functionality to load data from existing china_data_raw.md files
 as fallback when primary data sources are unavailable.
@@ -7,7 +6,6 @@ as fallback when primary data sources are unavailable.
 
 import logging
 from pathlib import Path
-from typing import Dict
 
 import pandas as pd
 
@@ -21,7 +19,7 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
     """Parse markdown table from fallback file into DataFrame."""
     try:
         content = file_path.read_text(encoding="utf-8")
-    except (IOError, OSError) as e:
+    except OSError as e:
         raise FileOperationError(
             operation="read", filepath=str(file_path), message="Failed to read fallback file", original_error=e
         ) from e
@@ -73,7 +71,7 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
                     continue
                 data.append(values)
             except Exception as e:
-                parse_errors.append(f"Line {line_num}: Parse error - {str(e)}")
+                parse_errors.append(f"Line {line_num}: Parse error - {e!s}")
 
     if parse_errors:
         logger.warning(f"Parse errors in fallback file: {parse_errors[:Config.MAX_LOG_ERRORS_DISPLAYED]}")
@@ -128,7 +126,7 @@ def _convert_to_numeric(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def _split_into_indicators(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+def _split_into_indicators(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """Split DataFrame into separate dataframes by indicator type."""
     result = {}
 

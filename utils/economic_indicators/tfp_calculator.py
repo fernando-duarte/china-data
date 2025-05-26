@@ -1,12 +1,10 @@
-"""
-Total Factor Productivity (TFP) calculation module.
+"""Total Factor Productivity (TFP) calculation module.
 
 This module provides functions for calculating Total Factor Productivity
 using the Cobb-Douglas production function.
 """
 
 import logging
-from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -17,10 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_tfp(
-    df: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, required_columns: Optional[Dict[str, str]] = None
+    df: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, required_columns: dict[str, str] | None = None
 ) -> pd.DataFrame:
-    """
-    Calculate Total Factor Productivity (TFP) using a Cobb-Douglas production function.
+    """Calculate Total Factor Productivity (TFP) using a Cobb-Douglas production function.
 
     Args:
         df (pd.DataFrame): Input DataFrame with required columns

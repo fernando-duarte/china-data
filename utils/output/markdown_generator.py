@@ -1,12 +1,11 @@
-"""
-Markdown output generation utilities.
+"""Markdown output generation utilities.
 
 This module provides functions to generate markdown tables and documentation
 from processed economic data with detailed methodology notes.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 from jinja2 import Template
@@ -17,15 +16,14 @@ from .markdown_template import MARKDOWN_TEMPLATE
 def create_markdown_table(
     data: pd.DataFrame,
     output_path: str,
-    extrapolation_info: Dict[str, Any],
+    extrapolation_info: dict[str, Any],
     *,
     alpha: float = 1 / 3,
     capital_output_ratio: float = 3.0,
     input_file: str = "china_data_raw.md",
     end_year: int = 2025,
 ) -> None:
-    """
-    Create comprehensive markdown output with data table and methodology documentation.
+    """Create comprehensive markdown output with data table and methodology documentation.
 
     Args:
         data: Processed economic data DataFrame
@@ -87,7 +85,7 @@ def create_markdown_table(
         notes.append(f"- {display_name}: {info['method']} ({years_str})")
 
     # Group extrapolation methods for detailed notes
-    extrapolation_methods: Dict[str, List[str]] = {
+    extrapolation_methods: dict[str, list[str]] = {
         "ARIMA(1,1,1)": [],
         "Average growth rate": [],
         "Linear regression": [],

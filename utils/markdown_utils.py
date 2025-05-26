@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 import pandas as pd
 from jinja2 import Template
@@ -6,12 +6,11 @@ from jinja2 import Template
 
 def render_markdown_table(
     merged_data: pd.DataFrame,
-    wdi_date: Optional[str] = None,
-    pwt_date: Optional[str] = None,
-    imf_date: Optional[str] = None,
+    wdi_date: str | None = None,
+    pwt_date: str | None = None,
+    imf_date: str | None = None,
 ) -> str:
-    """
-    Render the merged data as a markdown table.
+    """Render the merged data as a markdown table.
 
     Args:
         merged_data (pandas.DataFrame): The merged data to render

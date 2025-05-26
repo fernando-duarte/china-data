@@ -1,11 +1,9 @@
-"""
-ARIMA (Auto-Regressive Integrated Moving Average) extrapolation method.
+"""ARIMA (Auto-Regressive Integrated Moving Average) extrapolation method.
 
 This module provides a function to extrapolate time series data using the ARIMA model.
 """
 
 import logging
-from typing import List, Tuple
 
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
@@ -18,12 +16,11 @@ logger = logging.getLogger(__name__)
 def extrapolate_with_arima(
     df: pd.DataFrame,
     col: str,
-    years_to_project: List[int],
+    years_to_project: list[int],
     min_data_points: int = Config.MIN_DATA_POINTS_FOR_ARIMA,
-    order: Tuple[int, int, int] = Config.DEFAULT_ARIMA_ORDER,
-) -> Tuple[pd.DataFrame, bool, str]:
-    """
-    Extrapolate a time series using ARIMA model.
+    order: tuple[int, int, int] = Config.DEFAULT_ARIMA_ORDER,
+) -> tuple[pd.DataFrame, bool, str]:
+    """Extrapolate a time series using ARIMA model.
 
     Args:
         df (pd.DataFrame): DataFrame containing the time series data
@@ -80,4 +77,4 @@ def extrapolate_with_arima(
 
     except Exception as e:
         logger.warning(f"ARIMA failed for {col}, error: {e}")
-        return df_result, False, f"ARIMA failed: {str(e)}"
+        return df_result, False, f"ARIMA failed: {e!s}"

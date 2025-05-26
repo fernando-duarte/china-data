@@ -1,12 +1,10 @@
-"""
-Validation utilities for China data processing.
+"""Validation utilities for China data processing.
 
 This module provides validation functions and error logging utilities
 for data quality assurance.
 """
 
 import logging
-from typing import Optional
 
 import pandas as pd
 
@@ -19,11 +17,10 @@ def log_error_with_context(
     logger_instance: logging.Logger,
     message: str,
     error: Exception,
-    context: Optional[dict] = None,
+    context: dict | None = None,
     level: int = logging.ERROR,
 ) -> None:
-    """
-    Log an error with additional context information.
+    """Log an error with additional context information.
 
     Args:
         logger_instance: Logger to use
@@ -37,12 +34,11 @@ def log_error_with_context(
     if context:
         error_info.update(context)
 
-    logger_instance.log(level, f"{message}: {str(error)}", extra=error_info)
+    logger_instance.log(level, f"{message}: {error!s}", extra=error_info)
 
 
 def validate_dataframe_not_empty(df: pd.DataFrame, name: str) -> None:
-    """
-    Validate that a DataFrame is not empty.
+    """Validate that a DataFrame is not empty.
 
     Args:
         df: DataFrame to validate
@@ -58,8 +54,7 @@ def validate_dataframe_not_empty(df: pd.DataFrame, name: str) -> None:
 
 
 def validate_required_columns(df: pd.DataFrame, required_columns: list, name: str) -> None:
-    """
-    Validate that a DataFrame contains required columns.
+    """Validate that a DataFrame contains required columns.
 
     Args:
         df: DataFrame to validate
@@ -79,8 +74,7 @@ def validate_required_columns(df: pd.DataFrame, required_columns: list, name: st
 
 
 def safe_numeric_conversion(series: pd.Series, column_name: str) -> pd.Series:
-    """
-    Safely convert a pandas Series to numeric, with error handling.
+    """Safely convert a pandas Series to numeric, with error handling.
 
     Args:
         series: Series to convert
@@ -115,6 +109,6 @@ def safe_numeric_conversion(series: pd.Series, column_name: str) -> pd.Series:
     except Exception as e:
         raise DataValidationError(
             column=column_name,
-            message=f"Numeric conversion failed: {str(e)}",
+            message=f"Numeric conversion failed: {e!s}",
             data_info=f"Series dtype: {series.dtype}, length: {len(series)}",
         ) from e

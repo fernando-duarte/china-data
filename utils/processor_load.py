@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
-    """
-    Load raw data from a markdown table file.
+    """Load raw data from a markdown table file.
     This file is expected to be in one of the standard output locations.
 
     Args:
@@ -33,7 +32,7 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     if md_file is None:
         raise FileNotFoundError(f"Raw data file not found: {input_file} in any of the expected locations.")
 
-    with open(md_file, "r", encoding="utf-8") as f:
+    with open(md_file, encoding="utf-8") as f:
         lines = f.readlines()
 
     header_idx = None
@@ -86,7 +85,7 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
             break
         row = [c.strip() for c in line.split("|") if c.strip()]
         if len(row) == len(header):
-            processed: List[Any] = []
+            processed: list[Any] = []
             for j, value in enumerate(row):
                 if j == 0:
                     processed.append(int(value))
@@ -103,8 +102,7 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
 
 
 def load_imf_tax_revenue_data() -> pd.DataFrame:
-    """
-    Load IMF tax revenue data from CSV file.
+    """Load IMF tax revenue data from CSV file.
     This file is expected to be in one of the standard input locations.
 
     Returns:

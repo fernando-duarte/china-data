@@ -1,5 +1,4 @@
-"""
-Utilities for the China Economic Data Analysis project.
+"""Utilities for the China Economic Data Analysis project.
 
 This module provides common utility functions used across the codebase:
 - Project root and file path resolution
@@ -18,8 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_project_root() -> str:
-    """
-    Get the project root directory.
+    """Get the project root directory.
 
     Since the current directory structure is the project root
     (what used to be inside the china_data folder), we can
@@ -33,9 +31,8 @@ def get_project_root() -> str:
     return str(Path(__file__).parent.parent)
 
 
-def find_file(filename: str, possible_locations_relative_to_root: Optional[List[str]] = None) -> Optional[str]:
-    """
-    Find a file by searching multiple possible locations relative to the project root.
+def find_file(filename: str, possible_locations_relative_to_root: list[str] | None = None) -> str | None:
+    """Find a file by searching multiple possible locations relative to the project root.
 
     Args:
         filename: Name of the file to find (e.g., "china_data_raw.md")
@@ -73,8 +70,7 @@ def find_file(filename: str, possible_locations_relative_to_root: Optional[List[
 
 
 def ensure_directory(directory: str) -> str:
-    """
-    Ensure a directory exists, creating it if necessary.
+    """Ensure a directory exists, creating it if necessary.
 
     Args:
         directory: Directory path to ensure exists
@@ -88,8 +84,7 @@ def ensure_directory(directory: str) -> str:
 
 
 def get_output_directory() -> str:
-    """
-    Get the path to the output directory, ensuring it exists.
+    """Get the path to the output directory, ensuring it exists.
 
     Since the project root is now the current directory,
     the output directory is simply ./output from the project root.

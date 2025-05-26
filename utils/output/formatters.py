@@ -1,5 +1,4 @@
-"""
-Data formatting utilities for output generation.
+"""Data formatting utilities for output generation.
 
 This module provides functions to format DataFrames for various output formats
 with appropriate number formatting and value handling.
@@ -9,8 +8,7 @@ import pandas as pd
 
 
 def format_data_for_output(data_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Format DataFrame values for output with appropriate precision and formatting.
+    """Format DataFrame values for output with appropriate precision and formatting.
 
     Args:
         data_df: Input DataFrame to format
@@ -32,9 +30,13 @@ def format_data_for_output(data_df: pd.DataFrame) -> pd.DataFrame:
             if pd.isna(val):
                 vals.append("nan")
             elif isinstance(val, float):
-                if col_name in ["FDI (% of GDP)", "TFP", "Human Capital", "Openness Ratio", "Saving Rate"]:
-                    vals.append(f"{val:.4f}".rstrip("0").rstrip("."))
-                elif col_name in [
+                if col_name in [
+                    "FDI (% of GDP)",
+                    "TFP",
+                    "Human Capital",
+                    "Openness Ratio",
+                    "Saving Rate",
+                ] or col_name in [
                     "GDP",
                     "Consumption",
                     "Government",

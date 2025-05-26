@@ -6,7 +6,6 @@ import os
 import subprocess
 import sys
 from datetime import datetime
-from typing import Dict, List, Tuple
 
 
 class WorkflowRunner:
@@ -16,7 +15,7 @@ class WorkflowRunner:
         self.output_dir = os.path.join(self.workspace_dir, "workflow_outputs")
         os.makedirs(self.output_dir, exist_ok=True)
 
-    def run_command(self, cmd: List[str], check: bool = True) -> Tuple[int, str, str]:
+    def run_command(self, cmd: list[str], check: bool = True) -> tuple[int, str, str]:
         """Run a shell command and return exit code, stdout, and stderr"""
         try:
             result = subprocess.run(
@@ -46,7 +45,7 @@ class WorkflowRunner:
 
         return venv_dir
 
-    def run_code_quality_checks(self, venv_dir: str) -> Dict[str, bool]:
+    def run_code_quality_checks(self, venv_dir: str) -> dict[str, bool]:
         """Run code quality checks (black, isort, flake8, pylint, mypy)"""
         print("\n🔍 Running code quality checks...")
         results = {}
@@ -118,7 +117,7 @@ class WorkflowRunner:
 
         return results
 
-    def run_tests(self, venv_dir: str) -> Dict[str, bool]:
+    def run_tests(self, venv_dir: str) -> dict[str, bool]:
         """Run test suite with coverage"""
         print("\n🧪 Running tests...")
         results = {}
@@ -154,7 +153,7 @@ class WorkflowRunner:
 
         return results
 
-    def run_security_checks(self, venv_dir: str) -> Dict[str, bool]:
+    def run_security_checks(self, venv_dir: str) -> dict[str, bool]:
         """Run security checks using bandit"""
         print("\n🔒 Running security checks...")
         results = {}
@@ -189,7 +188,7 @@ class WorkflowRunner:
 
         return results
 
-    def run_dependency_checks(self, venv_dir: str) -> Dict[str, bool]:
+    def run_dependency_checks(self, venv_dir: str) -> dict[str, bool]:
         """Run dependency checks and license compliance"""
         print("\n📦 Running dependency checks...")
         results = {}
@@ -220,7 +219,7 @@ class WorkflowRunner:
 
         return results
 
-    def generate_report(self, all_results: Dict[str, Dict[str, bool]]):
+    def generate_report(self, all_results: dict[str, dict[str, bool]]):
         """Generate a summary report of all checks"""
         print("\n📋 Generating summary report...")
 
@@ -243,7 +242,7 @@ class WorkflowRunner:
         print("Total checks: {total}".format(total=report["summary"]["total_checks"]))
         print("Passed: {passed}".format(passed=report["summary"]["passed_checks"]))
         print("Failed: {failed}".format(failed=report["summary"]["failed_checks"]))
-        print("\nDetailed reports available in: {dir}".format(dir=self.output_dir))
+        print(f"\nDetailed reports available in: {self.output_dir}")
 
     def run_all(self):
         """Run all workflow checks"""

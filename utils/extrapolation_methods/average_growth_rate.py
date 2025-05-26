@@ -5,7 +5,6 @@ It calculates the average growth rate from historical data and applies it to pro
 """
 
 import logging
-from typing import List, Tuple
 
 import pandas as pd
 
@@ -15,14 +14,13 @@ logger = logging.getLogger(__name__)
 def extrapolate_with_average_growth_rate(
     df: pd.DataFrame,
     col: str,
-    years_to_project: List[int],
+    years_to_project: list[int],
     *,
     lookback_years: int = 4,
     default_growth: float = 0.03,
     min_data_points: int = 2,
-) -> Tuple[pd.DataFrame, bool, str]:
-    """
-    Extrapolate a time series using average historical growth rate.
+) -> tuple[pd.DataFrame, bool, str]:
+    """Extrapolate a time series using average historical growth rate.
 
     Args:
         df (pd.DataFrame): DataFrame containing the time series data
@@ -111,4 +109,4 @@ def extrapolate_with_average_growth_rate(
 
     except Exception as e:
         logger.warning(f"Average growth rate calculation failed for {col}, error: {e}")
-        return df_result, False, f"Average growth rate failed: {str(e)}"
+        return df_result, False, f"Average growth rate failed: {e!s}"

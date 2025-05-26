@@ -1,5 +1,4 @@
-"""
-Capital stock calculation module.
+"""Capital stock calculation module.
 
 This module provides functions for calculating capital stock based on Penn World Table data
 and a specified capital-output ratio.
@@ -18,8 +17,7 @@ logger = logging.getLogger(__name__)
 def calculate_capital_stock(
     raw_data: pd.DataFrame, capital_output_ratio: float = Config.DEFAULT_CAPITAL_OUTPUT_RATIO
 ) -> pd.DataFrame:
-    """
-    Calculate capital stock using PWT data and capital-output ratio.
+    """Calculate capital stock using PWT data and capital-output ratio.
 
     This function calculates physical capital stock based on Penn World Table data
     using relative real capital stock and price level indices, normalized to a
@@ -140,7 +138,7 @@ def calculate_capital_stock(
                 df.loc[df.year == year, "K_USD_bn"] = k_usd
 
             except Exception as e:
-                logger.warning(f"Error calculating capital for year {row.get('year', '?')}: {str(e)}")
+                logger.warning(f"Error calculating capital for year {row.get('year', '?')}: {e!s}")
 
         # Round to 2 decimal places
         if "K_USD_bn" in df.columns:
@@ -158,6 +156,6 @@ def calculate_capital_stock(
         return df
 
     except Exception as e:
-        logger.error(f"Error in capital stock calculation: {str(e)}")
+        logger.error(f"Error in capital stock calculation: {e!s}")
         df["K_USD_bn"] = np.nan
         return df

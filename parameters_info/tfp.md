@@ -8,11 +8,11 @@ header-includes:
   - \usepackage{makecell}
   - \usepackage{xcolor}
   - \usepackage[colorlinks=true,
-                linkcolor=blue,
-                urlcolor=blue,
-                citecolor=blue,
-                filecolor=blue
-               ]{hyperref}
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue,
+    filecolor=blue
+    ]{hyperref}
 ---
 
 # Parameter Estimates for China's TFP Growth Model
@@ -35,7 +35,7 @@ Estimate & Source & Methodology & Pros & Cons \\
 \end{tabularx}
 \end{table}
 \end{landscape}
-````
+```
 
 ## Sensitivity of TFP to Trade Openness ($\theta$)
 
@@ -79,37 +79,37 @@ Mixed & Hong \& Sun (2011); Liu (2008) & Micro panel & Micro spillovers & Mixed 
 
 ## Notes
 
-* Baseline growth ($g$) ranges from about 1.4 % to 3.8 %, consensus roughly 2.0 %.
-* Trade openness effect ($\theta$) is positive but modest.
-* FDI sensitivity ($\phi$) is positive but small; micro studies vary.
-* Estimates depend on period, data quality, and methodology.
+- Baseline growth ($g$) ranges from about 1.4 % to 3.8 %, consensus roughly 2.0 %.
+- Trade openness effect ($\theta$) is positive but modest.
+- FDI sensitivity ($\phi$) is positive but small; micro studies vary.
+- Estimates depend on period, data quality, and methodology.
 
 ## References
 
 1. **Perkins, Dwight H., and Thomas G. Rawski. 2008.**
-   “Forecasting China’s Economic Growth to 2025.” In *China’s Great Economic Transformation*, edited by Loren Brandt and Thomas G. Rawski, 829–886. Cambridge University Press.
+   “Forecasting China’s Economic Growth to 2025.” In _China’s Great Economic Transformation_, edited by Loren Brandt and Thomas G. Rawski, 829–886. Cambridge University Press.
    [Full Text PDF](https://scholar.harvard.edu/files/dperkins/files/chapter20.pdf)
 
 2. **Young, Alwyn. 2003.**
-   “Gold into Base Metals: Productivity Growth in the People’s Republic of China during the Reform Period.” *Journal of Political Economy* 111 (6): 1220–1261.
+   “Gold into Base Metals: Productivity Growth in the People’s Republic of China during the Reform Period.” _Journal of Political Economy_ 111 (6): 1220–1261.
    [Full Text PDF](https://web.stanford.edu/~klenow/Gold%20into%20Base%20Metals.pdf)
 
 3. **Tian, Xu, and Xiaohua Yu. 2012.**
-   “The Enigmas of TFP in China: A Meta-Analysis.” *China Economic Review* 23 (2): 396–414.
+   “The Enigmas of TFP in China: A Meta-Analysis.” _China Economic Review_ 23 (2): 396–414.
    [Full Text PDF](https://www.econstor.eu/bitstream/10419/90512/1/CRC-PEG_DP_113.pdf)
 
 4. **Samaké, Issouf, and Yongzheng Yang. 2011.**
-   “Low-Income Countries’ BRIC Linkage: Are There Growth Spillovers?” *IMF Working Paper* WP/11/267.
+   “Low-Income Countries’ BRIC Linkage: Are There Growth Spillovers?” _IMF Working Paper_ WP/11/267.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/wp/2011/wp11267.pdf)
 
 5. **Tseng, Wanda, and Harm Zebregs. 2003.**
-   “Foreign Direct Investment in China: Some Lessons for Other Countries.” *IMF Policy Discussion Paper* PDP/02/3.
+   “Foreign Direct Investment in China: Some Lessons for Other Countries.” _IMF Policy Discussion Paper_ PDP/02/3.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/pdp/2002/pdp03.pdf)
 
 6. **Hong, Eunsuk, and Laixiang Sun. 2011.**
-   “Foreign Direct Investment and Total Factor Productivity in China: A Spatial Dynamic Panel Analysis.” *Oxford Bulletin of Economics and Statistics* 73 (6): 771–791.
-   [Official Source](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1468-0084.2011.00672.x) *(Access may require subscription.)*
+   “Foreign Direct Investment and Total Factor Productivity in China: A Spatial Dynamic Panel Analysis.” _Oxford Bulletin of Economics and Statistics_ 73 (6): 771–791.
+   [Official Source](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1468-0084.2011.00672.x) _(Access may require subscription.)_
 
 7. **Liu, Zhiqiang. 2008.**
-   “Foreign Direct Investment and Technology Spillovers: Theory and Evidence.” *Journal of Development Economics* 85 (1–2): 176–193.
+   “Foreign Direct Investment and Technology Spillovers: Theory and Evidence.” _Journal of Development Economics_ 85 (1–2): 176–193.
    [Full Text PDF](https://www.uh.edu/~bsorense/FDI_Tech_Spill_Over.pdf)

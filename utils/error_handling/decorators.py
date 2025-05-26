@@ -1,5 +1,4 @@
-"""
-Error handling decorators for China data processing.
+"""Error handling decorators for China data processing.
 
 This module provides decorators for consistent error handling patterns
 across the data processing pipeline.
@@ -8,7 +7,8 @@ across the data processing pipeline.
 import functools
 import logging
 import time
-from typing import Any, Callable, Optional, TypeVar, Union, cast
+from collections.abc import Callable
+from typing import Any, TypeVar, cast
 
 import pandas as pd
 
@@ -24,8 +24,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 def handle_data_operation(
     operation_name: str, return_on_error: Any = None, log_level: int = logging.ERROR, reraise: bool = False
 ) -> Callable:
-    """
-    Decorator for consistent error handling in data operations.
+    """Decorator for consistent error handling in data operations.
 
     Args:
         operation_name: Name of the operation for logging
@@ -37,9 +36,9 @@ def handle_data_operation(
         Decorated function with error handling
     """
 
-    def decorator(func: Callable[..., T]) -> Callable[..., Union[T, Any]]:
+    def decorator(func: Callable[..., T]) -> Callable[..., T | Any]:
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Union[T, Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> T | Any:
             try:
                 return func(*args, **kwargs)
             except ChinaDataError:
@@ -48,7 +47,7 @@ def handle_data_operation(
             except Exception as e:
                 logger.log(
                     log_level,
-                    f"Error in {operation_name}: {str(e)}",
+                    f"Error in {operation_name}: {e!s}",
                     extra={
                         "operation": operation_name,
                         "function": func.__name__,
@@ -65,9 +64,8 @@ def handle_data_operation(
     return decorator
 
 
-def safe_dataframe_operation(operation_name: str, default_df: Optional[pd.DataFrame] = None) -> Callable:
-    """
-    Decorator specifically for DataFrame operations that should return empty DataFrame on error.
+def safe_dataframe_operation(operation_name: str, default_df: pd.DataFrame | None = None) -> Callable:
+    """Decorator specifically for DataFrame operations that should return empty DataFrame on error.
 
     Args:
         operation_name: Name of the operation for logging
@@ -91,7 +89,7 @@ def safe_dataframe_operation(operation_name: str, default_df: Optional[pd.DataFr
                 raise
             except Exception as e:
                 logger.error(
-                    f"Error in {operation_name}: {str(e)}",
+                    f"Error in {operation_name}: {e!s}",
                     extra={"operation": operation_name, "function": func.__name__, "error_type": type(e).__name__},
                 )
                 return default_df if default_df is not None else pd.DataFrame()

@@ -16,7 +16,7 @@ and supports various extrapolation methods (ARIMA, linear regression, growth rat
 import argparse
 import logging
 import sys
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 def process_data(
     raw_data: pd.DataFrame, imf_tax_data: pd.DataFrame, args: argparse.Namespace
-) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Process raw economic data.
 
     Args:
@@ -122,7 +122,7 @@ def main() -> None:
         create_markdown_table(processed_data, md_file, extrapolation_info)
         logger.info(f"Created markdown table at {md_file}")
 
-        return None
+        return
 
     except Exception as e:
         logger.error(f"Error processing data: {e}", exc_info=True)

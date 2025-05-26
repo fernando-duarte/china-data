@@ -165,4 +165,4 @@ line-ending = "auto"
 docstring-code-format = true
 
 # Format code in docstrings with dynamic line length
-docstring-code-line-length = "dynamic" 
+docstring-code-line-length = "dynamic"

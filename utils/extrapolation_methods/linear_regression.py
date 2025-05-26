@@ -1,12 +1,10 @@
-"""
-Linear regression-based extrapolation method for time series data.
+"""Linear regression-based extrapolation method for time series data.
 
 This module provides functionality to extrapolate time series using linear regression.
 It fits a linear trend to historical data and projects it forward.
 """
 
 import logging
-from typing import List, Tuple
 
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -19,11 +17,10 @@ logger = logging.getLogger(__name__)
 def extrapolate_with_linear_regression(
     df: pd.DataFrame,
     col: str,
-    years_to_project: List[int],
+    years_to_project: list[int],
     min_data_points: int = Config.MIN_DATA_POINTS_FOR_REGRESSION,
-) -> Tuple[pd.DataFrame, bool, str]:
-    """
-    Extrapolate a time series using linear regression.
+) -> tuple[pd.DataFrame, bool, str]:
+    """Extrapolate a time series using linear regression.
 
     Args:
         df (pd.DataFrame): DataFrame containing the time series data
@@ -81,4 +78,4 @@ def extrapolate_with_linear_regression(
 
     except Exception as e:
         logger.warning(f"Linear regression failed for {col}, error: {e}")
-        return df_result, False, f"Linear regression failed: {str(e)}"
+        return df_result, False, f"Linear regression failed: {e!s}"

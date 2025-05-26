@@ -1,5 +1,4 @@
-"""
-Fallback data loader for China economic data.
+"""Fallback data loader for China economic data.
 
 This module provides functionality to load data from existing china_data_raw.md files
 as fallback when primary data sources are unavailable.
@@ -7,7 +6,6 @@ as fallback when primary data sources are unavailable.
 
 import logging
 from pathlib import Path
-from typing import Dict, Optional
 
 import pandas as pd
 
@@ -18,9 +16,8 @@ from .fallback_utils import _convert_to_numeric, _read_and_parse_markdown_table,
 logger = logging.getLogger(__name__)
 
 
-def load_fallback_data(output_dir: str) -> Optional[Dict[str, pd.DataFrame]]:
-    """
-    Load data from existing china_data_raw.md file as fallback.
+def load_fallback_data(output_dir: str) -> dict[str, pd.DataFrame] | None:
+    """Load data from existing china_data_raw.md file as fallback.
 
     Args:
         output_dir: Directory where china_data_raw.md is located

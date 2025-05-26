@@ -53,48 +53,48 @@ header-includes:
 \end{tabularx}
 \end{table}
 \end{landscape}
-````
+```
 
 ## References
 
 1. **Cerra, V., & Dayal-Gulati, A. (1999).**
-   *China’s trade flows: Changing price sensitivities and the reform process* (IMF Working Paper No. 99/1). International Monetary Fund.
+   _China’s trade flows: Changing price sensitivities and the reform process_ (IMF Working Paper No. 99/1). International Monetary Fund.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/wp/1999/wp9901.pdf)
 
 2. **Senhadji, A. S., & Montenegro, C. E. (1999).**
-   Time series analysis of export demand equations: A cross-country analysis. *IMF Staff Papers, 46*(3), 259–273.
+   Time series analysis of export demand equations: A cross-country analysis. _IMF Staff Papers, 46_(3), 259–273.
    [DOI: 10.2307/3867643](https://doi.org/10.2307/3867643)
    [Permanent link (PDF)](https://www.imf.org/external/pubs/ft/staffp/1999/09-99/pdf/senhadji.pdf)
 
 3. **Shu, C., & Yip, R. (2006).**
-   *Impact of exchange rate movements on the Mainland economy* (China Economic Issues No. 3/06). Hong Kong Monetary Authority.
+   _Impact of exchange rate movements on the Mainland economy_ (China Economic Issues No. 3/06). Hong Kong Monetary Authority.
    [Full Text PDF](https://www.hkma.gov.hk/media/eng/publication-and-research/research/china-economic-issues/CEI-200603.pdf)
 
 4. **Aziz, J., & Li, X. (2007).**
-   *China’s changing trade elasticities* (IMF Working Paper No. 07/266). International Monetary Fund.
+   _China’s changing trade elasticities_ (IMF Working Paper No. 07/266). International Monetary Fund.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/wp/2007/wp07266.pdf)
 
 5. **Kang, J. S., & Liao, W. (2016).**
-   *Chinese imports: What’s behind the slowdown?* (IMF Working Paper No. 16/106). International Monetary Fund.
+   _Chinese imports: What’s behind the slowdown?_ (IMF Working Paper No. 16/106). International Monetary Fund.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/wp/2016/wp16106.pdf)
 
 6. **García-Herrero, A., & Koivu, T. (2007).**
-   Can the Chinese trade surplus be reduced through exchange rate policy? *BOFIT Discussion Paper No. 6/2007*.
+   Can the Chinese trade surplus be reduced through exchange rate policy? _BOFIT Discussion Paper No. 6/2007_.
    [DOI: 10.2139/ssrn.1001666](https://doi.org/10.2139/ssrn.1001666)
    [Publisher Link (SSRN Article Page)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1001666)
 
 7. **Yao, Z., Tian, F., & Su, Q. (2013).**
-   Income and price elasticities of China’s exports. *China & World Economy, 21*(1), 91–106.
+   Income and price elasticities of China’s exports. _China & World Economy, 21_(1), 91–106.
    [DOI: 10.1111/j.1749-124X.2013.12010.x](https://doi.org/10.1111/j.1749-124X.2013.12010.x)
    [Publisher Link (Wiley Online Library)](https://onlinelibrary.wiley.com/doi/10.1111/j.1749-124X.2013.12010.x)
 
 8. **Cheung, Y.-W., Chinn, M. D., & Qian, X. (2012).**
-   Are Chinese trade flows different? *Journal of International Money and Finance, 31*(8), 2127–2146.
+   Are Chinese trade flows different? _Journal of International Money and Finance, 31_(8), 2127–2146.
    [DOI: 10.1016/j.jimonfin.2012.05.004](https://doi.org/10.1016/j.jimonfin.2012.05.004)
    [Publisher Link (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0261560612000984)
 
 9. **Thorbecke, W., Chen, C., & Salike, N. (2025).**
-   *The Diminishing Impact of Exchange Rates on China’s Exports* (Discussion Paper No. 25010). Research Institute of Economy, Trade and Industry (RIETI).
+   _The Diminishing Impact of Exchange Rates on China’s Exports_ (Discussion Paper No. 25010). Research Institute of Economy, Trade and Industry (RIETI).
    [Permalink (RePEc)](https://ideas.repec.org/p/eti/dpaper/25010.html)
 
 ---
