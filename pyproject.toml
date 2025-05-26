@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "china-data"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 description = "China Economic Data Analysis Pipeline"
 readme = "README.md"
 license = {text = "MIT"}
@@ -16,7 +16,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -38,9 +37,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    # Existing tools...
     "bandit>=1.7,<2.0",
     "black>=25.1,<26.0",
-    "ruff>=0.4,<0.5",
+    "ruff>=0.8,<1.0",  # Latest Ruff
+    "uv>=0.5,<1.0",    # UV package manager
     "interrogate>=1.7,<2.0",
     "ipython>=8.29,<9.0",
     "jupyter>=1.1,<2.0",
@@ -49,6 +50,9 @@ dev = [
     "mkdocs-material>=9.5,<10.0",
     "mkdocs-mermaid2-plugin>=1.1,<2.0",
     "mkdocstrings[python]>=0.26,<1.0",
+    "mkdocs-jupyter>=0.25,<1.0",  # Jupyter notebook integration
+    "mkdocs-gallery>=0.10,<1.0",  # Code example gallery
+    "mkdocs-git-revision-date-localized-plugin>=1.3,<2.0",  # Git-based dates
     "mypy>=1.15,<2.0",
     "pandas-stubs>=2.2,<3.0",
     "pip-audit>=2.7,<3.0",
@@ -72,14 +76,37 @@ dev = [
     "semgrep>=1.0,<2.0",
     "types-pytz>=2025.2,<2026.0",
     "types-requests>=2.32,<3.0",
+
+    # 2025 additions
+    "syrupy>=4.0,<5.0",           # Snapshot testing
+    "pytest-asyncio>=0.24,<1.0",  # Async testing
+    "pytest-mock>=3.14,<4.0",     # Enhanced mocking
+    "pytest-clarity>=1.0,<2.0",   # Better test output
+    "pytest-sugar>=1.0,<2.0",     # Pretty test output
+    "rich>=13.0,<14.0",           # Rich terminal output
+]
+
+# Production extras for different use cases
+api = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn>=0.32,<1.0",
+    "pydantic>=2.10,<3.0",
+]
+
+monitoring = [
+    "opentelemetry-api>=1.28,<2.0",
+    "opentelemetry-sdk>=1.28,<2.0",
+    "prometheus-client>=0.21,<1.0",
 ]
 
 [tool.uv]
 # UV configuration for faster dependency resolution
 dev-dependencies = [
+    # Existing tools...
     "bandit>=1.7,<2.0",
     "black>=25.1,<26.0",
-    "ruff>=0.4,<0.5",
+    "ruff>=0.8,<1.0",  # Latest Ruff
+    "uv>=0.5,<1.0",    # UV package manager
     "interrogate>=1.7,<2.0",
     "ipython>=8.29,<9.0",
     "jupyter>=1.1,<2.0",
@@ -88,6 +115,9 @@ dev-dependencies = [
     "mkdocs-material>=9.5,<10.0",
     "mkdocs-mermaid2-plugin>=1.1,<2.0",
     "mkdocstrings[python]>=0.26,<1.0",
+    "mkdocs-jupyter>=0.25,<1.0",  # Jupyter notebook integration
+    "mkdocs-gallery>=0.10,<1.0",  # Code example gallery
+    "mkdocs-git-revision-date-localized-plugin>=1.3,<2.0",  # Git-based dates
     "mypy>=1.15,<2.0",
     "pandas-stubs>=2.2,<3.0",
     "pip-audit>=2.7,<3.0",
@@ -111,6 +141,14 @@ dev-dependencies = [
     "semgrep>=1.0,<2.0",
     "types-pytz>=2025.2,<2026.0",
     "types-requests>=2.32,<3.0",
+
+    # 2025 additions
+    "syrupy>=4.0,<5.0",           # Snapshot testing
+    "pytest-asyncio>=0.24,<1.0",  # Async testing
+    "pytest-mock>=3.14,<4.0",     # Enhanced mocking
+    "pytest-clarity>=1.0,<2.0",   # Better test output
+    "pytest-sugar>=1.0,<2.0",     # Pretty test output
+    "rich>=13.0,<14.0",           # Rich terminal output
 ]
 
 # UV workspace configuration
@@ -133,7 +171,7 @@ cache-dir = ".uv-cache"
 
 [tool.black]
 line-length = 120
-target-version = ['py39', 'py310', 'py311', 'py312']
+target-version = ['py310', 'py311', 'py312', 'py313']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -161,7 +199,7 @@ ensure_newline_before_comments = true
 skip = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 
 [tool.pylint.main]
-py-version = "3.9"
+py-version = "3.10"
 ignore = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 
 [tool.pylint.format]
@@ -218,7 +256,7 @@ markers = [
 # pytest -m "property"       # Run only property-based tests
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 # Strict mode settings
 strict = true
 warn_return_any = true

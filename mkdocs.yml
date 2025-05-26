@@ -114,6 +114,11 @@ plugins:
         theme: |
           ^(JSON.parse(__md_get("__palette").index == 1)) ?
           'dark' : 'light'
+  # 2025 additions for interactive documentation
+  - mkdocs-jupyter # Jupyter notebook integration
+  - mkdocs-gallery # Code example gallery
+  - mkdocs-git-revision-date-localized: # Git-based dates
+      type: date
 
 markdown_extensions:
   - abbr
@@ -153,6 +158,10 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+  # 2025 additions for enhanced documentation
+  - pymdownx.snippets: # Code snippet inclusion
+      base_path: examples/
+  - pymdownx.blocks.html # HTML blocks
 
 extra:
   version:
