@@ -1,11 +1,12 @@
 name: Enhanced Security Scan
+
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
   schedule:
-    # Run security scan daily at 2 AM UTC
+    # Run security scans daily at 2 AM UTC
     - cron: '0 2 * * *'
   workflow_dispatch:
 
@@ -13,102 +14,327 @@ permissions:
   contents: read
   security-events: write
   pull-requests: write
+  checks: write
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
 
 jobs:
-  security-scan:
-    name: Advanced Security Scan
+  sast-analysis:
+    name: Static Application Security Testing
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.12"
 
       - name: Install UV
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-      - name: Setup Python with UV
-        run: uv python install 3.12
+      - name: Install dependencies
+        run: |
+          source $HOME/.cargo/env
+          uv sync --dev
+
+      - name: Run Semgrep SAST
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/python
+            p/bandit
+            p/owasp-top-ten
+            p/cwe-top-25
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Run Ruff Security Checks
+        run: |
+          source $HOME/.cargo/env
+          uv run ruff check . --select=S,B --output-format=json > ruff-security-report.json || true
+          uv run ruff check . --select=S,B --output-format=github
+
+      - name: Run Bandit Security Scan
+        run: |
+          source $HOME/.cargo/env
+          uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*,./.venv/*" || true
+          uv run bandit -r . -f txt --exclude "./venv/*,./tests/*,./.venv/*" || true
+
+      - name: Upload SAST Reports
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: sast-reports
+          path: |
+            ruff-security-report.json
+            bandit-report.json
+
+  dependency-security:
+    name: Dependency Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Install dependencies
-        run: uv sync --dev
-
-      - name: SAST scanning with Semgrep
         run: |
-          uv run semgrep --config=auto . --json --output=semgrep-report.json || true
-          uv run semgrep --config=auto . --sarif --output=semgrep-report.sarif || true
+          source $HOME/.cargo/env
+          uv sync --dev
 
-      - name: Dependency scanning with pip-audit
+      - name: Run pip-audit vulnerability scan
         run: |
-          uv run pip-audit --format=json --output=pip-audit-report.json || true
-          uv run pip-audit --format=sarif --output=pip-audit-report.sarif || true
+          source $HOME/.cargo/env
+          uv run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
+          uv run pip-audit --format=cyclonedx-json --output=pip-audit-sbom.json || true
+          uv run pip-audit || true
 
-      - name: Secret scanning with detect-secrets
+      - name: Run Safety vulnerability scan
         run: |
-          uv run detect-secrets scan --all-files --baseline .secrets.baseline --force-use-all-plugins || true
+          source $HOME/.cargo/env
+          uv run safety check --json --output=safety-vulnerabilities.json || true
+          uv run safety check || true
 
-      - name: License compliance check
+      - name: Generate dependency tree
         run: |
-          uv run pip-licenses --format=json --output-file=licenses.json || true
+          source $HOME/.cargo/env
+          uv run pipdeptree --json > dependency-tree.json
+          uv run pipdeptree --graph-output png > dependency-graph.png || true
 
-      - name: Bandit security linting
+      - name: Upload dependency security reports
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: dependency-security-reports
+          path: |
+            pip-audit-vulnerabilities.json
+            pip-audit-sbom.json
+            safety-vulnerabilities.json
+            dependency-tree.json
+            dependency-graph.png
+
+  license-compliance:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
         run: |
-          uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*" || true
-          uv run bandit -r . -f sarif -o bandit-report.sarif --exclude "./venv/*,./tests/*" || true
+          source $HOME/.cargo/env
+          uv sync --dev
 
-      - name: Ruff security checks
+      - name: Generate license report
         run: |
-          uv run ruff check . --select=S --output-format=json > ruff-security-report.json || true
-          uv run ruff check . --select=S --output-format=sarif > ruff-security-report.sarif || true
+          source $HOME/.cargo/env
+          uv run pip-licenses --format=json --output-file=licenses.json
+          uv run pip-licenses --format=csv --output-file=licenses.csv
+          uv run pip-licenses --format=html --output-file=licenses.html
 
-      - name: Upload SARIF results to GitHub Security
+      - name: Check for problematic licenses
+        run: |
+          source $HOME/.cargo/env
+          # Check for GPL licenses that might conflict with MIT
+          if uv run pip-licenses --format=json | grep -i "gpl\|agpl\|copyleft"; then
+            echo "⚠️ Warning: Found potentially problematic licenses"
+            uv run pip-licenses --format=json | grep -i "gpl\|agpl\|copyleft" || true
+          else
+            echo "✅ No problematic licenses found"
+          fi
+
+      - name: Upload license reports
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: license-reports
+          path: |
+            licenses.json
+            licenses.csv
+            licenses.html
+
+  secrets-detection:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install UV
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          source $HOME/.cargo/env
+          uv sync --dev
+
+      - name: Run detect-secrets scan
+        run: |
+          source $HOME/.cargo/env
+          # Update baseline if it doesn't exist
+          if [ ! -f .secrets.baseline ]; then
+            uv run detect-secrets scan --all-files --baseline .secrets.baseline
+          fi
+
+          # Scan for new secrets
+          uv run detect-secrets scan --all-files --baseline .secrets.baseline --fail-on-unaudited-potential-secrets
+
+      - name: Run TruffleHog secrets scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Build Docker image
+        run: |
+          docker build -t china-data-security-test .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'china-data-security-test'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: |
-            semgrep-report.sarif
-            pip-audit-report.sarif
-            bandit-report.sarif
-            ruff-security-report.sarif
+          sarif_file: 'trivy-results.sarif'
 
-      - name: Upload security reports as artifacts
-        uses: actions/upload-artifact@v4
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy-fs-results.json'
+
+      - name: Upload container security reports
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
-          name: security-reports
+          name: container-security-reports
           path: |
-            semgrep-report.json
-            pip-audit-report.json
-            bandit-report.json
-            ruff-security-report.json
-            licenses.json
+            trivy-results.sarif
+            trivy-fs-results.json
 
-      - name: Comment on PR with security summary
+  security-summary:
+    name: Security Summary
+    needs: [sast-analysis, dependency-security, license-compliance, secrets-detection]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Generate security summary
+        run: |
+          echo "# 🔒 Security Scan Summary" > security-summary.md
+          echo "" >> security-summary.md
+          echo "## 📊 Scan Results" >> security-summary.md
+          echo "" >> security-summary.md
+
+          # SAST Results
+          echo "### Static Application Security Testing (SAST)" >> security-summary.md
+          if [ -f "ruff-security-report.json" ]; then
+            RUFF_ISSUES=$(jq length ruff-security-report.json 2>/dev/null || echo "0")
+            echo "- Ruff Security Issues: $RUFF_ISSUES" >> security-summary.md
+          fi
+
+          if [ -f "bandit-report.json" ]; then
+            BANDIT_ISSUES=$(jq '.results | length' bandit-report.json 2>/dev/null || echo "0")
+            echo "- Bandit Security Issues: $BANDIT_ISSUES" >> security-summary.md
+          fi
+          echo "" >> security-summary.md
+
+          # Dependency Security
+          echo "### Dependency Security" >> security-summary.md
+          if [ -f "pip-audit-vulnerabilities.json" ]; then
+            PIP_AUDIT_VULNS=$(jq '.vulnerabilities | length' pip-audit-vulnerabilities.json 2>/dev/null || echo "0")
+            echo "- pip-audit Vulnerabilities: $PIP_AUDIT_VULNS" >> security-summary.md
+          fi
+
+          if [ -f "safety-vulnerabilities.json" ]; then
+            SAFETY_VULNS=$(jq '.vulnerabilities | length' safety-vulnerabilities.json 2>/dev/null || echo "0")
+            echo "- Safety Vulnerabilities: $SAFETY_VULNS" >> security-summary.md
+          fi
+          echo "" >> security-summary.md
+
+          # License Compliance
+          echo "### License Compliance" >> security-summary.md
+          if [ -f "licenses.json" ]; then
+            TOTAL_DEPS=$(jq length licenses.json 2>/dev/null || echo "0")
+            echo "- Total Dependencies: $TOTAL_DEPS" >> security-summary.md
+            echo "- License Report: ✅ Generated" >> security-summary.md
+          fi
+          echo "" >> security-summary.md
+
+          echo "## 🎯 Recommendations" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "1. Review all identified security issues" >> security-summary.md
+          echo "2. Update vulnerable dependencies" >> security-summary.md
+          echo "3. Verify license compatibility" >> security-summary.md
+          echo "4. Address any secrets detection findings" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "Generated on: $(date -u)" >> security-summary.md
+
+      - name: Upload security summary
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: security-summary
+          path: security-summary.md
+
+      - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            let comment = '## 🔒 Security Scan Results\n\n';
-
-            // Check if security reports exist and add summary
-            try {
-              if (fs.existsSync('semgrep-report.json')) {
-                const semgrep = JSON.parse(fs.readFileSync('semgrep-report.json', 'utf8'));
-                comment += `- **Semgrep**: ${semgrep.results?.length || 0} findings\n`;
-              }
-
-              if (fs.existsSync('bandit-report.json')) {
-                const bandit = JSON.parse(fs.readFileSync('bandit-report.json', 'utf8'));
-                comment += `- **Bandit**: ${bandit.results?.length || 0} findings\n`;
-              }
-
-              comment += '\n📊 Detailed reports are available in the workflow artifacts.';
-
+            if (fs.existsSync('security-summary.md')) {
+              const summary = fs.readFileSync('security-summary.md', 'utf8');
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: comment
+                body: summary
               });
-            } catch (error) {
-              console.log('Error reading security reports:', error);
             }

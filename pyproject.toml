@@ -2,19 +2,24 @@
 requires = ["setuptools>=67.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["utils*", "china_data*"]
+exclude = ["tests*", "input*", "output*", "node_modules*", "parameters_info*", "workflow_outputs*"]
+
 [project]
 name = "china-data"
 requires-python = ">=3.10"
 description = "China Economic Data Analysis Pipeline"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Fernando Duarte", email = "fernando_duarte@brown.edu"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -62,7 +67,7 @@ dev = [
     "psutil>=6.1,<7.0",
     "py-spy>=0.3,<1.0",
     "pylint>=3.3,<4.0",
-    "pytest>=7.4,<8.0",
+    "pytest>=8.2,<9.0",
     "pytest-benchmark>=4.0,<5.0",
     "pytest-cov>=4.1,<5.0",
     "pytest-doctestplus>=1.2,<2.0",
@@ -127,7 +132,7 @@ dev-dependencies = [
     "psutil>=6.1,<7.0",
     "py-spy>=0.3,<1.0",
     "pylint>=3.3,<4.0",
-    "pytest>=7.4,<8.0",
+    "pytest>=8.2,<9.0",
     "pytest-benchmark>=4.0,<5.0",
     "pytest-cov>=4.1,<5.0",
     "pytest-doctestplus>=1.2,<2.0",
@@ -155,19 +160,10 @@ dev-dependencies = [
 [tool.uv.workspace]
 members = ["."]
 
-# UV dependency resolution configuration
-[tool.uv.dependency-metadata]
-# Enable faster dependency resolution
-resolution-mode = "highest"
-# Prefer wheels over source distributions
-prefer-binary = true
-
 # UV pip configuration
 [tool.uv.pip]
 # Use faster index strategy
 index-strategy = "unsafe-best-match"
-# Enable dependency caching
-cache-dir = ".uv-cache"
 
 [tool.black]
 line-length = 120

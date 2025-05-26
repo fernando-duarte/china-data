@@ -1,359 +1,45 @@
-"""Enhanced logging configuration with structured logging and OpenTelemetry support.
+"""Structured logging configuration with OpenTelemetry integration.
 
-This module provides structured logging capabilities with JSON output,
-OpenTelemetry integration, and performance monitoring.
+This module provides production-ready structured logging configuration
+for the China data analysis pipeline.
 """
 
 import logging
+import os
 import sys
-from pathlib import Path
 from typing import Any
 
-try:
-    import structlog
-
-    STRUCTLOG_AVAILABLE = True
-except ImportError:
-    STRUCTLOG_AVAILABLE = False
-
-try:
-    from opentelemetry import trace
-
-    OPENTELEMETRY_AVAILABLE = True
-except ImportError:
-    OPENTELEMETRY_AVAILABLE = False
-
-from config import Config
+import structlog
+from opentelemetry import trace  # pylint: disable=import-error
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # pylint: disable=import-error
+from opentelemetry.instrumentation.logging import LoggingInstrumentor  # pylint: disable=import-error
+from opentelemetry.sdk.resources import Resource  # pylint: disable=import-error
+from opentelemetry.sdk.trace import TracerProvider  # pylint: disable=import-error
+from opentelemetry.sdk.trace.export import BatchSpanProcessor  # pylint: disable=import-error
 
 
-def add_timestamp(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """Add timestamp to log events."""
-    import time
-
-    event_dict["timestamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    return event_dict
-
-
-def add_log_level(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """Add log level to event dict."""
-    event_dict["level"] = method_name.upper()
-    return event_dict
-
-
-def add_module_info(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """Add module and function information to log events."""
-    import inspect
-
-    # Get the calling frame (skip structlog internal frames)
-    frame = inspect.currentframe()
-    try:
-        # Skip through structlog frames to find the actual caller
-        while frame and (
-            frame.f_code.co_filename.endswith("structlog")
-            or "structlog" in frame.f_code.co_filename
-            or frame.f_code.co_name in ["_process_event", "_proxy_method", "add_module_info"]
-        ):
-            frame = frame.f_back
-
-        if frame:
-            event_dict["module"] = Path(frame.f_code.co_filename).stem
-            event_dict["function"] = frame.f_code.co_name
-            event_dict["line"] = frame.f_lineno
-    finally:
-        del frame
-
-    return event_dict
-
-
-def add_process_info(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """Add process information to log events."""
-    import os
-
-    event_dict["pid"] = os.getpid()
-    return event_dict
-
-
-def filter_by_level(min_level: int = logging.INFO) -> Any:
-    """Create a processor that filters events by minimum log level."""
-
-    def processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-        level_map = {
-            "debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-            "critical": logging.CRITICAL,
-        }
-
-        current_level = level_map.get(method_name.lower(), logging.INFO)
-        if current_level < min_level:
-            raise structlog.DropEvent
-
-        return event_dict
-
-    return processor
-
-
-def setup_structured_logging(
-    log_level: str = "INFO",
-    log_file: str | None = None,
-    enable_console: bool = True,
-    enable_json: bool = False,
-    include_process_info: bool = True,
+def configure_logging(
+    level: str = "INFO",
+    format_type: str = "json",
+    enable_tracing: bool = False,
+    **kwargs: Any,
 ) -> None:
-    """Configure structured logging for the application.
-
-    Args:
-        log_level: Minimum log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        log_file: Optional file path for log output
-        enable_console: Whether to enable console output
-        enable_json: Whether to use JSON format (useful for log aggregation)
-        include_process_info: Whether to include process information in logs
-    """
-    # Convert string level to logging constant
-    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
-
-    # Configure standard library logging
-    logging.basicConfig(
-        level=numeric_level,
-        format="%(message)s",  # structlog will handle formatting
-        handlers=[],  # We'll add handlers below
-    )
-
-    # Build processor chain
-    processors = [
-        add_timestamp,
-        add_log_level,
-        add_module_info,
-        filter_by_level(numeric_level),
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.StackInfoRenderer(),
-    ]
-
-    if include_process_info:
-        processors.append(add_process_info)
-
-    # Add final processor based on output format
-    if enable_json:
-        processors.append(structlog.processors.JSONRenderer())
-    else:
-        processors.append(
-            structlog.dev.ConsoleRenderer(
-                colors=enable_console and sys.stderr.isatty(),
-                exception_formatter=structlog.dev.plain_traceback,
-            )
-        )
-
-    # Set up handlers for standard library logging
-    handlers = []
-
-    if enable_console:
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(numeric_level)
-        handlers.append(console_handler)
-
-    if log_file:
-        # Ensure log directory exists
-        log_path = Path(log_file)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-
-        file_handler = logging.FileHandler(log_file, encoding=Config.FILE_ENCODING)
-        file_handler.setLevel(numeric_level)
-        handlers.append(file_handler)
-
-    # Configure root logger with our handlers
-    root_logger = logging.getLogger()
-    root_logger.handlers.clear()
-    for handler in handlers:
-        root_logger.addHandler(handler)
-
-    # Configure structlog to use the standard library logging
-    structlog.configure(
-        processors=processors,
-        wrapper_class=structlog.make_filtering_bound_logger(numeric_level),
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        cache_logger_on_first_use=True,
-    )
-
-
-def get_logger(name: str | None = None) -> structlog.BoundLogger:
-    """Get a structured logger instance.
-
-    Args:
-        name: Logger name (defaults to calling module name)
-
-    Returns:
-        Configured structlog BoundLogger instance
-    """
-    if name is None:
-        import inspect
-
-        frame = inspect.currentframe()
-        try:
-            if frame and frame.f_back:
-                name = Path(frame.f_back.f_code.co_filename).stem
-        finally:
-            del frame
-
-    return structlog.get_logger(name)
-
-
-def log_operation_start(logger: structlog.BoundLogger, operation: str, **context: Any) -> structlog.BoundLogger:
-    """Log the start of an operation with context.
-
-    Args:
-        logger: Structured logger instance
-        operation: Name of the operation
-        **context: Additional context to include
-
-    Returns:
-        Logger bound with operation context
-    """
-    bound_logger = logger.bind(operation=operation, **context)
-    bound_logger.info("Operation started", operation=operation)
-    return bound_logger
-
-
-def log_operation_success(
-    logger: structlog.BoundLogger, operation: str, duration_seconds: float | None = None, **context: Any
-) -> None:
-    """Log successful completion of an operation.
-
-    Args:
-        logger: Structured logger instance
-        operation: Name of the operation
-        duration_seconds: Optional operation duration
-        **context: Additional context to include
-    """
-    log_data = {"operation": operation, **context}
-    if duration_seconds is not None:
-        log_data["duration_seconds"] = round(duration_seconds, 3)
-
-    logger.info("Operation completed successfully", **log_data)
-
-
-def log_operation_error(
-    logger: structlog.BoundLogger,
-    operation: str,
-    error: Exception,
-    duration_seconds: float | None = None,
-    **context: Any,
-) -> None:
-    """Log operation failure with error details.
-
-    Args:
-        logger: Structured logger instance
-        operation: Name of the operation
-        error: The exception that occurred
-        duration_seconds: Optional operation duration
-        **context: Additional context to include
-    """
-    log_data = {"operation": operation, "error_type": type(error).__name__, "error_message": str(error), **context}
-    if duration_seconds is not None:
-        log_data["duration_seconds"] = round(duration_seconds, 3)
-
-    logger.error("Operation failed", **log_data, exc_info=True)
-
-
-def log_data_quality_issue(
-    logger: structlog.BoundLogger,
-    issue_type: str,
-    description: str,
-    data_source: str | None = None,
-    affected_records: int | None = None,
-    **context: Any,
-) -> None:
-    """Log data quality issues with structured context.
-
-    Args:
-        logger: Structured logger instance
-        issue_type: Type of data quality issue (e.g., 'missing_data', 'outlier', 'validation_error')
-        description: Human-readable description of the issue
-        data_source: Optional data source identifier
-        affected_records: Optional number of affected records
-        **context: Additional context to include
-    """
-    log_data = {"issue_type": issue_type, "description": description, **context}
-
-    if data_source:
-        log_data["data_source"] = data_source
-    if affected_records is not None:
-        log_data["affected_records"] = affected_records
-
-    logger.warning("Data quality issue detected", **log_data)
-
-
-def log_performance_metric(
-    logger: structlog.BoundLogger, metric_name: str, metric_value: float, metric_unit: str = "seconds", **context: Any
-) -> None:
-    """Log performance metrics with structured context.
-
-    Args:
-        logger: Structured logger instance
-        metric_name: Name of the performance metric
-        metric_value: Numeric value of the metric
-        metric_unit: Unit of measurement
-        **context: Additional context to include
-    """
-    logger.info(
-        "Performance metric",
-        metric_name=metric_name,
-        metric_value=round(metric_value, 3),
-        metric_unit=metric_unit,
-        **context,
-    )
-
-
-# Context managers for operation logging
-class LoggedOperation:
-    """Context manager for logging operations with automatic timing."""
-
-    def __init__(self, logger: structlog.BoundLogger, operation: str, **context: Any):
-        self.logger = logger
-        self.operation = operation
-        self.context = context
-        self.start_time: float | None = None
-        self.bound_logger: structlog.BoundLogger | None = None
-
-    def __enter__(self) -> structlog.BoundLogger:
-        import time
-
-        self.start_time = time.time()
-        self.bound_logger = log_operation_start(self.logger, self.operation, **self.context)
-        return self.bound_logger
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        import time
-
-        duration = time.time() - (self.start_time or 0)
-
-        if exc_type is None:
-            log_operation_success(
-                self.bound_logger or self.logger, self.operation, duration_seconds=duration, **self.context
-            )
-        else:
-            log_operation_error(
-                self.bound_logger or self.logger, self.operation, exc_val, duration_seconds=duration, **self.context
-            )
-
-
-def configure_logging(level: str = "INFO", json_format: bool = True, enable_opentelemetry: bool = False) -> None:
-    """Configure structured logging with OpenTelemetry.
+    """Configure structured logging with optional OpenTelemetry integration.
 
     Args:
         level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        json_format: Whether to use JSON format for logs
-        enable_opentelemetry: Whether to enable OpenTelemetry integration
+        format_type: Output format ('json' for production, 'console' for development)
+        enable_tracing: Whether to enable OpenTelemetry tracing
+        **kwargs: Additional configuration options (service_name, service_version, otlp_endpoint)
     """
-    if not STRUCTLOG_AVAILABLE:
-        # Fallback to standard logging if structlog is not available
-        logging.basicConfig(
-            level=getattr(logging, level.upper()),
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            stream=sys.stdout,
-        )
-        return
+    # Configure standard library logging
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stdout,
+        level=getattr(logging, level.upper()),
+    )
 
+    # Configure processors based on format type
     processors = [
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_logger_name,
@@ -365,16 +51,17 @@ def configure_logging(level: str = "INFO", json_format: bool = True, enable_open
         structlog.processors.UnicodeDecoder(),
     ]
 
-    # Add OpenTelemetry trace information if available
-    if enable_opentelemetry and OPENTELEMETRY_AVAILABLE:
-        processors.append(_add_trace_info)
+    # Add tracing context if enabled
+    if enable_tracing:
+        processors.append(_add_trace_context)
 
-    # Choose output format
-    if json_format:
+    # Add final renderer based on format type
+    if format_type == "json":
         processors.append(structlog.processors.JSONRenderer())
     else:
-        processors.append(structlog.dev.ConsoleRenderer())
+        processors.append(structlog.dev.ConsoleRenderer(colors=True))
 
+    # Configure structlog
     structlog.configure(
         processors=processors,
         context_class=dict,
@@ -383,64 +70,131 @@ def configure_logging(level: str = "INFO", json_format: bool = True, enable_open
         cache_logger_on_first_use=True,
     )
 
-    # Configure standard library logging
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=getattr(logging, level.upper()),
-    )
+    # Configure OpenTelemetry if enabled
+    if enable_tracing:
+        service_name = kwargs.get("service_name", "china-data-pipeline")
+        service_version = kwargs.get("service_version", "1.0.0")
+        otlp_endpoint = kwargs.get("otlp_endpoint")
+        _configure_tracing(service_name, service_version, otlp_endpoint)
 
 
-def _add_trace_info(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """Add OpenTelemetry trace information to log events."""
-    if not OPENTELEMETRY_AVAILABLE:
-        return event_dict
-
+def _add_trace_context(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """Add OpenTelemetry trace context to log records."""
     span = trace.get_current_span()
-    if span:
+    if span != trace.INVALID_SPAN:
         span_context = span.get_span_context()
         event_dict["trace_id"] = format(span_context.trace_id, "032x")
         event_dict["span_id"] = format(span_context.span_id, "016x")
-
     return event_dict
 
 
-def setup_performance_logging() -> None:
-    """Setup performance monitoring logging."""
-    logger = get_logger("performance")
+def _configure_tracing(service_name: str, service_version: str, otlp_endpoint: str | None) -> None:
+    """Configure OpenTelemetry tracing."""
+    # Create resource with service information
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "service.version": service_version,
+            "service.instance.id": os.getenv("HOSTNAME", "unknown"),
+        }
+    )
 
-    # Log system information
-    try:
-        import psutil
+    # Configure tracer provider
+    tracer_provider = TracerProvider(resource=resource)
+    trace.set_tracer_provider(tracer_provider)
 
-        logger.info(
-            "System performance baseline",
-            cpu_count=psutil.cpu_count(),
-            memory_total=psutil.virtual_memory().total,
-            disk_usage=psutil.disk_usage("/").percent,
-        )
-    except ImportError:
-        logger.warning("psutil not available, skipping system performance logging")
+    # Configure span exporter
+    if otlp_endpoint:
+        # Use OTLP exporter for production
+        span_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
+    else:
+        # Use console exporter for development
+        from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+
+        span_exporter = ConsoleSpanExporter()
+
+    # Add span processor
+    span_processor = BatchSpanProcessor(span_exporter)
+    tracer_provider.add_span_processor(span_processor)
+
+    # Instrument logging
+    LoggingInstrumentor().instrument(set_logging_format=True)
 
 
-# Example usage and configuration presets
-DEVELOPMENT_CONFIG = {"level": "DEBUG", "json_format": False, "enable_opentelemetry": False}
-
-PRODUCTION_CONFIG = {"level": "INFO", "json_format": True, "enable_opentelemetry": True}
-
-TESTING_CONFIG = {"level": "WARNING", "json_format": False, "enable_opentelemetry": False}
-
-
-def configure_for_environment(environment: str = "development") -> None:
-    """Configure logging for specific environment.
+def get_logger(name: str) -> structlog.stdlib.BoundLogger:
+    """Get a structured logger instance.
 
     Args:
-        environment: Environment name (development, production, testing)
+        name: Logger name (typically __name__)
+
+    Returns:
+        Configured structured logger
     """
-    configs = {"development": DEVELOPMENT_CONFIG, "production": PRODUCTION_CONFIG, "testing": TESTING_CONFIG}
+    return structlog.get_logger(name)
 
-    config = configs.get(environment, DEVELOPMENT_CONFIG)
-    configure_logging(**config)
 
+def configure_for_development() -> None:
+    """Configure logging for development environment."""
+    configure_logging(
+        level="DEBUG",
+        format_type="console",
+        enable_tracing=False,
+    )
+
+
+def configure_for_production() -> None:
+    """Configure logging for production environment."""
+    configure_logging(
+        level=os.getenv("LOG_LEVEL", "INFO"),
+        format_type="json",
+        enable_tracing=True,
+        service_name=os.getenv("SERVICE_NAME", "china-data-pipeline"),
+        service_version=os.getenv("SERVICE_VERSION", "1.0.0"),
+        otlp_endpoint=os.getenv("OTLP_ENDPOINT"),
+    )
+
+
+def configure_for_testing() -> None:
+    """Configure logging for testing environment."""
+    configure_logging(
+        level="WARNING",  # Reduce noise in tests
+        format_type="console",
+        enable_tracing=False,
+    )
+
+
+# Auto-configure based on environment
+def auto_configure() -> None:
+    """Automatically configure logging based on environment variables."""
+    env = os.getenv("ENVIRONMENT", "development").lower()
+
+    if env == "production":
+        configure_for_production()
+    elif env == "testing":
+        configure_for_testing()
+    else:
+        configure_for_development()
+
+
+# Example usage and testing
+if __name__ == "__main__":
+    # Configure logging
+    configure_for_development()
+
+    # Get logger
     logger = get_logger(__name__)
-    logger.info("Logging configured for %s environment", environment, **config)
+
+    # Test logging
+    logger.info("Structured logging configured", component="logging_config")
+    logger.debug("Debug message", user_id=123, action="test")
+    logger.warning("Warning message", error_code="W001")
+
+    def _test_exception() -> None:
+        """Test exception for logging demonstration."""
+        msg = "Test exception"
+        raise ValueError(msg)
+
+    try:
+        _test_exception()
+    except ValueError:
+        logger.exception("Exception occurred", operation="test_exception")
