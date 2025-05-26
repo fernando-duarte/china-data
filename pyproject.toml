@@ -27,6 +27,35 @@ use_parentheses = true
 ensure_newline_before_comments = true
 skip = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 
+[tool.pylint.main]
+py-version = "3.8"
+ignore = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+max-args = 8
+max-locals = 20
+max-returns = 8
+max-branches = 15
+max-statements = 60
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "too-few-public-methods",
+    "unused-import",
+    "unused-argument",
+    "broad-exception-caught",
+    "broad-exception-raised",
+    "import-outside-toplevel",
+    "logging-fstring-interpolation",
+    "duplicate-code"
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -40,4 +69,4 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
-exclude = ["venv"] 
+exclude = ["venv"]

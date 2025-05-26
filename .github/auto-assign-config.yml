@@ -4,7 +4,7 @@
 # Add reviewers to pull requests
 addReviewers: true
 
-# Add assignees to pull requests and issues  
+# Add assignees to pull requests and issues
 addAssignees: true
 
 # List of reviewers to be added to pull requests (GitHub usernames)
@@ -33,5 +33,5 @@ skipKeywords:
 # Use review groups for team-based assignment (if using teams)
 useReviewGroups: false
 
-# Use assignee groups for team-based assignment (if using teams)  
-useAssigneeGroups: false 
+# Use assignee groups for team-based assignment (if using teams)
+useAssigneeGroups: false

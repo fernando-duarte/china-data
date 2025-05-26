@@ -117,4 +117,4 @@ def safe_numeric_conversion(series: pd.Series, column_name: str) -> pd.Series:
             column=column_name,
             message=f"Numeric conversion failed: {str(e)}",
             data_info=f"Series dtype: {series.dtype}, length: {len(series)}",
-        )
+        ) from e

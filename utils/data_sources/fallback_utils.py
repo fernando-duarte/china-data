@@ -24,7 +24,7 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
     except (IOError, OSError) as e:
         raise FileOperationError(
             operation="read", filepath=str(file_path), message="Failed to read fallback file", original_error=e
-        )
+        ) from e
 
     if not content.strip():
         raise DataValidationError(

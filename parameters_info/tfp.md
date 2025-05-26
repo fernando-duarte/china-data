@@ -6,7 +6,7 @@ header-includes:
   - \usepackage{pdflscape}
   - \usepackage{tabularx}
   - \usepackage{makecell}
-  - \usepackage{xcolor} 
+  - \usepackage{xcolor}
   - \usepackage[colorlinks=true,
                 linkcolor=blue,
                 urlcolor=blue,
@@ -86,30 +86,30 @@ Mixed & Hong \& Sun (2011); Liu (2008) & Micro panel & Micro spillovers & Mixed 
 
 ## References
 
-1. **Perkins, Dwight H., and Thomas G. Rawski. 2008.**  
-   “Forecasting China’s Economic Growth to 2025.” In *China’s Great Economic Transformation*, edited by Loren Brandt and Thomas G. Rawski, 829–886. Cambridge University Press.  
+1. **Perkins, Dwight H., and Thomas G. Rawski. 2008.**
+   “Forecasting China’s Economic Growth to 2025.” In *China’s Great Economic Transformation*, edited by Loren Brandt and Thomas G. Rawski, 829–886. Cambridge University Press.
    [Full Text PDF](https://scholar.harvard.edu/files/dperkins/files/chapter20.pdf)
 
-2. **Young, Alwyn. 2003.**  
-   “Gold into Base Metals: Productivity Growth in the People’s Republic of China during the Reform Period.” *Journal of Political Economy* 111 (6): 1220–1261.  
+2. **Young, Alwyn. 2003.**
+   “Gold into Base Metals: Productivity Growth in the People’s Republic of China during the Reform Period.” *Journal of Political Economy* 111 (6): 1220–1261.
    [Full Text PDF](https://web.stanford.edu/~klenow/Gold%20into%20Base%20Metals.pdf)
 
-3. **Tian, Xu, and Xiaohua Yu. 2012.**  
-   “The Enigmas of TFP in China: A Meta-Analysis.” *China Economic Review* 23 (2): 396–414.  
+3. **Tian, Xu, and Xiaohua Yu. 2012.**
+   “The Enigmas of TFP in China: A Meta-Analysis.” *China Economic Review* 23 (2): 396–414.
    [Full Text PDF](https://www.econstor.eu/bitstream/10419/90512/1/CRC-PEG_DP_113.pdf)
 
-4. **Samaké, Issouf, and Yongzheng Yang. 2011.**  
-   “Low-Income Countries’ BRIC Linkage: Are There Growth Spillovers?” *IMF Working Paper* WP/11/267.  
+4. **Samaké, Issouf, and Yongzheng Yang. 2011.**
+   “Low-Income Countries’ BRIC Linkage: Are There Growth Spillovers?” *IMF Working Paper* WP/11/267.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/wp/2011/wp11267.pdf)
 
-5. **Tseng, Wanda, and Harm Zebregs. 2003.**  
-   “Foreign Direct Investment in China: Some Lessons for Other Countries.” *IMF Policy Discussion Paper* PDP/02/3.  
+5. **Tseng, Wanda, and Harm Zebregs. 2003.**
+   “Foreign Direct Investment in China: Some Lessons for Other Countries.” *IMF Policy Discussion Paper* PDP/02/3.
    [Full Text PDF](https://www.imf.org/external/pubs/ft/pdp/2002/pdp03.pdf)
 
-6. **Hong, Eunsuk, and Laixiang Sun. 2011.**  
-   “Foreign Direct Investment and Total Factor Productivity in China: A Spatial Dynamic Panel Analysis.” *Oxford Bulletin of Economics and Statistics* 73 (6): 771–791.  
+6. **Hong, Eunsuk, and Laixiang Sun. 2011.**
+   “Foreign Direct Investment and Total Factor Productivity in China: A Spatial Dynamic Panel Analysis.” *Oxford Bulletin of Economics and Statistics* 73 (6): 771–791.
    [Official Source](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1468-0084.2011.00672.x) *(Access may require subscription.)*
 
-7. **Liu, Zhiqiang. 2008.**  
-   “Foreign Direct Investment and Technology Spillovers: Theory and Evidence.” *Journal of Development Economics* 85 (1–2): 176–193.  
+7. **Liu, Zhiqiang. 2008.**
+   “Foreign Direct Investment and Technology Spillovers: Theory and Evidence.” *Journal of Development Economics* 85 (1–2): 176–193.
    [Full Text PDF](https://www.uh.edu/~bsorense/FDI_Tech_Spill_Over.pdf)

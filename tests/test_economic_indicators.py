@@ -1,10 +1,7 @@
-from unittest.mock import MagicMock
-
 import numpy as np
 import pandas as pd
 import pytest
 
-from config import Config
 from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 
 
@@ -168,4 +165,3 @@ class TestCalculateEconomicIndicators:
         expected_ratio = (complete_data["X_USD_bn"] + complete_data["M_USD_bn"]) / complete_data["GDP_USD_bn"]
         # Use pytest.approx for floating point comparisons
         assert result["Openness_Ratio"].tolist() == pytest.approx(expected_ratio.tolist(), rel=1e-4)
-

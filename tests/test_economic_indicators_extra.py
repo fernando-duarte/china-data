@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from config import Config
-from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
+from utils.economic_indicators import calculate_economic_indicators
 
 
 @pytest.fixture
@@ -30,6 +30,7 @@ def complete_data():
 
 class TestEconomicIndicatorsExtra:
     """Additional tests for economic indicators."""
+
     def test_total_savings_calculation(self, complete_data):
         """Test total savings calculation."""
         result = calculate_economic_indicators(complete_data)

@@ -26,7 +26,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -67,16 +67,16 @@ jobs:
           else
             VERSION=${GITHUB_REF#refs/tags/}
           fi
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
+
           # Check if this is a prerelease (contains alpha, beta, rc)
           if [[ $VERSION =~ (alpha|beta|rc) ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
           else
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
           fi
-          
+
           echo "Release version: $VERSION"
 
       - name: Cache dependencies
@@ -114,7 +114,7 @@ jobs:
     name: Build Release Artifacts
     runs-on: ubuntu-latest
     needs: validate-release
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -153,41 +153,41 @@ jobs:
       - name: Build documentation
         run: |
           mkdir -p release-docs
-          
+
           # Copy important documentation files
           cp README.md release-docs/
           cp china_growth_model.md release-docs/ 2>/dev/null || echo "china_growth_model.md not found"
           cp CODEBASE_REVIEW.md release-docs/ 2>/dev/null || echo "CODEBASE_REVIEW.md not found"
-          
+
           # Generate API documentation
           python -c "
           import os
           import inspect
           import importlib.util
           import sys
-          
+
           def generate_module_docs(module_path, module_name):
               try:
                   spec = importlib.util.spec_from_file_location(module_name, module_path)
                   module = importlib.util.module_from_spec(spec)
                   sys.modules[module_name] = module
                   spec.loader.exec_module(module)
-                  
+
                   docs = f'# {module_name.replace(\"_\", \" \").title()} API\\n\\n'
                   if module.__doc__:
                       docs += f'{module.__doc__}\\n\\n'
-                  
+
                   # Document classes and functions
                   for name, obj in inspect.getmembers(module):
                       if (inspect.isclass(obj) or inspect.isfunction(obj)) and not name.startswith('_'):
                           docs += f'## {name}\\n\\n'
                           if obj.__doc__:
                               docs += f'{obj.__doc__}\\n\\n'
-                  
+
                   return docs
               except Exception as e:
                   return f'# {module_name} API\\n\\nError loading module: {e}\\n'
-          
+
           # Generate documentation for main modules
           modules = ['china_data_downloader', 'china_data_processor', 'config']
           for module in modules:
@@ -195,7 +195,7 @@ jobs:
                   docs = generate_module_docs(f'{module}.py', module)
                   with open(f'release-docs/{module}_api.md', 'w') as f:
                       f.write(docs)
-          
+
           print('Release documentation generated')
           "
 
@@ -203,7 +203,7 @@ jobs:
         run: |
           # Create a clean copy of the project for release
           mkdir -p china-data-release
-          
+
           # Copy main files
           cp -r china_data_downloader.py china_data_processor.py config.py china-data-release/
           cp -r utils/ china-data-release/
@@ -212,51 +212,51 @@ jobs:
           cp pyproject.toml Makefile china-data-release/
           cp .flake8 china-data-release/
           cp VERSION.txt china-data-release/
-          
+
           # Copy documentation
           cp -r release-docs/ china-data-release/docs/
-          
+
           # Create setup script for users
           cat > china-data-release/setup.sh << 'EOF'
           #!/bin/bash
           # China Data Processing Pipeline Setup Script
-          
+
           echo "Setting up China Data Processing Pipeline..."
-          
+
           # Check Python version
           python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
           required_version="3.8"
-          
+
           if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]; then
               echo "Error: Python 3.8 or higher is required. Found: $python_version"
               exit 1
           fi
-          
+
           # Create virtual environment
           echo "Creating virtual environment..."
           python3 -m venv venv
           source venv/bin/activate
-          
+
           # Upgrade pip
           echo "Upgrading pip..."
           pip install --upgrade pip
-          
+
           # Install dependencies
           echo "Installing dependencies..."
           pip install -r requirements.txt
-          
+
           # Create necessary directories
           echo "Creating project directories..."
           mkdir -p input output parameters_info
-          
+
           echo "Setup complete!"
           echo "To activate the environment, run: source venv/bin/activate"
           echo "To download data, run: python china_data_downloader.py"
           echo "To process data, run: python china_data_processor.py"
           EOF
-          
+
           chmod +x china-data-release/setup.sh
-          
+
           # Create the main release archive
           tar -czf china-data-${{ needs.validate-release.outputs.version }}.tar.gz china-data-release/
           zip -r china-data-${{ needs.validate-release.outputs.version }}.zip china-data-release/
@@ -265,7 +265,7 @@ jobs:
         run: |
           # Create data-only release directory
           mkdir -p china-data-only-${{ needs.validate-release.outputs.version }}
-          
+
           # Check if output files exist and copy them
           if [ -f "output/china_data_raw.md" ]; then
             cp output/china_data_raw.md china-data-only-${{ needs.validate-release.outputs.version }}/
@@ -273,99 +273,99 @@ jobs:
           else
             echo "⚠️ Warning: output/china_data_raw.md not found"
           fi
-          
+
           if [ -f "output/china_data_processed.csv" ]; then
             cp output/china_data_processed.csv china-data-only-${{ needs.validate-release.outputs.version }}/
             echo "✅ Included china_data_processed.csv"
           else
             echo "⚠️ Warning: output/china_data_processed.csv not found"
           fi
-          
+
           if [ -f "output/china_data_processed.md" ]; then
             cp output/china_data_processed.md china-data-only-${{ needs.validate-release.outputs.version }}/
             echo "✅ Included china_data_processed.md"
           else
             echo "⚠️ Warning: output/china_data_processed.md not found"
           fi
-          
+
           # Create a README for the data-only release
           cat > china-data-only-${{ needs.validate-release.outputs.version }}/README.md << EOF
           # China Economic Data - Data Only Release
-          
-          **Version:** ${{ needs.validate-release.outputs.version }}  
-          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+
+          **Version:** ${{ needs.validate-release.outputs.version }}
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
           **Git Commit:** ${{ github.sha }}
-          
+
           ## Contents
-          
+
           This data-only release contains the processed economic data for China without the source code pipeline.
-          
+
           ### Files Included
-          
+
           - \`china_data_raw.md\` - Raw economic data from World Bank, Penn World Table, and IMF
           - \`china_data_processed.csv\` - Processed data in CSV format for analysis
           - \`china_data_processed.md\` - Processed data in Markdown format with methodology notes
-          
+
           ### Data Sources
-          
+
           - **World Bank World Development Indicators (WDI)** - GDP components, FDI, population, labor force
-          - **Penn World Table (PWT) version 10.01** - Human capital, capital stock variables  
+          - **Penn World Table (PWT) version 10.01** - Human capital, capital stock variables
           - **International Monetary Fund (IMF) Fiscal Monitor** - Tax revenue data
-          
+
           ### Data Coverage
-          
+
           - **Time Period:** 1960-2025 (with projections to 2025)
           - **Frequency:** Annual
           - **Currency:** USD billions (for monetary values)
           - **Population:** Millions of people
-          
+
           ### Key Economic Indicators
-          
+
           - GDP and components (Consumption, Government, Investment, Exports, Imports)
           - Total Factor Productivity (TFP)
           - Physical and Human Capital
           - Savings rates and openness ratios
           - Tax revenue as % of GDP
           - Foreign Direct Investment (FDI) as % of GDP
-          
+
           ### Usage
-          
+
           These files can be used directly for:
           - Economic research and analysis
           - Data visualization and charting
           - Input for econometric models
           - Comparative studies
-          
+
           ### Public Access
-          
+
           This data is **publicly accessible** and can be:
           - Downloaded by anyone without a GitHub account
           - Shared via direct download links
           - Used in academic research and publications
           - Referenced with stable URLs for reproducibility
-          
+
           ### Methodology
-          
+
           For detailed information about data processing methodology, extrapolation methods, and calculations, see the notes section in \`china_data_processed.md\`.
-          
+
           ### Need the Source Code?
-          
+
           To reproduce this data or modify the processing pipeline, download the full release archive:
           \`china-data-${{ needs.validate-release.outputs.version }}.tar.gz\` or \`china-data-${{ needs.validate-release.outputs.version }}.zip\`
-          
+
           ### Citation
-          
+
           If you use this data in research, please cite:
           - The original data sources (World Bank WDI, Penn World Table, IMF)
           - This processed dataset with version number and date
-          
+
           Generated by China Data Processing Pipeline v${{ needs.validate-release.outputs.version }}
           EOF
-          
+
           # Create archives for data-only release
           tar -czf china-data-only-${{ needs.validate-release.outputs.version }}.tar.gz china-data-only-${{ needs.validate-release.outputs.version }}/
           zip -r china-data-only-${{ needs.validate-release.outputs.version }}.zip china-data-only-${{ needs.validate-release.outputs.version }}/
-          
+
           echo "📊 Data-only release created successfully"
 
       - name: Generate changelog
@@ -373,18 +373,18 @@ jobs:
         run: |
           # Generate changelog from git commits since last tag
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          
+
           if [ -z "$LAST_TAG" ]; then
             echo "## Changes" > CHANGELOG.md
             echo "Initial release" >> CHANGELOG.md
           else
             echo "## Changes since $LAST_TAG" > CHANGELOG.md
             echo "" >> CHANGELOG.md
-            
+
             # Get commits since last tag
             git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> CHANGELOG.md
           fi
-          
+
           # Set output for use in release notes
           {
             echo 'changelog<<EOF'
@@ -408,7 +408,7 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [validate-release, build-release-artifacts]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -432,5 +432,3 @@ jobs:
             china-data-only-*.zip
             VERSION.txt
           token: ${{ secrets.GITHUB_TOKEN }}
-
- 

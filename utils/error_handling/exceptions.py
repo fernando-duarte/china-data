@@ -11,8 +11,6 @@ from typing import Optional
 class ChinaDataError(Exception):
     """Base exception for China data processing errors."""
 
-    pass
-
 
 class DataDownloadError(ChinaDataError):
     """Raised when data download fails."""

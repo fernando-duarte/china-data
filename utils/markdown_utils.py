@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 
 import pandas as pd
 from jinja2 import Template
@@ -99,4 +99,6 @@ Sources:
   {% if imf_date %}Accessed on {{ imf_date }}.{% endif %}
 """
     )
-    return template.render(headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date)
+    return cast(
+        str, template.render(headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date)
+    )

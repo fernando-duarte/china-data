@@ -6,6 +6,7 @@ using the Cobb-Douglas production function.
 """
 
 import logging
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -15,61 +16,51 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 
-def calculate_tfp(data: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA) -> pd.DataFrame:
+def calculate_tfp(
+    df: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, required_columns: Optional[Dict[str, str]] = None
+) -> pd.DataFrame:
     """
-    Calculate Total Factor Productivity (TFP) using the Cobb-Douglas production function.
-
-    TFP is calculated as: TFP = Y / (K^α * (L*h)^(1-α))
-    where Y is GDP, K is capital stock, L is labor force, h is human capital, and α is capital share.
+    Calculate Total Factor Productivity (TFP) using a Cobb-Douglas production function.
 
     Args:
-        data: DataFrame containing GDP, capital stock, labor force, and human capital data.
-              Must have columns: GDP_USD_bn, K_USD_bn, LF_mn, hc
-        alpha: Capital share parameter in the production function (0 < α < 1).
-               Default value from Config.DEFAULT_ALPHA
+        df (pd.DataFrame): Input DataFrame with required columns
+        alpha (float): Capital share parameter (default: from Config)
+        required_columns (dict): Mapping of required columns (default: None, uses Config)
 
     Returns:
-        DataFrame with added TFP column, rounded to Config.DECIMAL_PLACES_RATIOS decimal places.
-        Returns NaN for TFP where required data is missing.
-
-    Note:
-        The function assumes a Cobb-Douglas production function and requires all input
-        variables to be positive for meaningful TFP calculation.
+        pd.DataFrame: DataFrame with TFP column added
     """
-    df = data.copy()
+    # Create a copy to avoid modifying the original
+    result = df.copy()
 
-    # Validate required columns
-    required_columns = ["GDP_USD_bn", "K_USD_bn", "LF_mn", "hc"]
-    missing_columns = [col for col in required_columns if col not in df.columns]
-    if missing_columns:
-        logger.warning(f"Missing columns for TFP calculation: {missing_columns}")
-        df["TFP"] = np.nan
-        return df
+    # Get column mapping
+    cols = required_columns or {"GDP": "GDP_USD_bn", "K": "K_USD_bn", "L": "LF_mn", "H": "hc"}
 
-    # Validate alpha parameter
-    if not (0 < alpha < 1):
-        logger.warning(f"Invalid alpha value: {alpha}. Must be between 0 and 1.")
-        df["TFP"] = np.nan
-        return df
+    # Check if required columns exist
+    missing_cols = [col for col, name in cols.items() if name not in result.columns]
+    if missing_cols:
+        logger.warning("Missing columns for TFP calculation: %s", [cols[col] for col in missing_cols])
+        return result
 
     try:
-        # Calculate TFP using Cobb-Douglas production function
-        # TFP = Y / (K^α * (L*h)^(1-α))
-        df["TFP"] = df["GDP_USD_bn"] / ((df["K_USD_bn"] ** alpha) * ((df["LF_mn"] * df["hc"]) ** (1 - alpha)))
-        df["TFP"] = df["TFP"].round(Config.DECIMAL_PLACES_RATIOS)
+        # Extract variables
+        gdp = result[cols["GDP"]]
+        capital = result[cols["K"]]
+        labor = result[cols["L"]]
+        human_capital = result[cols["H"]]
 
-        # Log statistics
-        valid_tfp = df["TFP"].dropna()
-        if len(valid_tfp) > 0:
-            logger.debug(
-                f"TFP calculated for {len(valid_tfp)} observations. "
-                f"Range: {valid_tfp.min():.4f} to {valid_tfp.max():.4f}"
-            )
-        else:
-            logger.warning("No valid TFP values calculated")
+        # Calculate TFP
+        # A = Y / (K^α * (L*H)^(1-α))
+        result["TFP"] = gdp / (np.power(capital, alpha) * np.power(labor * human_capital, 1 - alpha))
+
+        logger.info("TFP calculation completed successfully")
 
     except Exception as e:
-        logger.error(f"Error calculating TFP: {e}")
-        df["TFP"] = np.nan
+        logger.error("Error calculating TFP: %s", str(e))
+        result["TFP"] = np.nan
 
-    return df
+    # Check if any valid TFP values were calculated
+    if not result["TFP"].notna().any():
+        logger.warning("No valid TFP values calculated")
+
+    return result

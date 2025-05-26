@@ -6,7 +6,6 @@ and a specified capital-output ratio.
 """
 
 import logging
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -16,7 +15,9 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 
-def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float = Config.DEFAULT_CAPITAL_OUTPUT_RATIO) -> pd.DataFrame:
+def calculate_capital_stock(
+    raw_data: pd.DataFrame, capital_output_ratio: float = Config.DEFAULT_CAPITAL_OUTPUT_RATIO
+) -> pd.DataFrame:
     """
     Calculate capital stock using PWT data and capital-output ratio.
 
@@ -78,7 +79,9 @@ def calculate_capital_stock(raw_data: pd.DataFrame, capital_output_ratio: float 
         logger.info(f"Available years: {min(years_available)} to {max(years_available)}")
 
         # Try to find an alternative baseline year (closest to 2017)
-        alt_years = [y for y in years_available if y >= Config.BASELINE_YEAR_RANGE_MIN and y <= Config.BASELINE_YEAR_RANGE_MAX]
+        alt_years = [
+            y for y in years_available if Config.BASELINE_YEAR_RANGE_MIN <= y <= Config.BASELINE_YEAR_RANGE_MAX
+        ]
         if alt_years:
             # Choose closest year to 2017
             baseline_year = min(alt_years, key=lambda y: abs(y - Config.BASELINE_YEAR))

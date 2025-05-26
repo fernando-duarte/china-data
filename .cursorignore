@@ -78,4 +78,4 @@ LICENSE
 # Large third-party libraries
 venv/lib/
 venv/include/
-venv/bin/ 
+venv/bin/

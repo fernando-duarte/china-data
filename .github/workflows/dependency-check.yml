@@ -17,7 +17,7 @@ jobs:
   dependency-audit:
     name: Dependency Security Audit
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -76,7 +76,7 @@ jobs:
   license-check:
     name: License Compliance Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -116,24 +116,24 @@ jobs:
         run: |
           python -c "
           import json
-          
+
           # Define problematic licenses
           problematic_licenses = {
               'GPL-3.0', 'GPL-2.0', 'AGPL-3.0', 'AGPL-1.0',
               'CPAL-1.0', 'OSL-3.0', 'EPL-1.0', 'EPL-2.0',
               'EUPL-1.1', 'EUPL-1.2'
           }
-          
+
           # Load license data
           with open('licenses.json', 'r') as f:
               licenses = json.load(f)
-          
+
           issues = []
           for pkg in licenses:
               license_name = pkg.get('License', '').strip()
               if license_name in problematic_licenses:
                   issues.append(f'{pkg[\"Name\"]} ({pkg[\"Version\"]}): {license_name}')
-          
+
           if issues:
               print('⚠️ Potentially problematic licenses found:')
               for issue in issues:
@@ -162,7 +162,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -193,7 +193,7 @@ jobs:
           python -c "
           import sys
           print(f'Python {sys.version}')
-          
+
           # Test critical imports
           try:
               import pandas
@@ -211,7 +211,7 @@ jobs:
           python -W error::DeprecationWarning -c "
           import warnings
           warnings.simplefilter('error', DeprecationWarning)
-          
+
           try:
               import pandas
               import numpy
@@ -226,7 +226,7 @@ jobs:
   dependency-update-check:
     name: Check for Available Updates
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -245,11 +245,11 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
-          
+
           echo "## Outdated Dependencies Report" > update-report.md
           echo "Generated on: $(date)" >> update-report.md
           echo "" >> update-report.md
-          
+
           pip list --outdated --format=columns >> update-report.md || true
 
       - name: Create issue for updates if needed
@@ -258,22 +258,22 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('update-report.md', 'utf8');
-            
+
             if (report.includes('Package') && report.includes('Version')) {
               const issueTitle = 'Dependency Update Check - ' + new Date().toISOString().split('T')[0];
               const issueBody = report + '\n\n## Recommendations\n- Review the outdated packages above\n- Test updates in a separate branch\n- Update dependencies in batches to isolate issues\n- Run full test suite after updates\n\n*This issue was automatically created by the dependency check workflow.*';
-              
+
               const { data: existingIssues } = await github.rest.issues.listForRepo({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 state: 'open',
                 labels: 'dependencies'
               });
-              
-              const hasExistingUpdate = existingIssues.some(issue => 
+
+              const hasExistingUpdate = existingIssues.some(issue =>
                 issue.title.includes('Dependency Update Check')
               );
-              
+
               if (!hasExistingUpdate) {
                 await github.rest.issues.create({
                   owner: context.repo.owner,
@@ -294,7 +294,7 @@ jobs:
   security-advisory-check:
     name: Security Advisory Monitor
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -315,11 +315,11 @@ jobs:
           echo "## Local Security Analysis Results" > security-advisory.md
           echo "Generated on: $(date)" >> security-advisory.md
           echo "" >> security-advisory.md
-          
+
           # Run bandit for local security analysis
           echo "### Bandit Security Analysis:" >> security-advisory.md
           bandit -r . --exclude "./venv/*,./tests/*" -f txt >> security-advisory.md 2>&1 || true
-          
+
           echo "" >> security-advisory.md
           echo "### Package Versions:" >> security-advisory.md
           pip list >> security-advisory.md
@@ -335,7 +335,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [dependency-audit, license-check, compatibility-test]
     if: always()
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -345,18 +345,18 @@ jobs:
           echo "# Dependency Security Check Summary" > summary.md
           echo "Generated on: $(date)" >> summary.md
           echo "" >> summary.md
-          
+
           # Check job results
           echo "## Job Results:" >> summary.md
           echo "- Dependency Audit: ${{ needs.dependency-audit.result }}" >> summary.md
           echo "- License Check: ${{ needs.license-check.result }}" >> summary.md
           echo "- Compatibility Test: ${{ needs.compatibility-test.result }}" >> summary.md
           echo "" >> summary.md
-          
+
           echo "## Artifacts Generated:" >> summary.md
           ls -la */
           echo "" >> summary.md
-          
+
           # Add recommendations
           echo "## Recommendations:" >> summary.md
           echo "- Review security audit reports for vulnerabilities" >> summary.md
@@ -368,4 +368,4 @@ jobs:
         uses: actions/upload-artifact@v4.6.2
         with:
           name: dependency-check-summary
-          path: summary.md 
+          path: summary.md

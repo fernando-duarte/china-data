@@ -1,6 +1,5 @@
 """Tests for time series extrapolation functionality."""
 
-
 import pandas as pd
 
 from utils.processor_extrapolation import extrapolate_series_to_end_year
@@ -22,12 +21,12 @@ def test_extrapolate_series_to_end_year(monkeypatch):
     )
 
     class Dummy:
+
         def fit(self):
             return self
 
         def forecast(self, steps):
             return [1.0] * steps
-
 
     # Mock the extrapolation functions to return successful results
     def mock_extrapolate_with_arima(df, col, years, **kwargs):

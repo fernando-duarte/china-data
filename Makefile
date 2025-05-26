@@ -48,4 +48,4 @@ run-download:
 
 # Run data processing
 run-process:
-	python china_data_processor.py 
+	python china_data_processor.py

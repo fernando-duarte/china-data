@@ -59,6 +59,7 @@ def save_output_files(
     output_dir: str,
     output_base: str,
     projection_info: Dict[str, Any],
+    *,
     alpha: float,
     capital_output_ratio: float,
     input_file: str,

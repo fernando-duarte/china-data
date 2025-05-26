@@ -63,12 +63,12 @@ def extrapolate_with_linear_regression(
 
     try:
         # Prepare data for linear regression
-        X = historical["year"].to_numpy().reshape(-1, 1)
-        y = historical[col].to_numpy()
+        x_values = historical["year"].to_numpy().reshape(-1, 1)
+        y_values = historical[col].to_numpy()
 
         # Fit linear regression model
         model = LinearRegression()
-        model.fit(X, y)
+        model.fit(x_values, y_values)
 
         # Generate predictions for future years
         for year in yrs:

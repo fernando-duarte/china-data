@@ -1,7 +1,7 @@
 import os
 import shutil
 import tempfile
-from unittest.mock import mock_open, patch
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -181,4 +181,3 @@ class TestChinaDataProcessorIntegration:
         # Check that projection is monotonic (always increasing for China)
         hc_values = result.sort_values("year")["hc"].values
         assert all(hc_values[i] <= hc_values[i + 1] for i in range(len(hc_values) - 1))
-

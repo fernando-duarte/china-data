@@ -16,6 +16,7 @@ def get_projection_metadata(
     original_df: pd.DataFrame,
     column_name: str,
     method_name: str,
+    *,
     end_year: int,
     cutoff_year: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:

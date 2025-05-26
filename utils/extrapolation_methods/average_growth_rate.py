@@ -16,6 +16,7 @@ def extrapolate_with_average_growth_rate(
     df: pd.DataFrame,
     col: str,
     years_to_project: List[int],
+    *,
     lookback_years: int = 4,
     default_growth: float = 0.03,
     min_data_points: int = 2,
@@ -68,8 +69,8 @@ def extrapolate_with_average_growth_rate(
 
             logger.info(f"Applied default growth rate of {default_growth:.2%} to {col}")
             return df_result, True, f"Default growth rate ({default_growth:.2%})"
-        else:
-            return df_result, False, f"Insufficient data (need {min_data_points})"
+
+        return df_result, False, f"Insufficient data (need {min_data_points})"
 
     # Get the last observed year and value
     last_year = int(historical["year"].max())

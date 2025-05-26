@@ -7,18 +7,12 @@ This module tests the data downloading functionality including:
 - Data format validation
 """
 
-import builtins
-import io
-import types
-from unittest import mock
-
-
 import pandas as pd
 import pytest
-from utils.error_handling import DataDownloadError
 
 # Use updated import structure
 from utils.data_sources import download_wdi_data, get_pwt_data
+from utils.error_handling import DataDownloadError
 
 
 # Create module-like objects for backward compatibility with the test code
@@ -88,9 +82,7 @@ class DummyResponse:
 
 
 def test_get_pwt_data_success(monkeypatch, tmp_path):
-    monkeypatch.setattr(
-        "utils.data_sources.pwt_downloader.get_cached_session", lambda: DummySession()
-    )
+    monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: DummySession())
     expected = pd.DataFrame(
         {
             "countrycode": ["CHN"],
@@ -113,8 +105,6 @@ def test_get_pwt_data_error(monkeypatch):
         def get(self, url, stream=True, timeout=30):
             raise pwt_downloader.requests.exceptions.HTTPError("bad")
 
-    monkeypatch.setattr(
-        "utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession()
-    )
+    monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession())
     with pytest.raises(pwt_downloader.requests.exceptions.HTTPError):
         pwt_downloader.get_pwt_data()

@@ -128,7 +128,7 @@ def load_imf_tax_data() -> pd.DataFrame:
         logger.info(f"Successfully loaded and validated IMF tax data with {len(tax_data)} rows.")
 
         return tax_data
-    else:
-        logger.error("IMF Fiscal Monitor file not found in any of the expected locations")
-        # Return an empty DataFrame with the expected columns
-        return pd.DataFrame(columns=["year", "TAX_pct_GDP"])
+
+    logger.error("IMF Fiscal Monitor file not found in any of the expected locations")
+    # Return an empty DataFrame with the expected columns
+    return pd.DataFrame(columns=["year", "TAX_pct_GDP"])

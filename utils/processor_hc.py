@@ -153,8 +153,8 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
         if success:
             logger.info(f"Successfully projected human capital using {method}")
             return df_updated
-        else:
-            logger.error(f"Linear regression failed: {method}")
+
+        logger.error(f"Linear regression failed: {method}")
 
         # Try average growth rate with a small lookback period (trend extrapolation)
         df_updated, success, method = extrapolate_with_average_growth_rate(
@@ -164,8 +164,8 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
         if success:
             logger.info(f"Successfully projected human capital using {method}")
             return df_updated
-        else:
-            logger.error(f"Growth trend extrapolation failed: {method}")
+
+        logger.error(f"Growth trend extrapolation failed: {method}")
 
         # Last resort: just copy the last available value (using growth rate of 0)
         df_updated, success, method = extrapolate_with_average_growth_rate(
@@ -175,8 +175,8 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
         if success:
             logger.info(f"Successfully projected human capital using {method}")
             return df_updated
-        else:
-            logger.error(f"Last value carry-forward failed: {method}")
+
+        logger.error(f"Last value carry-forward failed: {method}")
 
     except Exception as e:
         logger.error(f"Unexpected error projecting human capital: {str(e)}")

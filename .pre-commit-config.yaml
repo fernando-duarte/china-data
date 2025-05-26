@@ -1,0 +1,43 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+-   repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+    -   id: black
+        args: [--exclude=venv/.*]
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    -   id: isort
+        name: isort (python)
+        args: [--skip, venv]
+-   repo: https://github.com/pycqa/flake8
+    rev: 7.1.0
+    hooks:
+    -   id: flake8
+        args: [--exclude=venv/*]
+-   repo: https://github.com/pylint-dev/pylint
+    rev: v3.2.5
+    hooks:
+    -   id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
+        args: [--ignore=venv]
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+    -   id: mypy
+        files: ^(china_data_processor\.py|china_data_downloader\.py)$
+        args: [--ignore-missing-imports]
+-   repo: https://github.com/pycqa/bandit
+    rev: 1.7.9
+    hooks:
+    -   id: bandit
+        exclude: ^(venv/|tests/)

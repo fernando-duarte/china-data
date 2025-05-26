@@ -11,7 +11,9 @@ import argparse
 import logging
 import sys
 from datetime import datetime
-from typing import Any
+from typing import Any, List, Optional
+
+from utils.validation_utils import validate_alpha, validate_capital_output_ratio, validate_end_year
 
 logger = logging.getLogger(__name__)
 
@@ -51,20 +53,48 @@ def validate_arguments(args: Any) -> None:
         sys.exit(1)
 
 
-def parse_arguments() -> Any:
+def parse_and_validate_args(args: Optional[List[str]] = None) -> argparse.Namespace:
+    """Parse and validate command line arguments."""
     parser = argparse.ArgumentParser(description="Process China economic data")
-    parser.add_argument("-i", "--input-file", default="china_data_raw.md", help="Input file name")
-    parser.add_argument("-a", "--alpha", type=float, default=1 / 3, help="Capital share parameter (0-1)")
-    parser.add_argument("-o", "--output-file", default="china_data_processed", help="Base name for output files")
+
+    parser.add_argument(
+        "-i", "--input-file", type=str, default="china_data_raw.md", help="Input markdown file containing raw data"
+    )
+
+    parser.add_argument(
+        "-o", "--output-file", type=str, default="china_data_processed", help="Base name for output files"
+    )
+
+    parser.add_argument("-a", "--alpha", type=float, default=0.33, help="Capital share parameter (0-1)")
+
     parser.add_argument(
         "-k",
         "--capital-output-ratio",
         type=float,
         default=3.0,
-        help="Capital-to-output ratio for base year (2017) (must be positive)",
+        help="Capital-to-output ratio for base year (must be positive)",
     )
+
     parser.add_argument("--end-year", type=int, default=2025, help="Last year to extrapolate/process (default: 2025)")
 
-    args = parser.parse_args()
-    validate_arguments(args)
-    return args
+    parsed_args = parser.parse_args(args)
+
+    # Validate arguments
+    errors = []
+
+    if not validate_alpha(parsed_args.alpha):
+        errors.append(f"Alpha parameter must be between 0 and 1, got {parsed_args.alpha}")
+
+    if not validate_capital_output_ratio(parsed_args.capital_output_ratio):
+        errors.append(f"Capital-output ratio must be positive, got {parsed_args.capital_output_ratio}")
+
+    if not validate_end_year(parsed_args.end_year):
+        errors.append(f"End year must be between 2020 and 2100, got {parsed_args.end_year}")
+
+    if errors:
+        logger.error("Input validation errors:")
+        for error in errors:
+            logger.error(f"  - {error}")
+        raise ValueError("\n".join(errors))
+
+    return parsed_args

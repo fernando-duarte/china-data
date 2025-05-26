@@ -2,43 +2,36 @@
 
 import pandas as pd
 
-from config import Config
-
 
 def convert_units(df: pd.DataFrame) -> pd.DataFrame:
-    """Convert units in the DataFrame to standardized units.
-
-    Converts:
-    - Currency values from USD to billions USD
-    - Population from total to millions
-    - Labor force from total to millions
-
-    Args:
-        df: DataFrame with raw data
-
-    Returns:
-        DataFrame with converted units
-    """
+    """Convert units to billions for monetary values and millions for population."""
     result = df.copy()
 
-    # Convert currency columns from USD to billions USD
-    currency_cols = [
-        col for col in result.columns
-        if col.endswith("_USD") and not col.endswith("_bn")
+    # Convert monetary values from USD to billions USD
+    monetary_columns = [
+        "GDP_USD",
+        "C_USD",
+        "G_USD",
+        "I_USD",
+        "X_USD",
+        "M_USD",
+        "K_USD",
+        "T_USD",
+        "S_USD",
+        "S_pub_USD",
+        "S_priv_USD",
     ]
-    for col in currency_cols:
-        new_col = col.replace("_USD", "_USD_bn")
-        result[new_col] = result[col] / Config.BILLION_DIVISOR
-        result.drop(col, axis=1, inplace=True)
 
-    # Convert population from total to millions
-    if "POP" in result.columns:
-        result["POP_mn"] = result["POP"] / Config.BILLION_DIVISOR
-        result.drop("POP", axis=1, inplace=True)
+    for col in monetary_columns:
+        if col in result.columns:
+            result[f"{col}_bn"] = result[col] / 1e9
+            result.drop(col, axis=1, inplace=True)
 
-    # Convert labor force from total to millions
-    if "LF" in result.columns:
-        result["LF_mn"] = result["LF"] / Config.BILLION_DIVISOR
-        result.drop("LF", axis=1, inplace=True)
+    # Convert population values from persons to millions
+    population_columns = ["POP", "LF"]
+    for col in population_columns:
+        if col in result.columns:
+            result[f"{col}_mn"] = result[col] / 1e6
+            result.drop(col, axis=1, inplace=True)
 
     return result

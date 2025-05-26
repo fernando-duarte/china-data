@@ -1,6 +1,5 @@
 """Tests for human capital projection."""
 
-
 import numpy as np
 import pandas as pd
 

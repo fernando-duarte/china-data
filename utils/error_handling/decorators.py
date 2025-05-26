@@ -7,7 +7,8 @@ across the data processing pipeline.
 
 import functools
 import logging
-from typing import Any, Callable, Optional, TypeVar, Union
+import time
+from typing import Any, Callable, Optional, TypeVar, Union, cast
 
 import pandas as pd
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Type variable for generic return types
 T = TypeVar("T")
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def handle_data_operation(
@@ -37,7 +39,7 @@ def handle_data_operation(
 
     def decorator(func: Callable[..., T]) -> Callable[..., Union[T, Any]]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> Union[T, Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Union[T, Any]:
             try:
                 return func(*args, **kwargs)
             except ChinaDataError:
@@ -77,7 +79,7 @@ def safe_dataframe_operation(operation_name: str, default_df: Optional[pd.DataFr
 
     def decorator(func: Callable[..., pd.DataFrame]) -> Callable[..., pd.DataFrame]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> pd.DataFrame:
+        def wrapper(*args: Any, **kwargs: Any) -> pd.DataFrame:
             try:
                 result = func(*args, **kwargs)
                 if not isinstance(result, pd.DataFrame):
@@ -97,3 +99,49 @@ def safe_dataframe_operation(operation_name: str, default_df: Optional[pd.DataFr
         return wrapper
 
     return decorator
+
+
+def retry_on_exception(
+    max_attempts: int = 3,
+    delay: int = 5,
+    allowed_exceptions: tuple = (Exception,),
+    error_message: str = "Unexpected error",
+) -> Callable[[F], F]:
+    """Decorator to retry a function on exception."""
+
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            attempts = 0
+            while attempts < max_attempts:
+                try:
+                    return func(*args, **kwargs)
+                except allowed_exceptions as e:
+                    attempts += 1
+                    if attempts < max_attempts:
+                        logger.warning(
+                            "%s on attempt %d, retrying in %d seconds: %s", error_message, attempts, delay, str(e)
+                        )
+                        time.sleep(delay)
+                    else:
+                        logger.error("%s after %d attempts: %s", error_message, max_attempts, str(e))
+                        raise
+            return cast(Any, None)  # This line will never be reached but makes mypy happy
+
+        return cast(F, wrapper)
+
+    return decorator
+
+
+def log_execution_time(func: F) -> F:
+    """Decorator to log function execution time."""
+
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        logger.info("%s took %.2f seconds to execute", func.__name__, end_time - start_time)
+        return result
+
+    return cast(F, wrapper)

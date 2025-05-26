@@ -29,4 +29,4 @@ config.py @devops-lead @data-team-lead
 /output/   @data-team-lead
 
 # Parameters info
-/parameters_info/   @data-scientists-username @data-team-lead 
+/parameters_info/   @data-scientists-username @data-team-lead

@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Optional
 
 import pandas as pd
-import pandas_datareader.wb as wb
 import requests
+from pandas_datareader import wb
 
 from config import Config
 from utils.caching_utils import get_cached_session

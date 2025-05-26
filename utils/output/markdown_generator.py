@@ -5,18 +5,20 @@ This module provides functions to generate markdown tables and documentation
 from processed economic data with detailed methodology notes.
 """
 
-from .markdown_template import MARKDOWN_TEMPLATE
 from datetime import datetime
 from typing import Any, Dict, List
 
 import pandas as pd
 from jinja2 import Template
 
+from .markdown_template import MARKDOWN_TEMPLATE
+
 
 def create_markdown_table(
     data: pd.DataFrame,
     output_path: str,
     extrapolation_info: Dict[str, Any],
+    *,
     alpha: float = 1 / 3,
     capital_output_ratio: float = 3.0,
     input_file: str = "china_data_raw.md",

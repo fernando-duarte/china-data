@@ -100,10 +100,7 @@ class TestWDIDownloader:
         # This is a bit complex due to the decorator and retry logic.
         # We expect MAX_RETRIES warnings and 1 final error through log_error_with_context.
         # For simplicity, just check if error was logged.
-        assert any(
-            "Failed to download NY.GDP.MKTP.CD" in call.args[1]
-            for call in mock_logger_wdi.log.call_args_list
-        )
+        assert any("Failed to download NY.GDP.MKTP.CD" in call.args[1] for call in mock_logger_wdi.log.call_args_list)
 
     @patch("pandas_datareader.wb.WorldBankReader")
     def test_download_wdi_data_different_indicators(self, mock_wb_reader_class, sample_wdi_data):
@@ -164,4 +161,3 @@ class TestWDIDownloader:
 
         download_wdi_data("NY.GDP.MKTP.CD")
         mock_sleep.assert_not_called()  # This should pass if download is successful on first try
-

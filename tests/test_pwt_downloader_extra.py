@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
+import requests
 
 from utils.data_sources.pwt_downloader import get_pwt_data
 
@@ -61,6 +62,7 @@ class TestPWTDownloaderExtra:
     @patch("logging.Logger.error")
     def test_get_pwt_data_logs_warning_on_error(self, mock_log, mock_session):
         """Test that errors are logged on download failure."""
+
         class BadSession:
             def get(self, url, stream=True, timeout=30):
                 raise requests.exceptions.RequestException("API Error")

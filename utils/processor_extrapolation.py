@@ -66,7 +66,7 @@ def _apply_methods(
             continue
 
         last_year = int(historical["year"].max())
-        yrs = [y for y in range(last_year + 1, years_to_add[-1] + 1)]
+        yrs = list(range(last_year + 1, years_to_add[-1] + 1))
         if not yrs:
             continue
 
@@ -112,6 +112,7 @@ def _finalize(
     raw_data: pd.DataFrame,
     cols: List[str],
     info: Dict[str, Any],
+    *,
     end_year: int,
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     key_vars = [
@@ -171,7 +172,7 @@ def _finalize(
                 continue
             last_actual_year = int(hist["year"].max())
         if last_actual_year < end_year:
-            extrap_years = [y for y in range(last_actual_year + 1, end_year + 1)]
+            extrap_years = list(range(last_actual_year + 1, end_year + 1))
             if extrap_years:
                 method = info.get(col, {}).get("method", "Extrapolated")
                 info[col] = {"method": method, "years": extrap_years}
@@ -182,8 +183,8 @@ def extrapolate_series_to_end_year(
     data: pd.DataFrame, end_year: int = 2025, raw_data: Optional[pd.DataFrame] = None
 ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     df, info, years_to_add, cols = _prepare(data.copy(), end_year)
-    if years_to_add == [] and info == {}:
+    if not years_to_add and not info:
         return df, info
     df, info = _apply_methods(df, years_to_add, cols, info)
-    df, info = _finalize(df, years_to_add, raw_data if raw_data is not None else data, cols, info, end_year)
+    df, info = _finalize(df, years_to_add, raw_data if raw_data is not None else data, cols, info, end_year=end_year)
     return df, info

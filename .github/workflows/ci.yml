@@ -169,18 +169,18 @@ jobs:
         run: |
           # Get all test files
           TEST_FILES=$(find tests/ -name "test_*.py" -type f | sort)
-          
+
           # Calculate chunk size
           TOTAL_FILES=$(echo "$TEST_FILES" | wc -l)
           CHUNK_SIZE=$(( (TOTAL_FILES + 2) / 3 ))
-          
+
           # Get chunk for this job
           START_IDX=$(( (${{ matrix.chunk }} - 1) * CHUNK_SIZE ))
           END_IDX=$(( $START_IDX + CHUNK_SIZE ))
-          
+
           # Extract chunk of test files
           CHUNK_FILES=$(echo "$TEST_FILES" | sed -n "${START_IDX},${END_IDX}p" | tr '\n' ' ')
-          
+
           echo "test_files=$CHUNK_FILES" >> $GITHUB_OUTPUT
 
       - name: Run tests with coverage
@@ -288,7 +288,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [code-quality, test]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
@@ -323,20 +323,20 @@ jobs:
           python -c "
           import sys
           sys.path.append('.')
-          
+
           # Test complete pipeline with realistic mock data
           from unittest.mock import patch
           import pandas as pd
-          
+
           # Mock external API calls for integration test
           with patch('utils.data_sources.wdi_downloader.download_wdi_data') as mock_wdi, \
                patch('utils.data_sources.pwt_downloader.get_pwt_data') as mock_pwt, \
                patch('utils.data_sources.imf_loader.load_imf_tax_data') as mock_imf:
-               
+
             mock_wdi.return_value = pd.DataFrame({'year': [2020, 2021], 'value': [100, 105]})
             mock_pwt.return_value = pd.DataFrame({'year': [2020, 2021], 'rgdpo': [1000, 1050], 'rkna': [500, 525], 'pl_gdpo': [1.0, 1.02], 'cgdpo': [1000, 1050], 'hc': [2.5, 2.52]})
             mock_imf.return_value = pd.DataFrame({'year': [2020, 2021], 'TAX_pct_GDP': [15.0, 15.2]})
-            
+
             print('✅ Integration test: Data pipeline modules load and run without errors')
           "
 
@@ -347,19 +347,19 @@ jobs:
           sys.path.append('.')
           from unittest.mock import patch
           import pandas as pd
-          
+
           # Create minimal test data file
           test_data = '''# China Economic Data (Raw)
-          
+
           | Year | GDP_USD | C_USD | G_USD | I_USD | X_USD | M_USD | FDI_pct_GDP | POP | LF | rgdpo | rkna | pl_gdpo | cgdpo | hc |
           |------|---------|-------|-------|-------|-------|-------|-------------|-----|----|---------|---------|---------|---------|----|
           | 2020 | 14342360000000 | 9900000000000 | 2900000000000 | 4300000000000 | 2600000000000 | 2400000000000 | 1.5 | 1411778000 | 780000000 | 14.3 | 45.2 | 0.55 | 14.3 | 2.5 |
           | 2021 | 17730970000000 | 11500000000000 | 3200000000000 | 4800000000000 | 3300000000000 | 2700000000000 | 1.7 | 1412600000 | 785000000 | 15.1 | 47.1 | 0.56 | 15.1 | 2.52 |
           '''
-          
+
           with open('output/china_data_raw.md', 'w') as f:
               f.write(test_data)
-          
+
           try:
               from china_data_processor import main
               with patch('sys.argv', ['china_data_processor.py', '--end-year', '2025']):
@@ -375,7 +375,7 @@ jobs:
           python -c "
           import pandas as pd
           import os
-          
+
           # Check if output files are created and valid
           if os.path.exists('output/china_data_processed.csv'):
               df = pd.read_csv('output/china_data_processed.csv')
@@ -432,14 +432,14 @@ jobs:
         run: |
           # Create documentation directory
           mkdir -p docs
-          
+
           # Generate module documentation
           python -c "
           import inspect
           import importlib.util
           import sys
           import os
-          
+
           def document_module(module_path, module_name):
               spec = importlib.util.spec_from_file_location(module_name, module_path)
               module = importlib.util.module_from_spec(spec)
@@ -449,7 +449,7 @@ jobs:
                   doc = f'# {module_name.title()} Module\n\n'
                   if module.__doc__:
                       doc += f'{module.__doc__}\n\n'
-                  
+
                   # Get functions and classes
                   for name, obj in inspect.getmembers(module):
                       if inspect.isfunction(obj) or inspect.isclass(obj):
@@ -457,24 +457,24 @@ jobs:
                               doc += f'## {name}\n\n'
                               if obj.__doc__:
                                   doc += f'{obj.__doc__}\n\n'
-                  
+
                   return doc
               except Exception as e:
                   return f'# {module_name.title()} Module\n\nError loading module: {e}\n'
-          
+
           # Document main modules
           modules = [
               ('china_data_downloader.py', 'downloader'),
               ('china_data_processor.py', 'processor'),
               ('config.py', 'config')
           ]
-          
+
           for module_path, module_name in modules:
               if os.path.exists(module_path):
                   doc = document_module(module_path, module_name)
                   with open(f'docs/{module_name}.md', 'w') as f:
                       f.write(doc)
-          
+
           print('Documentation generated')
           "
 
@@ -482,4 +482,4 @@ jobs:
         uses: actions/upload-artifact@v4.6.2
         with:
           name: documentation
-          path: docs/ 
+          path: docs/

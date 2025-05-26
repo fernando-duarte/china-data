@@ -117,6 +117,7 @@ class TestPWTDownloader:
     @patch("utils.data_sources.pwt_downloader.get_cached_session")
     def test_get_pwt_data_exception_handling(self, mock_session):
         """Test exception handling during download."""
+
         # Set up mock to raise exception
         class BadSession(Session):
             def get(self, url, stream=True, timeout=30):

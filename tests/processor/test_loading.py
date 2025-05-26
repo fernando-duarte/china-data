@@ -1,6 +1,7 @@
 """Tests for data loading functionality."""
 
 import os
+
 import pytest
 
 from utils.processor_load import load_raw_data

@@ -50,4 +50,4 @@ jobs:
           m_max_size: 500
           l_label: 'size/L'
           l_max_size: 1000
-          xl_label: 'size/XL' 
+          xl_label: 'size/XL'

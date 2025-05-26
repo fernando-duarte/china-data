@@ -1,6 +1,3 @@
-import os
-import shutil
-import tempfile
 from unittest.mock import mock_open, patch
 
 import pandas as pd
@@ -42,6 +39,7 @@ class TestChinaDataProcessorOutput:
                 "hc": [2.2, 2.25, 2.3, 2.35, 2.4, 2.45, 2.5, 2.55],
             }
         )
+
     @patch("builtins.open", new_callable=mock_open)
     def test_markdown_output_format(self, mock_file, sample_raw_data):
         """Test that markdown output is properly formatted."""

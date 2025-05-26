@@ -34,6 +34,7 @@ def validate_year_range(df: pd.DataFrame, year_column: str = "year") -> None:
 def validate_numeric_values(
     df: pd.DataFrame,
     column: str,
+    *,
     min_value: Optional[Union[int, float]] = None,
     max_value: Optional[Union[int, float]] = None,
     allow_na: bool = True,
@@ -107,26 +108,23 @@ INDICATOR_VALIDATION_RULES: Dict[str, Dict[str, Any]] = {
     "NE_GDI_TOTL_CD": {"strict_positive": True},  # Investment
     "NE_EXP_GNFS_CD": {"strict_positive": True},  # Exports
     "NE_IMP_GNFS_CD": {"strict_positive": True},  # Imports
-    "SP_POP_TOTL": {"strict_positive": True, "min_value": Config.POPULATION_MIN},  # Population, min 1000 to be reasonable
+    "SP_POP_TOTL": {
+        "strict_positive": True,
+        "min_value": Config.POPULATION_MIN,
+    },  # Population, min 1000 to be reasonable
     "SL_TLF_TOTL_IN": {"strict_positive": True, "min_value": Config.LABOR_FORCE_MIN},  # Labor Force
     "BX_KLT_DINV_WD_GD_ZS": {
         "min_value": Config.FDI_PCT_GDP_MIN,
-        "max_value": Config.FDI_PCT_GDP_MAX
+        "max_value": Config.FDI_PCT_GDP_MAX,
     },  # FDI % GDP, wider range for safety
     # PWT original column names (before renaming in merged_data)
     "rgdpo": {"strict_positive": True},
     "rkna": {"strict_positive": True},
-    "hc": {
-        "min_value": Config.HUMAN_CAPITAL_MIN,
-        "max_value": Config.HUMAN_CAPITAL_MAX
-    },  # Human Capital Index
+    "hc": {"min_value": Config.HUMAN_CAPITAL_MIN, "max_value": Config.HUMAN_CAPITAL_MAX},  # Human Capital Index
     "pl_gdpo": {"strict_positive": True},  # Price Level
     "cgdpo": {"strict_positive": True},  # Consumption GDP Output side
     # IMF data (already renamed)
-    "TAX_pct_GDP": {
-        "min_value": Config.TAX_PCT_GDP_MIN,
-        "max_value": Config.TAX_PCT_GDP_MAX
-    },  # Tax as % of GDP
+    "TAX_pct_GDP": {"min_value": Config.TAX_PCT_GDP_MIN, "max_value": Config.TAX_PCT_GDP_MAX},  # Tax as % of GDP
 }
 
 
@@ -135,7 +133,7 @@ def validate_dataframe_with_rules(
 ) -> None:
     """Validate entire DataFrame based on a dictionary of rules for specific columns."""
     if not isinstance(df, pd.DataFrame):
-        raise DataValidationError(message="Input is not a pandas DataFrame.")
+        raise DataValidationError(column="dataframe", message="Input is not a pandas DataFrame.")
 
     if df.empty:
         logger.warning("DataFrame is empty, skipping rule-based validation.")
@@ -209,25 +207,27 @@ def validate_series(
 VALIDATION_RULES: Dict[str, Dict[str, Union[bool, float, None]]] = {
     # Population must be positive and reasonably large
     "SP_POP_TOTL": {"strict_positive": True, "min_value": Config.POPULATION_MIN},
-    
     # Labor force must be positive and reasonably large
     "SL_TLF_TOTL_IN": {"strict_positive": True, "min_value": Config.LABOR_FORCE_MIN},
-    
     # FDI (% of GDP) can be negative but within reasonable bounds
-    "BX_KLT_DINV_WD_GD_ZS": {
-        "min_value": Config.FDI_PCT_GDP_MIN,
-        "max_value": Config.FDI_PCT_GDP_MAX
-    },
-    
+    "BX_KLT_DINV_WD_GD_ZS": {"min_value": Config.FDI_PCT_GDP_MIN, "max_value": Config.FDI_PCT_GDP_MAX},
     # Human capital index has typical bounds
-    "hc": {
-        "min_value": Config.HUMAN_CAPITAL_MIN,
-        "max_value": Config.HUMAN_CAPITAL_MAX
-    },
-    
+    "hc": {"min_value": Config.HUMAN_CAPITAL_MIN, "max_value": Config.HUMAN_CAPITAL_MAX},
     # Tax revenue as % of GDP must be between 0 and 100
-    "TAX_pct_GDP": {
-        "min_value": Config.TAX_PCT_GDP_MIN,
-        "max_value": Config.TAX_PCT_GDP_MAX
-    }
+    "TAX_pct_GDP": {"min_value": Config.TAX_PCT_GDP_MIN, "max_value": Config.TAX_PCT_GDP_MAX},
 }
+
+
+def validate_alpha(alpha: float) -> bool:
+    """Validate the alpha parameter (capital share in production function)."""
+    return 0 < alpha < 1
+
+
+def validate_capital_output_ratio(ratio: float) -> bool:
+    """Validate the capital-output ratio."""
+    return ratio > 0
+
+
+def validate_end_year(year: int) -> bool:
+    """Validate the end year for projections."""
+    return 2020 <= year <= 2100

@@ -6,11 +6,10 @@ and depreciation rates.
 """
 
 import logging
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 from config import Config
 
@@ -93,7 +92,9 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAU
                 # Apply sanity checks
                 if inv < 0:
                     logger.warning(f"Calculated negative investment for year {curr_year}: {inv:.2f}")
-                    if inv < -Config.NEGATIVE_INVESTMENT_THRESHOLD * curr_k:  # If negative investment is large relative to capital
+                    if (
+                        inv < -Config.NEGATIVE_INVESTMENT_THRESHOLD * curr_k
+                    ):  # If negative investment is large relative to capital
                         logger.warning(f"Large negative investment ({inv:.2f}) in year {curr_year}, capping to zero")
                         investments[curr_year] = 0
             else:

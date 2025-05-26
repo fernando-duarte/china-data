@@ -99,7 +99,7 @@ cd china_data
    ```bash
    # macOS/Linux:
    source venv/bin/activate
-   
+
    # Windows:
    venv\Scripts\activate
    ```
@@ -108,10 +108,10 @@ cd china_data
    ```bash
    pip install --upgrade pip
    pip install setuptools>=67.0.0  # Required for Python 3.13+
-   
+
    # Production dependencies:
    pip install -r requirements.txt
-   
+
    # Development dependencies:
    pip install -r dev-requirements.txt
    ```

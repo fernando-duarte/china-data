@@ -72,6 +72,6 @@
 "bug":
   - any: ['**/fix/**/*', '**/bugfix/**/*', '**/hotfix/**/*']
 
-# Features (based on branch name patterns)  
+# Features (based on branch name patterns)
 "enhancement":
-  - any: ['**/feature/**/*', '**/feat/**/*', '**/enhancement/**/*'] 
+  - any: ['**/feature/**/*', '**/feat/**/*', '**/enhancement/**/*']

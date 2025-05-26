@@ -1,14 +1,9 @@
 import logging
-from datetime import datetime
-from unittest import mock
 from unittest.mock import patch
 
-import numpy as np
 import pandas as pd
 import pytest
-import requests
 
-from config import Config
 from utils.data_sources.wdi_downloader import download_wdi_data
 from utils.error_handling import DataDownloadError
 

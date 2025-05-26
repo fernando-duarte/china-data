@@ -1,0 +1,6 @@
+overrides:
+  - id: "B101"
+    paths:
+      - "tests/*"
+
+skips: ['B101']
