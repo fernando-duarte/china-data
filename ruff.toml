@@ -1,5 +1,7 @@
 # Ruff configuration for 2025 best practices
 # See https://docs.astral.sh/ruff/configuration/
+# Updated to latest Ruff v0.11+ best practices
+# Compatible with Ruff v0.11.10 and later
 
 # Python version target
 target-version = "py313"

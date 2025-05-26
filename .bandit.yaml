@@ -1,3 +1,5 @@
+# NOTE: Bandit security checks are also covered by Ruff's S-prefix rules
+# This file is maintained for compatibility and additional security scanning
 overrides:
   - id: "B101"
     paths:

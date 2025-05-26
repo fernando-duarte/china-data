@@ -30,7 +30,7 @@ repos:
 
   # Ruff - The modern Python linter and formatter (replaces Black, isort, Flake8, and more)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
+    rev: v0.11.10
     hooks:
       - id: ruff
         args: [--fix]
@@ -76,7 +76,7 @@ repos:
     rev: v3.19.0
     hooks:
       - id: pyupgrade
-        args: [--py38-plus]
+        args: [--py313-plus]
 
   # Docstring checking is now included in Ruff (D prefix rules)
 

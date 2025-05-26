@@ -59,17 +59,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
-      - name: Check code formatting with black
+      - name: Lint and format check with Ruff
         run: |
-          black --check --diff . --exclude=venv
-
-      - name: Check import sorting with isort
-        run: |
-          isort --check --diff . --skip venv
-
-      - name: Lint with flake8
-        run: |
-          flake8 . --exclude=venv --statistics --tee --output-file=flake8-report.txt
+          # Ruff check (replaces flake8, isort, and many other linters)
+          ruff check . --output-format=github
+          # Ruff format check (replaces black)
+          ruff format --check .
 
       - name: Lint with pylint
         run: |
@@ -79,12 +74,18 @@ jobs:
         run: |
           mypy china_data_processor.py china_data_downloader.py || true
 
-      - name: Upload flake8 report
+      - name: Generate ruff report
+        if: always()
+        run: |
+          # Generate detailed ruff report
+          ruff check . --output-format=json > ruff-report.json || true
+
+      - name: Upload ruff report
         uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
-          name: flake8-report
-          path: flake8-report.txt
+          name: ruff-report
+          path: ruff-report.json
 
   test:
     name: Test Suite
@@ -275,13 +276,22 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install security tools
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bandit
+          pip install -r dev-requirements.txt
 
-      - name: Run bandit security linter
+      - name: Run Ruff security checks
         run: |
+          # Run security-focused checks (S-prefix rules include Bandit checks)
+          ruff check . --select=S --output-format=json > ruff-security-report.json || true
+          # Also run a comprehensive security scan
+          ruff check . --select=S,B,E501,F401 --output-format=github
+
+      - name: Run standalone Bandit for additional coverage
+        run: |
+          # Install and run bandit for additional security scanning
+          pip install bandit
           bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*" || true
 
       - name: Upload security reports
@@ -289,7 +299,9 @@ jobs:
         if: always()
         with:
           name: security-reports
-          path: bandit-report.json
+          path: |
+            ruff-security-report.json
+            bandit-report.json
 
   integration-test:
     name: Integration Tests
