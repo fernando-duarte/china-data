@@ -1,5 +1,3 @@
-from typing import Union
-
 import pandas as pd
 from jinja2 import Template
 

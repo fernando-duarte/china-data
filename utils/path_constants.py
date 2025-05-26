@@ -5,7 +5,6 @@ cross-platform path handling.
 """
 
 from pathlib import Path
-from typing import Dict, List
 
 # Directory names
 INPUT_DIR_NAME = "input"

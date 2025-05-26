@@ -8,7 +8,7 @@ import functools
 import logging
 import time
 from collections.abc import Callable
-from typing import Any, Tuple, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 import pandas as pd
 

@@ -5,7 +5,6 @@ used throughout the China data processing pipeline.
 """
 
 from pathlib import Path
-from typing import Union
 
 
 class Config:

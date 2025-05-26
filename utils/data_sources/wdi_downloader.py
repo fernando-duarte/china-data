@@ -1,7 +1,6 @@
 import logging
 import time
 from datetime import datetime
-from typing import Union
 
 import pandas as pd
 import requests
