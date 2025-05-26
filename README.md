@@ -118,6 +118,32 @@ make security-scan   # Run vulnerability scan on dependencies
 ./setup.sh -a=0.4 -k=2.5 -o=custom_output --end-year=2030 --dev
 ```
 
+### Development with VS Code Dev Containers (Recommended)
+
+For the best development experience, use the VS Code Dev Container:
+
+1. **Prerequisites:**
+
+   - [VS Code](https://code.visualstudio.com/) with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+2. **Open in container:**
+
+   ```bash
+   code .
+   # VS Code will prompt to "Reopen in Container"
+   # Or use Command Palette: "Dev Containers: Reopen in Container"
+   ```
+
+3. **Automatic setup:** The container includes:
+   - Python 3.11 with all dependencies
+   - Pre-configured VS Code extensions for Python, Jupyter, and data science
+   - Jupyter Lab server (port 8888)
+   - MkDocs documentation server (port 8000)
+   - All development tools (Black, Ruff, MyPy, pytest)
+
+See [`.devcontainer/README.md`](.devcontainer/README.md) for detailed setup instructions.
+
 ### Development with Docker Compose
 
 ```bash

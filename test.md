@@ -1,18 +1,10 @@
 # Processed China Economic Data
 
-| year   | hc   | T_USD_bn | Openness_Ratio | NX_USD_bn | S_USD_bn | S_pub_USD_bn | S_priv_USD_bn | Saving_Rate |
-| ------ | ---- | -------- | -------------- | --------- | -------- | ------------ | ------------- | ----------- |
-| 2015.0 | 2.2  | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2016.0 | 2.25 | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2017.0 | 2.3  | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2018.0 | 2.35 | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2019.0 | 2.4  | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2020.0 | 2.45 | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2021.0 | 2.5  | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2022.0 | 2.55 | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2023.0 | 2.6  | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2024.0 | 2.65 | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
-| 2025.0 | 2.7  | nan      | nan            | nan       | nan      | nan          | nan           | nan         |
+| Year | GDP      | Population |
+| ---- | -------- | ---------- |
+| 2020 | 14722.73 | 1411.1     |
+| 2021 | 17744.64 | 1412.36    |
+| 2022 | 17886.33 | 1425.89    |
 
 # Notes on Computation
 
@@ -81,11 +73,11 @@ Each series was extrapolated using the following methods:
 
 ### ARIMA(1,1,1) model
 
+- GDP (2023-2025)
+
 ### Average growth rate of historical data
 
 ### Linear regression
-
-- Human Capital (2023-2025)
 
 Data processed with alpha=0.3333333333333333, K/Y= 3.0, source file=china_data_raw.md,
 end year=2025. Generated 2025-05-26.

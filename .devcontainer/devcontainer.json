@@ -1,0 +1,141 @@
+{
+  "name": "China Data Analysis",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "installDirectlyFromGitHubRelease": true,
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "azureDnsAutoDetection": true,
+      "installDockerBuildx": true,
+      "version": "latest"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "ms-python.isort",
+        "ms-python.pylint",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-keymap",
+        "ms-toolsai.jupyter-renderers",
+        "ms-toolsai.datawrangler",
+        "mechatroner.rainbow-csv",
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-mermaid",
+        "ms-python.pytest",
+        "hbenl.vscode-test-explorer",
+        "littlefoxteam.vscode-python-test-adapter",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.makefile-tools",
+        "gruntfuggly.todo-tree",
+        "streetsidesoftware.code-spell-checker"
+      ],
+
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.typeCheckingMode": "strict",
+        "python.formatting.provider": "none",
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+          }
+        },
+        "black-formatter.args": ["--line-length=120"],
+        "isort.args": ["--profile", "black", "--line-length", "120"],
+        "ruff.args": ["--line-length=120"],
+        "mypy-type-checker.args": ["--strict"],
+        "pylint.args": ["--max-line-length=120"],
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "files.associations": {
+          "*.md": "markdown"
+        },
+        "editor.rulers": [120],
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "editor.trimAutoWhitespace": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+        "jupyter.askForKernelRestart": false,
+        "jupyter.interactiveWindow.creationMode": "perFile",
+        "markdownlint.config": {
+          "MD013": false,
+          "MD033": false
+        }
+      }
+    }
+  },
+
+  "onCreateCommand": "pip install --upgrade pip && pip install uv",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+  "waitFor": "postCreateCommand",
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/china_data",
+  "updateRemoteUserUID": true,
+
+  "containerEnv": {
+    "PYTHONPATH": "${containerWorkspaceFolder}",
+    "PYTHONUNBUFFERED": "1",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/.git,target=/workspaces/china_data/.git,type=bind,consistency=cached"
+  ],
+
+  "forwardPorts": [8888, 8000],
+
+  "portsAttributes": {
+    "8888": {
+      "label": "Jupyter Lab",
+      "onAutoForward": "notify",
+      "protocol": "http",
+      "requireLocalPort": false
+    },
+    "8000": {
+      "label": "MkDocs Dev Server",
+      "onAutoForward": "notify",
+      "protocol": "http",
+      "requireLocalPort": false
+    }
+  },
+
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "8gb"
+  }
+}

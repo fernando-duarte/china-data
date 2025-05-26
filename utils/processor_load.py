@@ -13,9 +13,79 @@ from utils.path_constants import get_search_locations_relative_to_root
 logger = logging.getLogger(__name__)
 
 
+def _find_table_header(lines: list[str]) -> int:
+    """Find the index of the table header in markdown lines."""
+    for i, line in enumerate(lines):
+        if "| Year |" in line and "GDP" in line:
+            return i
+    msg = "Could not find table header in the markdown file."
+    raise ValueError(msg)
+
+
+def _parse_header(header_line: str) -> list[str]:
+    """Parse and clean the header line from markdown table."""
+    # Clean up header line by removing leading/trailing |
+    if header_line.startswith("|"):
+        header_line = header_line[1:]
+    if header_line.endswith("|"):
+        header_line = header_line[:-1]
+
+    # Split by | and strip whitespace
+    return [h.strip() for h in header_line.split("|") if h.strip()]
+
+
+def _map_column_names(header: list[str]) -> list[str]:
+    """Map display column names to internal names using config."""
+    # Get column mapping from config (display name -> internal name)
+    mapping = Config.get_raw_data_column_map()
+    # Invert the mapping since we need display -> internal
+    mapping = {v: k for k, v in mapping.items()}
+
+    return [mapping.get(col, col) for col in header]
+
+
+def _process_cell_value(value: str, column_name: str, is_year_column: bool) -> Any:
+    """Process a single cell value based on its column type."""
+    if is_year_column:
+        return int(value)
+
+    if value == "N/A":
+        return np.nan
+
+    if column_name in ["FDI_pct_GDP", "TAX_pct_GDP"]:
+        return float(value) if value != "N/A" else np.nan
+
+    if column_name in ["POP", "LF"]:
+        return float(value.replace(",", "")) if value != "N/A" else np.nan
+
+    return float(value) if value != "N/A" else np.nan
+
+
+def _parse_data_rows(
+    lines: list[str], start_idx: int, header: list[str], renamed_columns: list[str]
+) -> list[list[Any]]:
+    """Parse data rows from markdown table."""
+    data = []
+    for i in range(start_idx, len(lines)):
+        line = lines[i].strip()
+        if not line or line.startswith("**Notes"):
+            break
+
+        row = [c.strip() for c in line.split("|") if c.strip()]
+        if len(row) == len(header):
+            processed = []
+            for j, value in enumerate(row):
+                is_year_column = j == 0
+                processed_value = _process_cell_value(value, renamed_columns[j], is_year_column)
+                processed.append(processed_value)
+            data.append(processed)
+
+    return data
+
+
 def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     """Load raw data from a markdown table file.
-    
+
     This file is expected to be in one of the standard output locations.
 
     Args:
@@ -39,62 +109,22 @@ def load_raw_data(input_file: str = "china_data_raw.md") -> pd.DataFrame:
     with Path(md_file).open(encoding="utf-8") as f:
         lines = f.readlines()
 
-    header_idx = None
-    for i, line in enumerate(lines):
-        if "| Year |" in line and "GDP" in line:
-            header_idx = i
-            break
-
-    if header_idx is None:
-        msg = "Could not find table header in the markdown file."
-        raise ValueError(msg)
-
+    # Find and parse header
+    header_idx = _find_table_header(lines)
     header_line = lines[header_idx].strip()
-    # Clean up header line by removing leading/trailing |
-    if header_line.startswith("|"):
-        header_line = header_line[1:]
-    if header_line.endswith("|"):
-        header_line = header_line[:-1]
+    header = _parse_header(header_line)
+    renamed_columns = _map_column_names(header)
 
-    # Split by | and strip whitespace
-    header = [h.strip() for h in header_line.split("|") if h.strip()]
-
-    # Get column mapping from config (display name -> internal name)
-    mapping = Config.get_raw_data_column_map()
-    # Invert the mapping since we need display -> internal
-    mapping = {v: k for k, v in mapping.items()}
-
-    renamed = []
-    for col in header:
-        mapped_col = mapping.get(col, col)
-        renamed.append(mapped_col)
+    # Parse data rows
     data_start_idx = header_idx + 2
-    data = []
-    for i in range(data_start_idx, len(lines)):
-        line = lines[i].strip()
-        if not line or line.startswith("**Notes"):
-            break
-        row = [c.strip() for c in line.split("|") if c.strip()]
-        if len(row) == len(header):
-            processed: list[Any] = []
-            for j, value in enumerate(row):
-                if j == 0:
-                    processed.append(int(value))
-                elif value == "N/A":
-                    processed.append(np.nan)
-                elif renamed[j] in ["FDI_pct_GDP", "TAX_pct_GDP"]:
-                    processed.append(float(value) if value != "N/A" else np.nan)
-                elif renamed[j] in ["POP", "LF"]:
-                    processed.append(float(value.replace(",", "")) if value != "N/A" else np.nan)
-                else:
-                    processed.append(float(value) if value != "N/A" else np.nan)
-            data.append(processed)
-    return pd.DataFrame(data, columns=renamed)
+    data = _parse_data_rows(lines, data_start_idx, header, renamed_columns)
+
+    return pd.DataFrame(data, columns=renamed_columns)
 
 
 def load_imf_tax_revenue_data() -> pd.DataFrame:
     """Load IMF tax revenue data from CSV file.
-    
+
     This file is expected to be in one of the standard input locations.
 
     Returns:
