@@ -4,6 +4,7 @@ bandit>=1.7,<2.0
 black>=25.1,<26.0
 
 # Code quality tools
+ruff>=0.4,<0.5
 flake8>=7.0,<8.0
 
 # Docstring coverage checking
