@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-uv install-dev-uv format lint test test-property test-mutation test-factories test-all clean run-download run-process security-scan
+.PHONY: help install install-dev install-uv install-dev-uv format lint test test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all clean run-download run-process security-scan
 
 # Default target
 help:
@@ -11,8 +11,11 @@ help:
 	@echo "  make lint          - Run linting checks"
 	@echo "  make test          - Run standard tests"
 	@echo "  make test-property - Run property-based tests with Hypothesis"
-	@echo "  make test-mutation - Run mutation tests with mutmut"
+	@echo "  make test-mutation - Run mutation tests with mutmut (enhanced)"
 	@echo "  make test-factories - Run factory demonstration tests"
+	@echo "  make test-benchmark - Run performance benchmark tests"
+	@echo "  make test-parallel - Run tests in parallel with pytest-xdist"
+	@echo "  make test-integration - Run integration tests with factory fixtures"
 	@echo "  make test-all      - Run all types of tests"
 	@echo "  make security-scan - Run dependency vulnerability scan"
 	@echo "  make clean         - Clean up generated files"
@@ -62,19 +65,39 @@ test-property:
 	@echo "Running property-based tests with Hypothesis..."
 	pytest tests/test_property_based.py -v --hypothesis-show-statistics
 
-# Run mutation tests with mutmut
+# Run mutation tests with mutmut (enhanced with 2025 best practices)
 test-mutation:
-	@echo "Running mutation tests with mutmut..."
-	@echo "This may take a while as it tests many code mutations..."
-	mutmut run --paths-to-mutate utils/economic_indicators/ --runner "python -m pytest tests/test_economic_indicators.py -x"
+	@echo "Running mutation tests with mutmut (enhanced)..."
+	@echo "Using parallel execution and incremental mode for faster testing..."
+	mutmut run --use-patch-file --processes 4
+
+# Run quick mutation test on specific module
+test-mutation-quick:
+	@echo "Running quick mutation test on economic indicators..."
+	mutmut run --paths-to-mutate utils/economic_indicators/ --runner "python -m pytest tests/test_economic_indicators.py -x --tb=short"
 
 # Run factory demonstration tests
 test-factories:
 	@echo "Running factory demonstration tests..."
 	pytest tests/test_factories_demo.py -v
 
+# Run benchmark tests
+test-benchmark:
+	@echo "Running performance benchmark tests..."
+	pytest tests/test_performance_regression.py -v --benchmark-only
+
+# Run tests in parallel with pytest-xdist
+test-parallel:
+	@echo "Running tests in parallel with pytest-xdist..."
+	pytest -n auto -m "not benchmark"
+
+# Run integration tests with factory fixtures
+test-integration:
+	@echo "Running integration tests with factory fixtures..."
+	pytest tests/test_factoryboy_integration.py -v
+
 # Run all types of tests
-test-all: test test-property test-factories
+test-all: test test-property test-factories test-benchmark test-parallel test-integration
 	@echo "All tests completed!"
 
 # Run dependency vulnerability scan

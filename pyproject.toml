@@ -62,6 +62,8 @@ dev = [
     "pytest-benchmark>=4.0,<5.0",
     "pytest-cov>=4.1,<5.0",
     "pytest-doctestplus>=1.2,<2.0",
+    "pytest-factoryboy>=2.5,<3.0",
+    "pytest-xdist>=3.6,<4.0",
     "hypothesis>=6.100,<7.0",
     "mutmut>=2.4,<3.0",
     "factory-boy>=3.3,<4.0",
@@ -99,6 +101,8 @@ dev-dependencies = [
     "pytest-benchmark>=4.0,<5.0",
     "pytest-cov>=4.1,<5.0",
     "pytest-doctestplus>=1.2,<2.0",
+    "pytest-factoryboy>=2.5,<3.0",
+    "pytest-xdist>=3.6,<4.0",
     "hypothesis>=6.100,<7.0",
     "mutmut>=2.4,<3.0",
     "factory-boy>=3.3,<4.0",
@@ -197,6 +201,21 @@ python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short --doctest-modules --doctest-glob='*.md'"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+# Custom markers for test organization
+markers = [
+    "benchmark: marks tests as benchmark tests (deselect with '-m \"not benchmark\"')",
+    "performance: marks tests as performance tests",
+    "property: marks tests as property-based tests",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "slow: marks tests as slow running",
+]
+# Parallel execution options (use with pytest-xdist)
+# Run with: pytest -n auto
+# Filter options for different test types:
+# pytest -m "not benchmark"  # Skip benchmark tests
+# pytest -m "benchmark"      # Run only benchmark tests
+# pytest -m "property"       # Run only property-based tests
 
 [tool.mypy]
 python_version = "3.9"
@@ -231,14 +250,15 @@ show_error_codes = true
 show_column_numbers = true
 # Show absolute paths
 show_absolute_path = true
-# Enable type checking for test files with relaxed rules
+# Enhanced type checking for test files with relaxed rules
 [[tool.mypy.overrides]]
 module = "tests.*"
 ignore_missing_imports = true
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 disallow_any_generics = false
-disable_error_code = ["misc", "var-annotated", "no-untyped-call", "arg-type", "operator", "unreachable"]
+disallow_untyped_decorators = false
+disable_error_code = ["misc", "var-annotated", "no-untyped-call", "arg-type", "operator", "unreachable", "annotation-unchecked"]
 
 # Relax some checks for decorator modules
 [[tool.mypy.overrides]]
@@ -292,6 +312,14 @@ phases = ["explicit", "reuse", "generate", "target", "shrink", "explain"]
 # Mutation testing configuration
 paths_to_mutate = ["utils/", "china_data_downloader.py", "china_data_processor.py"]
 backup = false
-runner = "python -m pytest"
+runner = "python -m pytest tests/ -x --tb=short --disable-warnings"
 tests_dir = "tests/"
 exclude_patterns = ["*/__pycache__/*", "*/test_*", "*/.git/*", "*/venv/*", "*/.venv/*"]
+# Enable incremental mode for faster re-runs
+use_patch_file = true
+# Enable parallel execution (adjust based on CPU cores)
+processes = 4
+# Use coverage to only mutate covered lines
+use_coverage = true
+# Coverage file to use
+coverage_file = ".coverage"

@@ -5,7 +5,6 @@ the structure and constraints of real economic data used in the China data pipel
 """
 
 import random
-from typing import Dict, List
 
 import factory
 import numpy as np

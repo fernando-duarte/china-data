@@ -4,6 +4,8 @@ This module contains property-based tests that automatically generate test cases
 to verify invariants and properties of economic calculations and data processing.
 """
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -15,10 +17,13 @@ from utils.capital import calculate_capital_stock
 from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 from utils.processor_units import convert_units
 
+# Mark all tests in this module as property-based tests
+pytestmark = [pytest.mark.property, pytest.mark.unit]
+
 
 # Custom strategies for economic data
 @st.composite
-def economic_data_strategy(draw):
+def economic_data_strategy(draw: Any) -> dict[str, float]:
     """Generate realistic economic data for property-based testing."""
     year = draw(st.integers(min_value=1960, max_value=2030))
     gdp = draw(st.floats(min_value=50.0, max_value=20000.0, allow_nan=False, allow_infinity=False))
@@ -50,7 +55,7 @@ def economic_data_strategy(draw):
 
 
 @st.composite
-def economic_dataframe_strategy(draw, min_rows=1, max_rows=20):
+def economic_dataframe_strategy(draw: Any, min_rows: int = 1, max_rows: int = 20) -> pd.DataFrame:
     """Generate a DataFrame with economic data."""
     num_rows = draw(st.integers(min_value=min_rows, max_value=max_rows))
     years = draw(

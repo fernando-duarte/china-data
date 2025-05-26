@@ -128,6 +128,28 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "FBT",    # boolean traps are common in tests
     "PLR2004", # Magic values are fine in tests
     "D",      # Don't require docstrings in tests
+    "ANN",    # Don't require type annotations in tests
+    "PD901",  # Generic DataFrame names are fine in tests
+    "BLE001", # Blind except is sometimes needed in tests
+]
+
+# Special rules for factory files
+"tests/factories.py" = [
+    "S101",   # asserts are fine in tests
+    "ARG",    # unused arguments are common in fixtures
+    "FBT",    # boolean traps are common in tests
+    "PLR2004", # Magic values are fine in tests
+    "D",      # Don't require docstrings in tests
+    "ANN",    # Don't require type annotations in tests
+    "PD901",  # Generic DataFrame names are fine in tests
+    "BLE001", # Blind except is sometimes needed in tests
+    "N802",   # Function names can match economic variable names
+    "N805",   # Factory methods use 'obj' parameter by convention
+    "S311",   # Pseudo-random is fine for test data generation
+    "RUF013", # Implicit Optional is acceptable in test factories
+    "NPY002", # Legacy numpy random is fine for test data
+    "TRY003", # Long exception messages are fine in tests
+    "EM102",  # F-string exceptions are fine in tests
 ]
 
 # Ignore import violations in __init__ files

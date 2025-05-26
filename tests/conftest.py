@@ -2,9 +2,29 @@ import os
 from pathlib import Path
 
 import pytest
+from pytest_factoryboy import register
 
-from tests.factories import DataFrameFactory, create_complete_economic_data, create_minimal_economic_data
+from tests.factories import (
+    DataFrameFactory,
+    EconomicDataFactory,
+    EconomicIndicatorsFactory,
+    IMFTaxDataFactory,
+    PWTDataFactory,
+    create_complete_economic_data,
+    create_minimal_economic_data,
+)
 from utils.processor_load import load_raw_data
+
+# Register factories as pytest fixtures using pytest-factoryboy
+# This creates automatic fixtures: economic_data_factory, economic_data, etc.
+register(EconomicDataFactory)
+register(PWTDataFactory, "pwt_data")
+register(IMFTaxDataFactory, "imf_tax_data")
+register(EconomicIndicatorsFactory, "economic_indicators")
+
+# Register additional factory instances with specific names
+register(EconomicDataFactory, "baseline_economic_data")
+register(EconomicDataFactory, "alternative_economic_data")
 
 
 @pytest.fixture(scope="session")
