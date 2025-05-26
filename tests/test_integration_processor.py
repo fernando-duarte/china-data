@@ -1,6 +1,6 @@
-import os
 import shutil
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
 import pandas as pd
@@ -49,13 +49,12 @@ class TestChinaDataProcessorIntegration:
         temp_dir = tempfile.mkdtemp()
 
         # Create directory structure
-        os.makedirs(os.path.join(temp_dir, "input"))
-        os.makedirs(os.path.join(temp_dir, "output"))
-        os.makedirs(os.path.join(temp_dir, "utils"))
+        (Path(temp_dir) / "input").mkdir(parents=True)
+        (Path(temp_dir) / "output").mkdir(parents=True)
+        (Path(temp_dir) / "utils").mkdir(parents=True)
 
         # Create a README to identify as project root
-        with open(os.path.join(temp_dir, "README.md"), "w") as f:
-            f.write("Test project")
+        (Path(temp_dir) / "README.md").write_text("Test project")
 
         yield temp_dir
 
@@ -72,7 +71,7 @@ class TestChinaDataProcessorIntegration:
         # Set up mocks
         mock_raw_data.return_value = sample_raw_data
         mock_imf_data.return_value = pd.DataFrame()  # Empty IMF data
-        mock_output_dir.return_value = os.path.join(temp_workspace, "output")
+        mock_output_dir.return_value = str(Path(temp_workspace) / "output")
 
         # Import and run main function
         from china_data_processor import main
@@ -179,5 +178,5 @@ class TestChinaDataProcessorIntegration:
         assert result["hc"].max() < 5  # But below 5
 
         # Check that projection is monotonic (always increasing for China)
-        hc_values = result.sort_values("year")["hc"].values
+        hc_values = result.sort_values("year")["hc"].to_numpy()
         assert all(hc_values[i] <= hc_values[i + 1] for i in range(len(hc_values) - 1))

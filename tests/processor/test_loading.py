@@ -1,7 +1,5 @@
 """Tests for data loading functionality."""
 
-import os
-
 import pytest
 
 from utils.processor_load import load_raw_data
@@ -10,16 +8,17 @@ from utils.processor_load import load_raw_data
 def test_load_raw_data_success(monkeypatch, tmp_path):
     # Create a temporary directory for the test
     output_dir = tmp_path / "china_data" / "output"
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
     dummy_raw_md_path = output_dir / "china_data_raw.md"
 
     # Create a dummy markdown file
-    with open(dummy_raw_md_path, "w") as f:
-        f.write("# China Economic Data\n\n")
-        f.write("## Economic Data (1960-present)\n\n")
-        f.write("| Year | GDP (USD) |\n")
-        f.write("|------|-----------|\n")
-        f.write("| 2020 | 100 |\n")
+    dummy_raw_md_path.write_text(
+        "# China Economic Data\n\n"
+        "## Economic Data (1960-present)\n\n"
+        "| Year | GDP (USD) |\n"
+        "|------|-----------|\n"
+        "| 2020 | 100 |\n"
+    )
 
     # Mock the find_file function to return our temporary file
     def mock_find_file(filename, possible_locations_relative_to_root=None):

@@ -1,7 +1,7 @@
 import hashlib
 import logging
-import os
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
 
@@ -11,6 +11,30 @@ from utils.path_constants import get_search_locations_relative_to_root
 from utils.validation_utils import INDICATOR_VALIDATION_RULES, validate_dataframe_with_rules
 
 logger = logging.getLogger(__name__)
+
+
+def _read_metadata_file(date_file_path: Path) -> dict[str, str]:
+    """Read metadata from download_date.txt file.
+
+    Args:
+        date_file_path: Path to the metadata file
+
+    Returns:
+        Dictionary of metadata key-value pairs
+
+    Raises:
+        OSError: If file cannot be read
+    """
+    metadata = {}
+    lines = date_file_path.read_text(encoding="utf-8").splitlines()
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if line and ":" in line:
+            key, value = line.split(":", 1)
+            metadata[key.strip()] = value.strip()
+
+    return metadata
 
 
 def check_and_update_hash() -> bool:
@@ -38,35 +62,27 @@ def check_and_update_hash() -> bool:
     date_file = find_file("download_date.txt", possible_locations_relative)
 
     # Calculate the current hash of the IMF file
-    with open(imf_file, "rb") as f:
-        current_hash = hashlib.sha256(f.read()).hexdigest()
+    imf_path = Path(imf_file)
+    current_hash = hashlib.sha256(imf_path.read_bytes()).hexdigest()
 
     # Check if we need to update the hash
     hash_changed = True
-    if date_file and os.path.exists(date_file):
+    if date_file and Path(date_file).exists():
         # Read the current metadata
-        metadata = {}
         try:
-            with open(date_file, encoding="utf-8") as f:
-                lines = f.readlines()
-
-            for line in lines:
-                line = line.strip()
-                if line and ":" in line:
-                    key, value = line.split(":", 1)
-                    metadata[key.strip()] = value.strip()
+            metadata = _read_metadata_file(Path(date_file))
 
             # Check if the hash has changed
             if "hash" in metadata and metadata["hash"] == current_hash:
                 hash_changed = False
                 logger.info("IMF file hash unchanged, no need to update download_date.txt")
-        except Exception as e:
-            logger.error(f"Error reading download_date.txt: {e}")
+        except OSError:
+            logger.exception("Error reading download_date.txt")
 
     # Update the download_date.txt file if the hash has changed
     if hash_changed:
         logger.info("IMF file hash has changed, updating download_date.txt")
-        today = datetime.today().strftime("%Y-%m-%d")
+        today = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
 
         # Create the new content
         content = f"download_date: {today}\n"
@@ -75,22 +91,17 @@ def check_and_update_hash() -> bool:
         content += f"hash: {current_hash}\n"
 
         # Determine where to save the file
-        if date_file:
-            output_path = date_file
-        else:
-            # If download_date.txt doesn't exist, create it in the same directory as the IMF file
-            output_dir = os.path.dirname(imf_file)
-            output_path = os.path.join(output_dir, "download_date.txt")
+        output_path = Path(date_file) if date_file else imf_path.parent / "download_date.txt"
 
         # Write the new content
         try:
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(content)
-            logger.info(f"Updated download_date.txt at {output_path}")
-            return True
-        except Exception as e:
-            logger.error(f"Error updating download_date.txt: {e}")
+            output_path.write_text(content, encoding="utf-8")
+            logger.info("Updated download_date.txt at %s", output_path)
+        except OSError:
+            logger.exception("Error updating download_date.txt")
             return False
+
+        return True
 
     return False
 
@@ -114,16 +125,26 @@ def load_imf_tax_data() -> pd.DataFrame:
     imf_file = find_file(imf_filename, possible_locations_relative)
 
     if imf_file:
-        logger.info(f"Found IMF Fiscal Monitor file at: {imf_file}")
-        df = pd.read_csv(imf_file)
-        df = df[(df["COUNTRY"] == "CHN") & (df["FREQUENCY"] == "A") & (df["INDICATOR"] == "G1_S13_POGDP_PT")]
-        tax_data = df[["TIME_PERIOD", "OBS_VALUE"]].rename(columns={"TIME_PERIOD": "year", "OBS_VALUE": "TAX_pct_GDP"})
+        logger.info("Found IMF Fiscal Monitor file at: %s", imf_file)
+        imf_data = pd.read_csv(imf_file)
+        # Filter for China annual tax revenue data
+        china_filter = (
+            (imf_data["COUNTRY"] == "CHN")
+            & (imf_data["FREQUENCY"] == "A")
+            & (imf_data["INDICATOR"] == "G1_S13_POGDP_PT")
+        )
+        imf_data = imf_data[china_filter]
+
+        # Rename columns to standard format
+        tax_data = imf_data[["TIME_PERIOD", "OBS_VALUE"]].rename(
+            columns={"TIME_PERIOD": "year", "OBS_VALUE": "TAX_pct_GDP"}
+        )
         tax_data["year"] = tax_data["year"].astype(int)
         tax_data["TAX_pct_GDP"] = pd.to_numeric(tax_data["TAX_pct_GDP"], errors="coerce")
 
         # Validate IMF tax data (rules are based on the final column name 'TAX_pct_GDP')
         validate_dataframe_with_rules(tax_data, rules=INDICATOR_VALIDATION_RULES, year_column="year")
-        logger.info(f"Successfully loaded and validated IMF tax data with {len(tax_data)} rows.")
+        logger.info("Successfully loaded and validated IMF tax data with %d rows.", len(tax_data))
 
         return tax_data
 

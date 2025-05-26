@@ -71,9 +71,11 @@ class TestPWTDownloader:
     def test_get_pwt_data_empty_response(self, mock_session):
         """Test handling of empty response from API."""
         mock_session.return_value = Session()
-        with patch("pandas.read_excel", return_value=pd.DataFrame()):
-            with pytest.raises(AttributeError):
-                get_pwt_data()
+        with (
+            patch("pandas.read_excel", return_value=pd.DataFrame()),
+            pytest.raises(AttributeError),
+        ):
+            get_pwt_data()
 
     @patch("utils.data_sources.pwt_downloader.get_cached_session")
     def test_get_pwt_data_no_china_data(self, mock_session):
@@ -110,23 +112,29 @@ class TestPWTDownloader:
             }
         )
         mock_session.return_value = Session()
-        with patch("pandas.read_excel", return_value=incomplete_data):
-            with pytest.raises(KeyError):
-                get_pwt_data()
+        with (
+            patch("pandas.read_excel", return_value=incomplete_data),
+            pytest.raises(KeyError),
+        ):
+            get_pwt_data()
 
     @patch("utils.data_sources.pwt_downloader.get_cached_session")
     def test_get_pwt_data_exception_handling(self, mock_session):
         """Test exception handling during download."""
 
         # Set up mock to raise exception
+        connection_error_msg = "Connection error"
+
         class BadSession(Session):
             def get(self, url, stream=True, timeout=30):
-                raise Exception("Connection error")
+                raise ConnectionError(connection_error_msg)
 
         mock_session.return_value = BadSession()
-        with patch("pandas.read_excel", return_value=pd.DataFrame()):
-            with pytest.raises(Exception):
-                get_pwt_data()
+        with (
+            patch("pandas.read_excel", return_value=pd.DataFrame()),
+            pytest.raises(ConnectionError, match="Connection error"),
+        ):
+            get_pwt_data()
 
     @patch("utils.data_sources.pwt_downloader.get_cached_session")
     def test_get_pwt_data_data_types(self, mock_session, mock_pwt_data):

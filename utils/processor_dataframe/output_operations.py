@@ -1,110 +1,107 @@
-"""Functions for preparing and saving output in the China data processor."""
+"""Functions for handling output operations in the China data processor."""
 
 import logging
-import os
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from utils.output import create_markdown_table
+from utils.output.markdown_generator import create_markdown_table
 
 logger = logging.getLogger(__name__)
 
 
-def prepare_final_dataframe(processed_df: pd.DataFrame, column_map: dict[str, str]) -> pd.DataFrame:
-    """Prepare the final DataFrame for output by selecting columns and handling duplicates.
+def prepare_output_data(
+    processed_df: pd.DataFrame, output_columns: list[str], column_map: dict[str, str]
+) -> pd.DataFrame:
+    """Prepare data for output by selecting and renaming columns.
 
     Args:
         processed_df: The processed dataframe
-        column_map: Mapping of internal column names to display names
+        output_columns: List of columns to include in output
+        column_map: Mapping from internal column names to output column names
 
     Returns:
-        The final dataframe ready for output
+        DataFrame ready for output
     """
-    # Get available columns
-    all_output_columns = list(column_map.keys())
-    output_columns = [col for col in all_output_columns if col in processed_df.columns]
-    missing_columns = [col for col in all_output_columns if col not in processed_df.columns]
+    # Check which output columns are missing
+    missing_columns = [col for col in output_columns if col not in processed_df.columns]
 
     if missing_columns:
-        logger.warning(f"Some output columns are missing from the data: {missing_columns}")
+        logger.warning("Some output columns are missing from the data: %s", missing_columns)
 
-    logger.info(f"Using {len(output_columns)} output columns: {output_columns}")
+    logger.info("Using %s output columns: %s", len(output_columns), output_columns)
 
     # Check for duplicate years
-    year_counts = processed_df["year"].value_counts()
-    duplicated_years = year_counts[year_counts > 1].index.tolist()
+    duplicated_years = []
+    if "year" in processed_df.columns:
+        duplicated_years = processed_df[processed_df.duplicated(subset=["year"], keep=False)]["year"].unique()
 
-    if duplicated_years:
-        logger.warning(f"Found duplicate years in data: {duplicated_years}. Will keep first occurrence only.")
+    if len(duplicated_years) > 0:
+        logger.warning("Found duplicate years in data: %s. Will keep first occurrence only.", duplicated_years.tolist())
 
     # Drop duplicates
     df_unique = processed_df.drop_duplicates(subset=["year"], keep="first")
     logger.info(
-        f"Data contains {df_unique.shape[0]} unique years from {df_unique['year'].min()} to {df_unique['year'].max()}"
+        "Data contains %s unique years from %s to %s",
+        df_unique.shape[0],
+        df_unique["year"].min(),
+        df_unique["year"].max(),
     )
 
     # Select and rename columns
     final_df = df_unique[output_columns].rename(columns={col: column_map[col] for col in output_columns})
-    logger.info(f"Final data frame has {final_df.shape[0]} rows and {final_df.shape[1]} columns")
+    logger.info("Final data frame has %s rows and %s columns", final_df.shape[0], final_df.shape[1])
 
     return final_df
 
 
 def save_output_files(
     formatted_df: pd.DataFrame,
-    output_dir: str,
+    output_dir: str | Path,
     output_base: str,
-    projection_info: dict[str, Any],
+    extrapolation_info: dict[str, Any],
     *,
-    alpha: float,
-    capital_output_ratio: float,
-    input_file: str,
     end_year: int,
 ) -> bool:
-    """Save the processed data to output files (CSV and markdown).
+    """Save output files in CSV and markdown formats.
 
     Args:
         formatted_df: The formatted dataframe to save
-        output_dir: The output directory path
-        output_base: The base name for output files
-        projection_info: Projection metadata
-        alpha: Alpha parameter for capital share
-        capital_output_ratio: Capital-output ratio
-        input_file: Input file path
-        end_year: End year for projections
+        output_dir: Output directory path
+        output_base: Base name for output files
+        extrapolation_info: Information about extrapolation methods used
+        end_year: End year for the data
 
     Returns:
-        True if successful, False otherwise
+        True if all files were saved successfully, False otherwise
     """
     success = True
+    output_dir = Path(output_dir)
 
     # Save CSV output
-    csv_path = os.path.join(output_dir, f"{output_base}.csv")
-    logger.info(f"Writing CSV to: {csv_path}")
+    csv_path = output_dir / f"{output_base}.csv"
+    logger.info("Writing CSV to: %s", csv_path)
     try:
         formatted_df.to_csv(csv_path, index=False, na_rep="nan")
-        logger.info(f"Successfully wrote CSV data to {csv_path}")
-    except Exception as e:
-        logger.error(f"Error writing CSV file: {e}")
+        logger.info("Successfully wrote CSV data to %s", csv_path)
+    except (OSError, PermissionError, ValueError):
+        logger.exception("Error writing CSV file")
         success = False
 
     # Save markdown output
-    md_path = os.path.join(output_dir, f"{output_base}.md")
-    logger.info(f"Creating markdown table at: {md_path}")
+    md_path = output_dir / f"{output_base}.md"
+    logger.info("Creating markdown table at: %s", md_path)
     try:
         create_markdown_table(
             formatted_df,
-            md_path,
-            projection_info,
-            alpha=alpha,
-            capital_output_ratio=capital_output_ratio,
-            input_file=input_file,
+            str(md_path),
+            extrapolation_info,
             end_year=end_year,
         )
-        logger.info(f"Successfully created markdown table at {md_path}")
-    except Exception as e:
-        logger.error(f"Error creating markdown table: {e}")
+        logger.info("Successfully created markdown table at %s", md_path)
+    except (OSError, PermissionError, ValueError):
+        logger.exception("Error creating markdown table")
         success = False
 
     return success

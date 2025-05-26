@@ -16,6 +16,66 @@ from config import Config
 from .markdown_template import MARKDOWN_TEMPLATE
 
 
+def _get_display_name(var: str, column_mapping: dict[str, str]) -> str:
+    """Get display name for a variable using column mapping."""
+    for disp, internal in column_mapping.items():
+        if internal == var:
+            return disp
+    return var
+
+
+def _format_years_string(years: list[int]) -> str:
+    """Format years list into a readable string."""
+    if len(years) == 1:
+        return str(years[0])
+    return f"{years[0]}-{years[-1]}"
+
+
+def _categorize_extrapolation_method(method: str) -> str:
+    """Categorize extrapolation method into standard groups."""
+    if "ARIMA" in method:
+        return "ARIMA(1,1,1)"
+    if "growth rate" in method:
+        return "Average growth rate"
+    if "regression" in method:
+        return "Linear regression"
+    if "Investment" in method or "investment" in method:
+        return "Investment-based projection"
+    if "IMF" in method:
+        return "IMF projections"
+    return "Extrapolated"
+
+
+def _process_extrapolation_info(extrapolation_info: dict[str, Any]) -> tuple[list[str], dict[str, list[str]]]:
+    """Process extrapolation info to create notes and method groupings."""
+    column_mapping = Config.get_inverse_column_map()
+    notes = []
+    extrapolation_methods: dict[str, list[str]] = {
+        "ARIMA(1,1,1)": [],
+        "Average growth rate": [],
+        "Linear regression": [],
+        "Investment-based projection": [],
+        "IMF projections": [],
+        "Extrapolated": [],
+    }
+
+    for var, info in extrapolation_info.items():
+        if not info["years"]:
+            continue
+
+        display_name = _get_display_name(var, column_mapping)
+        years_str = _format_years_string(info["years"])
+
+        # Add to notes
+        notes.append(f"- {display_name}: {info['method']} ({years_str})")
+
+        # Categorize method
+        method_category = _categorize_extrapolation_method(info["method"])
+        extrapolation_methods[method_category].append(f"{display_name} ({years_str})")
+
+    return notes, extrapolation_methods
+
+
 def create_markdown_table(
     data: pd.DataFrame,
     output_path: str,
@@ -45,61 +105,16 @@ def create_markdown_table(
         - Mathematical formulas for derived variables
         - Extrapolation method documentation
     """
-    # Get inverse column mapping from config (display name -> internal name)
-    column_mapping = Config.get_inverse_column_map()
-
     headers = list(data.columns)
     rows = data.to_numpy().tolist()
-    notes = []
 
-    for var, info in extrapolation_info.items():
-        if not info["years"]:
-            continue
-        display_name = var
-        for disp, internal in column_mapping.items():
-            if internal == var:
-                display_name = disp
-                break
-        years = info["years"]
-        years_str = f"{years[0]}" if len(years) == 1 else f"{years[0]}-{years[-1]}"
-        notes.append(f"- {display_name}: {info['method']} ({years_str})")
+    # Process extrapolation information
+    notes, extrapolation_methods = _process_extrapolation_info(extrapolation_info)
 
-    # Group extrapolation methods for detailed notes
-    extrapolation_methods: dict[str, list[str]] = {
-        "ARIMA(1,1,1)": [],
-        "Average growth rate": [],
-        "Linear regression": [],
-        "Investment-based projection": [],
-        "IMF projections": [],
-        "Extrapolated": [],
-    }
-
-    for var, info in extrapolation_info.items():
-        if not info["years"]:
-            continue
-        display_name = var
-        for disp, internal in column_mapping.items():
-            if internal == var:
-                display_name = disp
-                break
-
-        method = info["method"]
-        years_str = f"{info['years'][0]}-{info['years'][-1]}" if len(info["years"]) > 1 else f"{info['years'][0]}"
-
-        if "ARIMA" in method:
-            extrapolation_methods["ARIMA(1,1,1)"].append(f"{display_name} ({years_str})")
-        elif "growth rate" in method:
-            extrapolation_methods["Average growth rate"].append(f"{display_name} ({years_str})")
-        elif "regression" in method:
-            extrapolation_methods["Linear regression"].append(f"{display_name} ({years_str})")
-        elif "Investment" in method or "investment" in method:
-            extrapolation_methods["Investment-based projection"].append(f"{display_name} ({years_str})")
-        elif "IMF" in method:
-            extrapolation_methods["IMF projections"].append(f"{display_name} ({years_str})")
-        else:
-            extrapolation_methods["Extrapolated"].append(f"{display_name} ({years_str})")
-
+    # Generate timestamp
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Render template
     tmpl = Template(MARKDOWN_TEMPLATE)
     with Path(output_path).open("w", encoding="utf-8") as f:
         f.write(

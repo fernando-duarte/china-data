@@ -9,12 +9,13 @@ import sys
 import time
 from pathlib import Path
 
+import pandas as pd
+
 # Add project root to Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-import pandas as pd
-
+# ruff: noqa: E402
 from utils.logging_config import (
     LoggedOperation,
     get_logger,
@@ -44,16 +45,20 @@ def demo_basic_structured_logging() -> None:
     )
 
     # Log errors with context
+    def _raise_validation_error() -> None:
+        """Raise a validation error for demonstration."""
+        error_msg = "Invalid data format"
+        raise ValueError(error_msg)
+
     try:
         # Simulate an error
-        raise ValueError("Invalid data format")
+        _raise_validation_error()
     except ValueError as e:
-        logger.error(
+        logger.exception(
             "Data processing failed",
             error_type=type(e).__name__,
             error_message=str(e),
             operation="data_validation",
-            exc_info=True,
         )
 
 
@@ -83,7 +88,7 @@ def demo_data_quality_logging() -> None:
     logger = get_logger("demo")
 
     # Create sample data with issues
-    df = pd.DataFrame(
+    sample_data = pd.DataFrame(
         {
             "year": [2020, 2021, 2022, 2023],
             "GDP_USD_bn": [14.7, None, 16.2, 17.1],  # Missing value
@@ -92,7 +97,7 @@ def demo_data_quality_logging() -> None:
     )
 
     # Log data quality issues
-    missing_gdp = df["GDP_USD_bn"].isna().sum()
+    missing_gdp = sample_data["GDP_USD_bn"].isna().sum()
     if missing_gdp > 0:
         log_data_quality_issue(
             logger,
@@ -101,11 +106,11 @@ def demo_data_quality_logging() -> None:
             data_source="World Bank",
             affected_records=missing_gdp,
             column="GDP_USD_bn",
-            total_records=len(df),
+            total_records=len(sample_data),
         )
 
     # Check for outliers
-    gdp_values = df["GDP_USD_bn"].dropna()
+    gdp_values = sample_data["GDP_USD_bn"].dropna()
     mean_gdp = gdp_values.mean()
     std_gdp = gdp_values.std()
     outliers = gdp_values[(gdp_values > mean_gdp + 3 * std_gdp) | (gdp_values < mean_gdp - 3 * std_gdp)]

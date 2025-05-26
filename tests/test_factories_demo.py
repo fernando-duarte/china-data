@@ -344,10 +344,14 @@ class TestFactoryRealism:
         df["export_ratio"] = df["X_USD_bn"] / df["GDP_USD_bn"]
 
         # Check realistic ranges for China
-        assert (df["consumption_ratio"] >= 0.3).all() and (df["consumption_ratio"] <= 0.7).all()
-        assert (df["investment_ratio"] >= 0.1).all() and (df["investment_ratio"] <= 0.6).all()
-        assert (df["government_ratio"] >= 0.05).all() and (df["government_ratio"] <= 0.3).all()
-        assert (df["export_ratio"] >= 0.05).all() and (df["export_ratio"] <= 0.4).all()
+        assert (df["consumption_ratio"] >= 0.3).all()
+        assert (df["consumption_ratio"] <= 0.7).all()
+        assert (df["investment_ratio"] >= 0.1).all()
+        assert (df["investment_ratio"] <= 0.6).all()
+        assert (df["government_ratio"] >= 0.05).all()
+        assert (df["government_ratio"] <= 0.3).all()
+        assert (df["export_ratio"] >= 0.05).all()
+        assert (df["export_ratio"] <= 0.4).all()
 
     def test_china_scenario_realism(self):
         """Test that China growth scenario is realistic."""

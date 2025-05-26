@@ -54,26 +54,28 @@ def handle_data_operation(
                 # Use structured logging if available, otherwise fall back to standard logging
                 if hasattr(logger, "bind"):
                     # Structured logging
-                    logger.error(
-                        f"Error in {operation_name}",
+                    logger.exception(
+                        "Error in %s",
+                        operation_name,
                         operation=operation_name,
                         function=func.__name__,
                         error_type=type(e).__name__,
                         error_message=str(e),
                         args_preview=str(args)[:100],  # Truncate long args
                         kwargs_preview=str(kwargs)[:100],
-                        exc_info=True,
                     )
                 else:
                     # Standard logging
                     logger.log(
                         log_level,
-                        f"Error in {operation_name}: {e!s}",
+                        "Error in %s: %s",
+                        operation_name,
+                        str(e),
                         extra={
                             "operation": operation_name,
                             "function": func.__name__,
-                            "args": str(args)[:100],  # Truncate long args
-                            "kwargs": str(kwargs)[:100],
+                            "function_args": str(args)[:100],  # Truncate long args
+                            "function_kwargs": str(kwargs)[:100],
                         },
                     )
                 if reraise:
@@ -103,16 +105,17 @@ def safe_dataframe_operation(
         def wrapper(*args: Any, **kwargs: Any) -> pd.DataFrame:
             try:
                 result = func(*args, **kwargs)
-                if not isinstance(result, pd.DataFrame):
-                    logger.warning(f"{operation_name} returned non-DataFrame result, converting to empty DataFrame")
-                    return pd.DataFrame()
-                return result
+                if isinstance(result, pd.DataFrame):
+                    return result
+                logger.warning("%s returned non-DataFrame result, converting to empty DataFrame", operation_name)
+                return pd.DataFrame()
             except ChinaDataError:
                 # Re-raise our custom exceptions
                 raise
             except Exception as e:
-                logger.error(
-                    f"Error in {operation_name}: {e!s}",
+                logger.exception(
+                    "Error in %s",
+                    operation_name,
                     extra={"operation": operation_name, "function": func.__name__, "error_type": type(e).__name__},
                 )
                 return default_df if default_df is not None else pd.DataFrame()
@@ -133,18 +136,18 @@ def retry_on_exception(
     def decorator(func: F) -> F:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            attempts = 0
-            while attempts < max_attempts:
+            for attempts in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
                 except allowed_exceptions as e:
-                    attempts += 1
-                    if attempts < max_attempts:
+                    if attempts < max_attempts - 1:
                         if hasattr(logger, "bind"):
                             # Structured logging
                             logger.warning(
-                                f"{error_message} on attempt {attempts}, retrying",
-                                attempt=attempts,
+                                "%s on attempt %d, retrying",
+                                error_message,
+                                attempts + 1,
+                                attempt=attempts + 1,
                                 max_attempts=max_attempts,
                                 delay_seconds=delay,
                                 error_type=type(e).__name__,
@@ -153,25 +156,31 @@ def retry_on_exception(
                         else:
                             # Standard logging
                             logger.warning(
-                                "%s on attempt %d, retrying in %d seconds: %s", error_message, attempts, delay, str(e)
+                                "%s on attempt %d, retrying in %d seconds: %s",
+                                error_message,
+                                attempts + 1,
+                                delay,
+                                str(e),
                             )
                         time.sleep(delay)
                     else:
                         if hasattr(logger, "bind"):
                             # Structured logging
-                            logger.error(
-                                f"{error_message} after {max_attempts} attempts",
+                            logger.exception(
+                                "%s after %d attempts",
+                                error_message,
+                                max_attempts,
                                 max_attempts=max_attempts,
                                 error_type=type(e).__name__,
                                 error_message=str(e),
-                                exc_info=True,
                             )
                         else:
                             # Standard logging
-                            logger.error("%s after %d attempts: %s", error_message, max_attempts, str(e))
+                            logger.exception("%s after %d attempts", error_message, max_attempts)
                         raise
             # This should never be reached due to the logic above, but mypy needs it
-            raise RuntimeError(f"Unexpected exit from retry loop after {max_attempts} attempts")
+            error_msg = f"Unexpected exit from retry loop after {max_attempts} attempts"
+            raise RuntimeError(error_msg)
 
         return cast("F", wrapper)
 

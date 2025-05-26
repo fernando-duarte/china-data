@@ -9,8 +9,8 @@ meets expected structural requirements:
 - No NaN values in the markdown output
 """
 
-import os
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 
 from utils.path_constants import get_absolute_output_path
 
@@ -47,7 +47,7 @@ def test_year_min_value(raw_df):
 
 
 def test_year_max_value_current(raw_df):
-    current_year = datetime.now().year
+    current_year = datetime.now(timezone.utc).year
     max_year = int(raw_df["year"].max())
     assert max_year in {current_year, current_year - 1, current_year - 2}
 
@@ -63,7 +63,6 @@ def test_year_unique(raw_df):
 
 
 def test_no_nan_entries_in_markdown():
-    path = os.path.join(get_absolute_output_path(), "china_data_raw.md")
-    with open(path) as f:
-        content = f.read()
+    path = Path(get_absolute_output_path()) / "china_data_raw.md"
+    content = path.read_text()
     assert "| nan " not in content

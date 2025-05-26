@@ -57,7 +57,7 @@ def format_data_for_output(data_df: pd.DataFrame) -> pd.DataFrame:
                     vals.append(f"{val:.2f}".rstrip("0").rstrip("."))
             elif isinstance(val, int) and col_name == "Year":
                 vals.append(str(val))
-            elif col_name in ["Population", "Labor Force"] and isinstance(val, (int, float)):
+            elif col_name in ["Population", "Labor Force"] and isinstance(val, int | float):
                 vals.append(f"{val:.2f}".rstrip("0").rstrip("."))
             else:
                 vals.append(str(val))

@@ -33,6 +33,9 @@ def test_processed_data_properties():
 
     # Check 1980 initial values for K, X, M
     data_1980 = processed_df[processed_df["Year"] == 1980]
-    assert data_1980["Physical Capital"].iloc[0] > 0 and np.isclose(data_1980["Physical Capital"].iloc[0], 337.49)
-    assert data_1980["Exports"].iloc[0] > 0 and np.isclose(data_1980["Exports"].iloc[0], 19.4057)
-    assert data_1980["Imports"].iloc[0] > 0 and np.isclose(data_1980["Imports"].iloc[0], 21.8427)
+    assert data_1980["Physical Capital"].iloc[0] > 0
+    assert np.isclose(data_1980["Physical Capital"].iloc[0], 337.49)
+    assert data_1980["Exports"].iloc[0] > 0
+    assert np.isclose(data_1980["Exports"].iloc[0], 19.4057)
+    assert data_1980["Imports"].iloc[0] > 0
+    assert np.isclose(data_1980["Imports"].iloc[0], 21.8427)

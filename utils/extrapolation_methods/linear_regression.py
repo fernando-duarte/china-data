@@ -46,7 +46,7 @@ def extrapolate_with_linear_regression(
 
     if len(historical) < min_data_points:
         logger.info(
-            f"Insufficient data for linear regression on {col} (need {min_data_points}, have {len(historical)})"
+            "Insufficient data for linear regression on %s (need %d, have %d)", col, min_data_points, len(historical)
         )
         return df_result, False, f"Insufficient data (need {min_data_points})"
 
@@ -73,9 +73,9 @@ def extrapolate_with_linear_regression(
             # Ensure predictions are non-negative and rounded appropriately
             df_result.loc[df_result.year == year, col] = round(max(0, pred), Config.DECIMAL_PLACES_PROJECTIONS)
 
-        logger.info(f"Successfully applied linear regression to {col} for years {min(yrs)}-{max(yrs)}")
-        return df_result, True, "Linear regression"
-
-    except Exception as e:
-        logger.warning(f"Linear regression failed for {col}, error: {e}")
+        logger.info("Successfully applied linear regression to %s for years %d-%d", col, min(yrs), max(yrs))
+    except (ValueError, TypeError) as e:
+        logger.warning("Linear regression failed for %s, error: %s", col, str(e))
         return df_result, False, f"Linear regression failed: {e!s}"
+
+    return df_result, True, "Linear regression"

@@ -11,7 +11,6 @@ contains the main scripts, utils/, tests/, input/, and output/ directories.
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -54,18 +53,14 @@ def find_file(filename: str, possible_locations_relative_to_root: list[str] | No
     checked_paths = []
     for rel_location in search_locations_relative:
         # Construct absolute path using pathlib
-        if rel_location == ".":
-            # Project root
-            path = project_root / filename
-        else:
-            path = project_root / rel_location / filename
+        path = project_root / filename if rel_location == "." else project_root / rel_location / filename
 
         checked_paths.append(str(path))
         if path.exists():
-            logger.info(f"Found file at: {path}")
+            logger.info("Found file at: %s", path)
             return str(path)
 
-    logger.warning(f"File '{filename}' not found. Searched in: {checked_paths}")
+    logger.warning("File '%s' not found. Searched in: %s", filename, checked_paths)
     return None
 
 

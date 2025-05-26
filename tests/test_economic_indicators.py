@@ -35,7 +35,6 @@ class TestCalculateTFP:
         assert (result["TFP"] > 0).all()
 
         # Verify calculation for first row
-        # TFP = GDP / (K^alpha * (L*H)^(1-alpha))
         expected_tfp_0 = 1000 / ((3000 ** (1 / 3)) * ((100 * 2.5) ** (2 / 3)))
         assert abs(result.iloc[0]["TFP"] - expected_tfp_0) < 0.01
 
@@ -131,14 +130,6 @@ class TestCalculateEconomicIndicators:
         assert "NX_USD_bn" in result.columns
         expected_nx = complete_data["X_USD_bn"] - complete_data["M_USD_bn"]
         pd.testing.assert_series_equal(result["NX_USD_bn"], expected_nx, check_names=False)
-
-    # def test_capital_output_ratio_calculation(self, complete_data):
-    #     """Test capital-output ratio calculation."""
-    #     result = calculate_economic_indicators(complete_data)
-    #
-    #     assert "K_Y_ratio" in result.columns
-    #     expected_ratio = complete_data["K_USD_bn"] / complete_data["GDP_USD_bn"]
-    #     pd.testing.assert_series_equal(result["K_Y_ratio"], expected_ratio, check_names=False)
 
     def test_tfp_integration(self, complete_data):
         """Test that TFP is calculated as part of economic indicators."""

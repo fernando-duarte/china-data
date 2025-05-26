@@ -9,8 +9,6 @@ import logging
 import numpy as np
 import pandas as pd
 
-from config import Config
-
 try:
     from utils.logging_config import get_logger
 
@@ -20,50 +18,70 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-def calculate_tfp(
-    df: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, required_columns: dict[str, str] | None = None
-) -> pd.DataFrame:
-    """Calculate Total Factor Productivity (TFP) using a Cobb-Douglas production function.
+def calculate_tfp(df: pd.DataFrame, alpha: float) -> pd.DataFrame:
+    """Calculate Total Factor Productivity using the Cobb-Douglas production function.
 
     Args:
-        df (pd.DataFrame): Input DataFrame with required columns
-        alpha (float): Capital share parameter (default: from Config)
-        required_columns (dict): Mapping of required columns (default: None, uses Config)
+        df: DataFrame containing GDP_USD_bn, K_USD_bn, LF_mn, and hc columns
+        alpha: Capital share parameter (0 < alpha < 1)
 
     Returns:
-        pd.DataFrame: DataFrame with TFP column added
+        DataFrame with TFP column added
+
+    Formula:
+        TFP = Y / (K^alpha * (L*H)^(1-alpha))
+        Where:
+        - Y = GDP (output)
+        - K = Capital stock
+        - L = Labor force
+        - H = Human capital index
+        - alpha = Capital share parameter
     """
-    # Create a copy to avoid modifying the original
     result = df.copy()
 
-    # Get column mapping
-    cols = required_columns or {"GDP": "GDP_USD_bn", "K": "K_USD_bn", "L": "LF_mn", "H": "hc"}
-
-    # Check if required columns exist
-    missing_cols = [col for col, name in cols.items() if name not in result.columns]
-    if missing_cols:
-        logger.warning("Missing columns for TFP calculation: %s", [cols[col] for col in missing_cols])
-        return result
-
     try:
-        # Extract variables
-        gdp = result[cols["GDP"]]
-        capital = result[cols["K"]]
-        labor = result[cols["L"]]
-        human_capital = result[cols["H"]]
+        # Validate required columns
+        required_cols = ["GDP_USD_bn", "K_USD_bn", "LF_mn", "hc"]
+        missing_cols = [col for col in required_cols if col not in df.columns]
 
-        # Calculate TFP
-        # A = Y / (K^α * (L*H)^(1-α))
+        if missing_cols:
+            logger.warning("Missing required columns for TFP calculation: %s", missing_cols)
+            result["TFP"] = np.nan
+            return result
+
+        # Extract variables
+        gdp = df["GDP_USD_bn"]
+        capital = df["K_USD_bn"]
+        labor = df["LF_mn"]
+        human_capital = df["hc"]
+
+        # Check for valid data
+        valid_mask = (
+            gdp.notna()
+            & capital.notna()
+            & labor.notna()
+            & human_capital.notna()
+            & (gdp > 0)
+            & (capital > 0)
+            & (labor > 0)
+            & (human_capital > 0)
+        )
+
+        if not valid_mask.any():
+            logger.warning("No valid data points for TFP calculation")
+            result["TFP"] = np.nan
+            return result
+
+        # Calculate TFP using Cobb-Douglas production function
         result["TFP"] = gdp / (np.power(capital, alpha) * np.power(labor * human_capital, 1 - alpha))
+
+        # Set invalid calculations to NaN
+        result.loc[~valid_mask, "TFP"] = np.nan
 
         logger.info("TFP calculation completed successfully")
 
-    except Exception as e:
-        logger.error("Error calculating TFP: %s", str(e))
+    except (ValueError, TypeError, ZeroDivisionError):
+        logger.exception("Error calculating TFP")
         result["TFP"] = np.nan
-
-    # Check if any valid TFP values were calculated
-    if not result["TFP"].notna().any():
-        logger.warning("No valid TFP values calculated")
 
     return result

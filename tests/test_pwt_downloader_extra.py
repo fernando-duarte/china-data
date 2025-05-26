@@ -56,20 +56,23 @@ class TestPWTDownloaderExtra:
             result = get_pwt_data()
 
         # Check that year is first column (common convention)
-        assert list(result.columns)[0] == "year"
+        assert next(iter(result.columns)) == "year"
 
     @patch("utils.data_sources.pwt_downloader.get_cached_session")
     @patch("logging.Logger.error")
     def test_get_pwt_data_logs_warning_on_error(self, mock_log, mock_session):
         """Test that errors are logged on download failure."""
+        api_error_msg = "API Error"
 
         class BadSession:
             def get(self, url, stream=True, timeout=30):
-                raise requests.exceptions.RequestException("API Error")
+                raise requests.exceptions.RequestException(api_error_msg)
 
         mock_session.return_value = BadSession()
-        with patch("pandas.read_excel", return_value=pd.DataFrame()):
-            with pytest.raises(Exception):
-                get_pwt_data()
+        with (
+            patch("pandas.read_excel", return_value=pd.DataFrame()),
+            pytest.raises(requests.exceptions.RequestException, match="API Error"),
+        ):
+            get_pwt_data()
 
         mock_log.assert_called()

@@ -91,7 +91,7 @@ class TestChinaDataProcessorOutput:
         assert "year" in result.columns
         assert "GDP_USD_bn" in result.columns
 
-    @pytest.mark.parametrize("alpha,k_y_ratio", [(0.25, 2.5), (0.33, 3.0), (0.40, 3.5), (0.50, 4.0)])
+    @pytest.mark.parametrize(("alpha", "k_y_ratio"), [(0.25, 2.5), (0.33, 3.0), (0.40, 3.5), (0.50, 4.0)])
     def test_parameter_sensitivity(self, sample_raw_data, alpha, k_y_ratio):
         """Test that different parameters produce different results."""
         from utils.capital import calculate_capital_stock

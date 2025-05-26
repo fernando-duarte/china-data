@@ -2,7 +2,7 @@
 
 This module provides argument parsing and validation for the China economic data processor.
 All input parameters are validated to ensure they are within reasonable ranges:
-- Alpha (capital share): 0 ≤ α ≤ 1
+- Alpha (capital share): 0 ≤ a ≤ 1
 - Capital-output ratio: > 0
 - End year: 2000 ≤ year ≤ current_year + 100
 """
@@ -10,7 +10,7 @@ All input parameters are validated to ensure they are within reasonable ranges:
 import argparse
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from utils.validation_utils import validate_alpha, validate_capital_output_ratio, validate_end_year
@@ -38,7 +38,7 @@ def validate_arguments(args: Any) -> None:
         errors.append(f"Capital-output ratio must be positive, got {args.capital_output_ratio}")
 
     # Validate end year (reasonable range)
-    current_year = datetime.now().year
+    current_year = datetime.now(tz=timezone.utc).year
     min_year = 2000  # Reasonable minimum for economic data
     max_year = current_year + 100  # Reasonable maximum for projections
 
@@ -49,7 +49,7 @@ def validate_arguments(args: Any) -> None:
     if errors:
         logger.error("Input validation errors:")
         for error in errors:
-            logger.error(f"  - {error}")
+            logger.error("  - %s", error)
         sys.exit(1)
 
 
@@ -94,7 +94,7 @@ def parse_and_validate_args(args: list[str] | None = None) -> argparse.Namespace
     if errors:
         logger.error("Input validation errors:")
         for error in errors:
-            logger.error(f"  - {error}")
+            logger.error("  - %s", error)
         raise ValueError("\n".join(errors))
 
     return parsed_args

@@ -46,7 +46,7 @@ def extrapolate_with_arima(
     historical = df_result[["year", col]].dropna()
 
     if len(historical) < min_data_points:
-        logger.info(f"Insufficient data for ARIMA on {col} (need {min_data_points}, have {len(historical)})")
+        logger.info("Insufficient data for ARIMA on %s (need %d, have %d)", col, min_data_points, len(historical))
         return df_result, False, f"Insufficient data (need {min_data_points})"
 
     # Get the last observed year
@@ -71,10 +71,16 @@ def extrapolate_with_arima(
             df_result.loc[df_result.year == year, col] = round(max(0, vals[i]), Config.DECIMAL_PLACES_PROJECTIONS)
 
         logger.info(
-            f"Successfully applied ARIMA({order[0]},{order[1]},{order[2]}) to {col} for years {min(yrs)}-{max(yrs)}"
+            "Successfully applied ARIMA(%d,%d,%d) to %s for years %d-%d",
+            order[0],
+            order[1],
+            order[2],
+            col,
+            min(yrs),
+            max(yrs),
         )
         return df_result, True, f"ARIMA({order[0]},{order[1]},{order[2]})"
 
-    except Exception as e:
-        logger.warning(f"ARIMA failed for {col}, error: {e}")
+    except (ValueError, TypeError) as e:
+        logger.warning("ARIMA failed for %s, error: %s", col, str(e))
         return df_result, False, f"ARIMA failed: {e!s}"

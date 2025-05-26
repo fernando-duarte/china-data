@@ -108,7 +108,7 @@ class TestStructuredLogging:
             time.sleep(0.1)
 
             # Read the log file
-            with open(temp_path) as f:
+            with Path(temp_path).open() as f:
                 content = f.read().strip()
 
             # Check if content exists
@@ -174,9 +174,12 @@ class TestStructuredLogging:
 
             logger = get_logger("test")
 
-            with pytest.raises(ValueError):
-                with LoggedOperation(logger, "failing_operation"):
-                    raise ValueError("Test error")
+            test_error_msg = "Test error"
+            with (
+                pytest.raises(ValueError, match="Test error"),
+                LoggedOperation(logger, "failing_operation"),
+            ):
+                raise ValueError(test_error_msg)
 
         output = captured_output.getvalue()
         assert "Operation started" in output

@@ -5,7 +5,7 @@ for data quality assurance.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import pandas as pd
 
@@ -35,7 +35,7 @@ def log_error_with_context(
     if context:
         error_info.update(context)
 
-    logger_instance.log(level, f"{message}: {error!s}", extra=error_info)
+    logger_instance.log(level, "%s: %s", message, str(error), extra=error_info)
 
 
 def validate_dataframe_not_empty(df: pd.DataFrame, name: str) -> None:
@@ -74,7 +74,16 @@ def validate_required_columns(df: pd.DataFrame, required_columns: list[str], nam
         )
 
 
-def safe_numeric_conversion(series: "pd.Series[Union[str, float]]", column_name: str) -> "pd.Series[float]":
+def _raise_conversion_error(column_name: str, series: "pd.Series[str | float]") -> None:
+    """Raise a DataValidationError for failed numeric conversion."""
+    raise DataValidationError(
+        column=column_name,
+        message="All values failed numeric conversion",
+        data_info=f"Sample values: {series.head().tolist()}",
+    )
+
+
+def safe_numeric_conversion(series: "pd.Series[str | float]", column_name: str) -> "pd.Series[float]":
     """Safely convert a pandas Series to numeric, with error handling.
 
     Args:
@@ -92,24 +101,23 @@ def safe_numeric_conversion(series: "pd.Series[Union[str, float]]", column_name:
 
         # Check if all values became NaN
         if converted.isna().all() and not series.isna().all():
-            raise DataValidationError(
-                column=column_name,
-                message="All values failed numeric conversion",
-                data_info=f"Sample values: {series.head().tolist()}",
-            )
+            _raise_conversion_error(column_name, series)
 
         # Log warning if some values failed conversion
         failed_count = converted.isna().sum() - series.isna().sum()
         if failed_count > 0:
             logger.warning(
-                f"Failed to convert {failed_count} values to numeric in column {column_name}",
+                "Failed to convert %d values to numeric in column %s",
+                failed_count,
+                column_name,
                 extra={"column": column_name, "failed_count": failed_count},
             )
 
-        return converted
     except Exception as e:
         raise DataValidationError(
             column=column_name,
             message=f"Numeric conversion failed: {e!s}",
             data_info=f"Series dtype: {series.dtype}, length: {len(series)}",
         ) from e
+
+    return converted

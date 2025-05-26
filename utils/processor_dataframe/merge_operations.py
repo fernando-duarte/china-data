@@ -28,9 +28,9 @@ def merge_dataframe_column(
     if column_name in source_df.columns:
         result_df[column_name] = source_df[column_name]
         non_na_count = result_df[column_name].notna().sum()
-        logger.info(f"Added {description} data for {non_na_count} years")
+        logger.info("Added %s data for %d years", description, non_na_count)
     else:
-        logger.warning(f"{description.capitalize()} calculation failed - {column_name} column not found")
+        logger.warning("%s calculation failed - %s column not found", description.capitalize(), column_name)
         result_df[column_name] = np.nan
         non_na_count = 0
 
@@ -61,10 +61,9 @@ def merge_projections(
 
         if len(valid_proj) > 0:
             # Use efficient dataframe operations for merging
-            result_df = pd.merge(result_df, valid_proj, on="year", how="left", suffixes=("", "_proj"))
+            result_df = result_df.merge(valid_proj, on="year", how="left", suffixes=("", "_proj"))
 
             # Create a mask for rows where we want to use the projection
-            # (original is NA or missing and projection is available)
             mask = result_df[column_name].isna() & result_df[f"{column_name}_proj"].notna()
             proj_count = mask.sum()
 
@@ -78,18 +77,18 @@ def merge_projections(
                 # Get the projected years for metadata
                 projected_years = sorted(result_df.loc[mask, "year"].tolist())
 
-                logger.info(f"Added {proj_count} years of projected {description} data")
+                logger.info("Added %d years of projected %s data", proj_count, description)
 
                 # Create projection metadata
                 projection_info = {"method": method_name, "years": projected_years}
             else:
                 # No projections were needed/applied
                 result_df = result_df.drop(columns=[f"{column_name}_proj"])
-                logger.info(f"No {description} projections needed or applied")
+                logger.info("No %s projections needed or applied", description)
         else:
-            logger.warning(f"No valid {description} projections available (all NA)")
+            logger.warning("No valid %s projections available (all NA)", description)
     else:
-        logger.warning(f"No {description} projections available (column missing)")
+        logger.warning("No %s projections available (column missing)", description)
 
     return result_df, projection_info
 
@@ -115,11 +114,11 @@ def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> tuple[pd.
         logger.warning("No IMF tax data available")
         return result_df, None
 
-    logger.info(f"Found IMF tax data for {tax_data.shape[0]} years")
+    logger.info("Found IMF tax data for %d years", tax_data.shape[0])
 
     try:
         # Perform merge
-        result_df = pd.merge(result_df, tax_data, on="year", how="left", suffixes=("", "_imf"))
+        result_df = result_df.merge(tax_data, on="year", how="left", suffixes=("", "_imf"))
 
         # Check if merge was successful
         if "TAX_pct_GDP_imf" in result_df.columns:
@@ -128,14 +127,14 @@ def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> tuple[pd.
             non_na_count = mask.sum()
 
             if non_na_count > 0:
-                logger.info(f"Adding tax revenue data for {non_na_count} years")
+                logger.info("Adding tax revenue data for %d years", non_na_count)
                 result_df.loc[mask, "TAX_pct_GDP"] = result_df.loc[mask, "TAX_pct_GDP_imf"]
 
             # Clean up by dropping the temporary column
             result_df = result_df.drop(columns=["TAX_pct_GDP_imf"])
         else:
             logger.warning("No IMF tax data column found after merge")
-    except Exception as e:
-        logger.error(f"Error merging IMF tax data: {e}")
+    except Exception:
+        logger.exception("Error merging IMF tax data")
 
     return result_df, None

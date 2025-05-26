@@ -93,45 +93,59 @@ class TestProcessorCLI:
 
     def test_invalid_alpha_negative(self):
         """Test that negative alpha values are rejected with validation."""
-        with patch.object(sys, "argv", ["prog", "--alpha", "-0.5"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--alpha", "-0.5"])
+        with (
+            patch.object(sys, "argv", ["prog", "--alpha", "-0.5"]),
+            pytest.raises(ValueError, match="Alpha parameter"),
+        ):
+            parse_and_validate_args(["--alpha", "-0.5"])
 
     def test_invalid_alpha_too_large(self):
         """Test that alpha values greater than 1 are rejected with validation."""
-        with patch.object(sys, "argv", ["prog", "--alpha", "1.5"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--alpha", "1.5"])
+        with (
+            patch.object(sys, "argv", ["prog", "--alpha", "1.5"]),
+            pytest.raises(ValueError, match="Alpha parameter"),
+        ):
+            parse_and_validate_args(["--alpha", "1.5"])
 
     def test_invalid_capital_output_ratio_negative(self):
         """Test that negative capital-output ratio is rejected with validation."""
-        with patch.object(sys, "argv", ["prog", "--capital-output-ratio", "-1"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--capital-output-ratio", "-1"])
+        with (
+            patch.object(sys, "argv", ["prog", "--capital-output-ratio", "-1"]),
+            pytest.raises(ValueError, match="Capital-output ratio"),
+        ):
+            parse_and_validate_args(["--capital-output-ratio", "-1"])
 
     def test_invalid_capital_output_ratio_zero(self):
         """Test that zero capital-output ratio is rejected with validation."""
-        with patch.object(sys, "argv", ["prog", "--capital-output-ratio", "0"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--capital-output-ratio", "0"])
+        with (
+            patch.object(sys, "argv", ["prog", "--capital-output-ratio", "0"]),
+            pytest.raises(ValueError, match="Capital-output ratio"),
+        ):
+            parse_and_validate_args(["--capital-output-ratio", "0"])
 
     def test_invalid_end_year_too_early(self):
         """Test that end years before 2000 are rejected."""
-        with patch.object(sys, "argv", ["prog", "--end-year", "1999"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--end-year", "1999"])
+        with (
+            patch.object(sys, "argv", ["prog", "--end-year", "1999"]),
+            pytest.raises(ValueError, match="End year"),
+        ):
+            parse_and_validate_args(["--end-year", "1999"])
 
     def test_invalid_end_year_too_late(self):
         """Test that end years too far in the future are rejected."""
-        with patch.object(sys, "argv", ["prog", "--end-year", "3000"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--end-year", "3000"])
+        with (
+            patch.object(sys, "argv", ["prog", "--end-year", "3000"]),
+            pytest.raises(ValueError, match="End year"),
+        ):
+            parse_and_validate_args(["--end-year", "3000"])
 
     def test_invalid_end_year_type(self):
         """Test that non-integer end year is rejected."""
-        with patch.object(sys, "argv", ["prog", "--end-year", "abc"]):
-            with pytest.raises(SystemExit):
-                parse_and_validate_args(["--end-year", "abc"])
+        with (
+            patch.object(sys, "argv", ["prog", "--end-year", "abc"]),
+            pytest.raises(SystemExit),
+        ):
+            parse_and_validate_args(["--end-year", "abc"])
 
     def test_help_option(self):
         """Test that help option exits cleanly."""
@@ -142,13 +156,17 @@ class TestProcessorCLI:
 
     def test_alpha_boundary_values(self):
         """Test alpha boundary values (0 and 1)."""
-        with patch.object(sys, "argv", ["prog", "--alpha", "0"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--alpha", "0"])
+        with (
+            patch.object(sys, "argv", ["prog", "--alpha", "0"]),
+            pytest.raises(ValueError, match="Alpha parameter"),
+        ):
+            parse_and_validate_args(["--alpha", "0"])
 
-        with patch.object(sys, "argv", ["prog", "--alpha", "1"]):
-            with pytest.raises(ValueError):
-                parse_and_validate_args(["--alpha", "1"])
+        with (
+            patch.object(sys, "argv", ["prog", "--alpha", "1"]),
+            pytest.raises(ValueError, match="Alpha parameter"),
+        ):
+            parse_and_validate_args(["--alpha", "1"])
 
     def test_float_precision(self):
         """Test that float values maintain precision."""

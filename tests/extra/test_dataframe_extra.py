@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -23,8 +23,9 @@ def test_get_projection_metadata_projection_df():
 
 def test_prepare_final_dataframe_and_save(tmp_path, monkeypatch):
     df = pd.DataFrame({"year": [2020, 2020, 2021], "val": [1, 1, 2]})
+    output_columns = ["year", "val"]
     column_map = {"year": "Year", "val": "Value"}
-    final_df = out_ops.prepare_final_dataframe(df, column_map)
+    final_df = out_ops.prepare_output_data(df, output_columns, column_map)
     assert list(final_df.columns) == ["Year", "Value"]
     assert len(final_df) == 2
 
@@ -32,8 +33,7 @@ def test_prepare_final_dataframe_and_save(tmp_path, monkeypatch):
 
     def fake_markdown_table(df_, path, *args, **kwargs):
         called["path"] = path
-        with open(path, "w") as f:
-            f.write("ok")
+        Path(path).write_text("ok")
 
     monkeypatch.setattr(out_ops, "create_markdown_table", fake_markdown_table)
     success = out_ops.save_output_files(
@@ -41,11 +41,8 @@ def test_prepare_final_dataframe_and_save(tmp_path, monkeypatch):
         str(tmp_path),
         "data",
         {},
-        alpha=0.3,
-        capital_output_ratio=3.0,
-        input_file="x",
         end_year=2021,
     )
     assert success
-    assert os.path.exists(tmp_path / "data.csv")
-    assert os.path.exists(tmp_path / "data.md")
+    assert (tmp_path / "data.csv").exists()
+    assert (tmp_path / "data.md").exists()

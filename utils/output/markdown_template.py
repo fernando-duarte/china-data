@@ -31,7 +31,7 @@ Net Exports = Exports - Imports
 ### Physical Capital
 Calculated using PWT data with the following formula:
 ```
-K_t = (rkna_t / rkna_2017) × K_2017 × (pl_gdpo_t / pl_gdpo_2017)
+K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)
 ```
 Where:
 - $K_t$ is the capital stock in year $t$ (billions USD)
@@ -45,7 +45,7 @@ Where:
 ### TFP (Total Factor Productivity)
 Calculated using the Cobb-Douglas production function:
 ```
-TFP_t = Y_t / (K_t^α × (L_t × H_t)^(1-α))
+TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))
 ```
 Where:
 - $Y_t$ is GDP in year $t$ (billions USD)

@@ -46,5 +46,5 @@ def test_extrapolate_series_to_end_year(monkeypatch):
         extrapolation_module, "extrapolate_with_linear_regression", mock_extrapolate_with_linear_regression
     )
     out, info = extrapolate_series_to_end_year(df, end_year=2024, raw_data=df)
-    assert 2024 in out["year"].values
+    assert 2024 in out["year"].to_numpy()
     assert isinstance(info, dict)

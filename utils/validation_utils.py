@@ -10,6 +10,10 @@ from utils.error_handling import DataValidationError
 
 logger = logging.getLogger(__name__)
 
+# Constants for validation
+MIN_PROJECTION_YEAR = 2020
+MAX_PROJECTION_YEAR = 2100
+
 
 def validate_year_range(df: pd.DataFrame, year_column: str = "year") -> None:
     """Validate that years are within a reasonable range defined in Config."""
@@ -24,10 +28,12 @@ def validate_year_range(df: pd.DataFrame, year_column: str = "year") -> None:
     max_year = df[year_column].max()
 
     if min_year < Config.MIN_YEAR:
-        logger.warning(f"Data found for year {min_year}, which is before Config.MIN_YEAR {Config.MIN_YEAR}")
+        logger.warning("Data found for year %s, which is before Config.MIN_YEAR %s", min_year, Config.MIN_YEAR)
     if max_year > Config.MAX_REASONABLE_YEAR:
         logger.warning(
-            f"Data found for year {max_year}, which is after Config.MAX_REASONABLE_YEAR {Config.MAX_REASONABLE_YEAR}"
+            "Data found for year %s, which is after Config.MAX_REASONABLE_YEAR %s",
+            max_year,
+            Config.MAX_REASONABLE_YEAR,
         )
 
 
@@ -43,7 +49,7 @@ def validate_numeric_values(
     """Validate numeric column values against optional min/max bounds and strict positivity."""
     if column not in df.columns:
         # This column might not be present in all dataframes, so just log and return
-        logger.debug(f"Column '{column}' not found for numeric validation, skipping.")
+        logger.debug("Column '%s' not found for numeric validation, skipping.", column)
         return
 
     if not pd.api.types.is_numeric_dtype(df[column]):
@@ -141,7 +147,7 @@ def validate_dataframe_with_rules(
 
     for column_name, rule in rules.items():
         if column_name in df.columns:
-            logger.debug(f"Validating column '{column_name}' with rule: {rule}")
+            logger.debug("Validating column '%s' with rule: %s", column_name, rule)
             validate_numeric_values(
                 df,
                 column_name,
@@ -152,7 +158,7 @@ def validate_dataframe_with_rules(
             )
         else:
             # This is not necessarily an error if a source doesn't provide all possible indicators
-            logger.debug(f"Column '{column_name}' not found in DataFrame for validation, skipping.")
+            logger.debug("Column '%s' not found in DataFrame for validation, skipping.", column_name)
 
 
 def validate_series(
@@ -177,25 +183,25 @@ def validate_series(
 
     # Check for NaN values
     if series_to_validate.isna().any():
-        logger.warning(f"Found {series_to_validate.isna().sum()} NaN values")
+        logger.warning("Found %s NaN values", series_to_validate.isna().sum())
         return False
 
     # Check for strictly positive values if required
     if strict_positive and (series_to_validate <= 0).any():
         invalid_values = series_to_validate[series_to_validate <= 0]
-        logger.warning(f"Found {len(invalid_values)} non-positive values")
+        logger.warning("Found %s non-positive values", len(invalid_values))
         return False
 
     # Check minimum value if specified
     if min_value is not None and (series_to_validate < min_value).any():
         invalid_values = series_to_validate[series_to_validate < min_value]
-        logger.warning(f"Found {len(invalid_values)} values below minimum {min_value}")
+        logger.warning("Found %s values below minimum %s", len(invalid_values), min_value)
         return False
 
     # Check maximum value if specified
     if max_value is not None and (series_to_validate > max_value).any():
         invalid_values = series_to_validate[series_to_validate > max_value]
-        logger.warning(f"Found {len(invalid_values)} values above maximum {max_value}")
+        logger.warning("Found %s values above maximum %s", len(invalid_values), max_value)
         return False
 
     return True
@@ -228,4 +234,4 @@ def validate_capital_output_ratio(ratio: float) -> bool:
 
 def validate_end_year(year: int) -> bool:
     """Validate the end year for projections."""
-    return 2020 <= year <= 2100
+    return MIN_PROJECTION_YEAR <= year <= MAX_PROJECTION_YEAR

@@ -157,7 +157,7 @@ class TestRenderMarkdownTable:
         assert "Human capital index" in result
 
     @pytest.mark.parametrize(
-        "column,expected_format",
+        ("column", "expected_format"),
         [
             ("GDP_USD", ".2f"),  # 2 decimal places
             ("POP", ",.0f"),  # comma separated, no decimals

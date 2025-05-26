@@ -16,16 +16,21 @@ from utils.error_handling import DataDownloadError
 
 
 # Create module-like objects for backward compatibility with the test code
-class wdi_downloader:
+class WdiDownloader:
     download_wdi_data = download_wdi_data
     wb = __import__("pandas_datareader", fromlist=["wb"]).wb
     time = __import__("time")
 
 
-class pwt_downloader:
+class PwtDownloader:
     get_pwt_data = get_pwt_data
     pd = __import__("pandas", fromlist=["pd"])
     requests = __import__("requests")
+
+
+# Create instances for backward compatibility
+wdi_downloader = WdiDownloader()
+pwt_downloader = PwtDownloader()
 
 
 class DummySession:
@@ -56,7 +61,8 @@ def test_download_wdi_data_success(monkeypatch):
 
 def test_download_wdi_data_failure(monkeypatch):
     def fail(*a, **k):
-        raise RuntimeError("fail")
+        msg = "fail"
+        raise RuntimeError(msg)
 
     monkeypatch.setattr(wdi_downloader.wb, "download", fail)
     monkeypatch.setattr(wdi_downloader.time, "sleep", lambda s: None)
@@ -103,7 +109,8 @@ def test_get_pwt_data_success(monkeypatch, tmp_path):
 def test_get_pwt_data_error(monkeypatch):
     class ErrorSession(DummySession):
         def get(self, url, stream=True, timeout=30):
-            raise pwt_downloader.requests.exceptions.HTTPError("bad")
+            msg = "bad"
+            raise pwt_downloader.requests.exceptions.HTTPError(msg)
 
     monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession())
     with pytest.raises(pwt_downloader.requests.exceptions.HTTPError):

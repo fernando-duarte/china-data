@@ -83,4 +83,5 @@ Sources:
   {% if imf_date %}Accessed on {{ imf_date }}.{% endif %}
 """
     )
-    return template.render(headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date)
+    rendered: str = template.render(headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date)
+    return rendered

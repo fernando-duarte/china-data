@@ -11,6 +11,7 @@ import os
 import sys
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -30,6 +31,70 @@ try:
     OPENTELEMETRY_AVAILABLE = True
 except ImportError:
     OPENTELEMETRY_AVAILABLE = False
+
+
+def setup_structured_logging(
+    log_level: str = "INFO",
+    log_file: str | None = None,
+    enable_json: bool = False,
+    enable_console: bool = True,
+    include_process_info: bool = False,
+) -> None:
+    """Set up structured logging with the expected signature for backward compatibility.
+
+    Args:
+        log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        log_file: Optional log file path
+        enable_json: Whether to use JSON format
+        enable_console: Whether to enable console output
+        include_process_info: Whether to include process information
+    """
+    # Configure standard library logging
+    logging.basicConfig(
+        format="%(message)s",
+        stream=sys.stdout if enable_console else None,
+        level=getattr(logging, log_level.upper()),
+    )
+
+    # Configure processors
+    processors = [
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        _add_correlation_id,
+    ]
+
+    # Add process info if requested
+    if include_process_info:
+        processors.append(_add_performance_metrics)
+
+    # Add final renderer based on format type
+    if enable_json:
+        processors.append(structlog.processors.JSONRenderer())
+    else:
+        processors.append(structlog.dev.ConsoleRenderer(colors=True))
+
+    # Configure structlog
+    structlog.configure(
+        processors=processors,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+
+    # Configure file logging if specified
+    if log_file:
+        file_handler = logging.FileHandler(Path(log_file))
+        file_handler.setLevel(getattr(logging, log_level.upper()))
+        file_formatter = logging.Formatter("%(message)s")
+        file_handler.setFormatter(file_formatter)
+        logging.getLogger().addHandler(file_handler)
 
 
 def configure_logging(

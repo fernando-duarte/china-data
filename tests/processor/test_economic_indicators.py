@@ -54,18 +54,17 @@ def test_calculate_economic_indicators():
     # Check some calculations
     assert np.allclose(result["NX_USD_bn"], result["X_USD_bn"] - result["M_USD_bn"])
     # Compare T_USD_bn with expected calculation, considering rounding
-    expected_T_USD_bn = (data["TAX_pct_GDP"] / 100) * data["GDP_USD_bn"]
-    assert np.allclose(result["T_USD_bn"], expected_T_USD_bn.round(Config.DECIMAL_PLACES_CURRENCY))
+    expected_t_usd_bn = (data["TAX_pct_GDP"] / 100) * data["GDP_USD_bn"]
+    assert np.allclose(result["T_USD_bn"], expected_t_usd_bn.round(Config.DECIMAL_PLACES_CURRENCY))
 
     # Corrected saving calculation assertion based on S = Y - C - G
-    expected_S_USD_bn = data["GDP_USD_bn"] - data["C_USD_bn"] - data["G_USD_bn"]
-    assert np.allclose(result["S_USD_bn"], expected_S_USD_bn.round(Config.DECIMAL_PLACES_CURRENCY))
+    expected_s_usd_bn = data["GDP_USD_bn"] - data["C_USD_bn"] - data["G_USD_bn"]
+    assert np.allclose(result["S_USD_bn"], expected_s_usd_bn.round(Config.DECIMAL_PLACES_CURRENCY))
 
     # New tests for economic indicators
     # private saving + public saving = saving
     assert np.allclose(result["S_USD_bn"], result["S_priv_USD_bn"].fillna(0) + result["S_pub_USD_bn"].fillna(0))
 
-    # openness = (exports+imports)/Y
     expected_processor_openness = (result["X_USD_bn"] + result["M_USD_bn"]) / result["GDP_USD_bn"]
     assert result["Openness_Ratio"].tolist() == pytest.approx(expected_processor_openness.tolist(), rel=1e-4)
 
@@ -80,7 +79,6 @@ def test_calculate_economic_indicators():
     # taxes > 0 (for years where tax data is available)
     assert (result.loc[result["TAX_pct_GDP"].notna(), "T_USD_bn"].dropna() > 0).all()
 
-    # A > 0 (TFP > 0)
     assert (result["TFP"].dropna() > 0).all()
 
     processed_data = calculate_economic_indicators(data)

@@ -165,6 +165,17 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # Ignore import violations in __init__ files
 "__init__.py" = ["F401", "F403"]
 
+# Allow performance overhead in retry logic
+"utils/data_sources/wdi_downloader.py" = ["PERF203"]
+"utils/error_handling/decorators.py" = ["PERF203"]
+
+# Allow TRY300 where it conflicts with pylint no-else-return/no-else-raise
+"utils/data_sources/fallback_loader.py" = ["TRY300"]
+"utils/data_sources/fallback_utils.py" = ["TRY300"]
+"utils/data_sources/imf_loader.py" = ["TRY300"]
+"utils/error_handling/validators.py" = ["TRY300"]
+"utils/extrapolation_methods/average_growth_rate.py" = ["TRY300"]
+
 # Enhanced per-file ignores for better granularity
 "examples/**/*.py" = [
     "T201", "T203", # Allow prints and relaxed docs in examples

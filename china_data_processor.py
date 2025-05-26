@@ -65,9 +65,9 @@ def process_data(
             # Only use projections for future years
             projected_years = [y for y in imf_tax_data["year"] if y > Config.IMF_PROJECTION_START_YEAR]
             if projected_years:
-                logger.info(f"Using IMF tax revenue projections for years: {projected_years}")
+                logger.info("Using IMF tax revenue projections for years: %s", projected_years)
                 for year in projected_years:
-                    if year in imf_tax_data["year"].values:
+                    if year in imf_tax_data["year"].to_numpy():
                         tax_value = imf_tax_data.loc[imf_tax_data.year == year, "TAX_pct_GDP"].iloc[0]
                         processed_data.loc[processed_data.year == year, "TAX_pct_GDP"] = tax_value
 
@@ -76,11 +76,11 @@ def process_data(
             processed_data, end_year=args.end_year, raw_data=raw_data
         )
 
-        return processed_data, extrapolation_info
-
-    except Exception as e:
-        logger.error(f"Error processing data: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error processing data")
         raise
+
+    return processed_data, extrapolation_info
 
 
 def main() -> None:
@@ -135,10 +135,8 @@ def main() -> None:
         create_markdown_table(processed_data, md_file, extrapolation_info)
         structured_logger.info("Created markdown table at %s", md_file)
 
-        return
-
-    except Exception as e:
-        structured_logger.error("Error processing data: %s", e, exc_info=True)
+    except Exception:
+        structured_logger.exception("Error processing data")
         sys.exit(1)
 
 

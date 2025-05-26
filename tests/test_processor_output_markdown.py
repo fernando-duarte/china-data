@@ -140,9 +140,9 @@ class TestCreateMarkdownTable:
 
         # Check for formula sections
         assert "Net Exports = Exports - Imports" in written_content
-        assert "TFP_t = Y_t / (K_t^α × (L_t × H_t)^(1-α))" in written_content
-        # The K_t formula uses × instead of *
-        assert "K_t = (rkna_t / rkna_2017) × K_2017" in written_content
+        assert "TFP_t = Y_t / (K_t^alpha * (L_t * H_t)^(1-alpha))" in written_content
+        # The K_t formula uses * instead of special characters
+        assert "K_t = (rkna_t / rkna_2017) * K_2017" in written_content
 
     @patch("builtins.open", new_callable=mock_open)
     def test_empty_extrapolation_info(self, mock_file, sample_data):

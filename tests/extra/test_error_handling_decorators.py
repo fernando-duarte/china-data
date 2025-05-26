@@ -22,9 +22,10 @@ def test_handle_data_operation_reraise(monkeypatch):
 
     @decorators.handle_data_operation("boom", reraise=True)
     def boom():
-        raise ValueError("bad")
+        msg = "bad"
+        raise ValueError(msg)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="bad"):
         boom()
 
 
@@ -41,7 +42,8 @@ def test_safe_dataframe_operation_returns_df():
 def test_safe_dataframe_operation_on_error():
     @decorators.safe_dataframe_operation("process")
     def bad(df):
-        raise RuntimeError("fail")
+        msg = "fail"
+        raise RuntimeError(msg)
 
     df = pd.DataFrame({"a": [1]})
     result = bad(df)
@@ -55,7 +57,8 @@ def test_retry_on_exception(monkeypatch):
     def flaky():
         calls["n"] += 1
         if calls["n"] < 2:
-            raise ValueError("try again")
+            msg = "try again"
+            raise ValueError(msg)
         return "ok"
 
     assert flaky() == "ok"

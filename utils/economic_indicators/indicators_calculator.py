@@ -22,6 +22,127 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
+def _calculate_tfp_indicator(result_df: pd.DataFrame, alpha: float, log_instance: logging.Logger) -> pd.DataFrame:
+    """Calculate Total Factor Productivity indicator."""
+    log_instance.info("Calculating Total Factor Productivity (TFP)")
+    try:
+        result_df = calculate_tfp(result_df, alpha)
+        if "TFP" in result_df.columns:
+            non_na_count = result_df["TFP"].notna().sum()
+            log_instance.info("Calculated TFP for %s years", non_na_count)
+        else:
+            log_instance.warning("TFP calculation failed - TFP column not found")
+    except Exception:
+        log_instance.exception("Error calculating TFP")
+        if "TFP" not in result_df.columns:
+            result_df["TFP"] = np.nan
+    return result_df
+
+
+def _calculate_tax_revenue(result_df: pd.DataFrame, log_instance: logging.Logger) -> pd.DataFrame:
+    """Calculate tax revenue in USD billions."""
+    required_cols = ["TAX_pct_GDP", "GDP_USD_bn"]
+    if all(c in result_df.columns for c in required_cols):
+        log_instance.info("Calculating tax revenue in USD billions (T_USD_bn)")
+        result_df["T_USD_bn"] = (result_df["TAX_pct_GDP"] / 100) * result_df["GDP_USD_bn"]
+        result_df["T_USD_bn"] = result_df["T_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
+        non_na_count = result_df["T_USD_bn"].notna().sum()
+        log_instance.info("Calculated T_USD_bn for %s years", non_na_count)
+    else:
+        missing = [c for c in required_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate T_USD_bn - missing columns: %s", missing)
+        result_df["T_USD_bn"] = np.nan
+    return result_df
+
+
+def _calculate_trade_indicators(result_df: pd.DataFrame, log_instance: logging.Logger) -> pd.DataFrame:
+    """Calculate trade-related indicators (openness ratio and net exports)."""
+    # Trade openness ratio
+    openness_cols = ["X_USD_bn", "M_USD_bn", "GDP_USD_bn"]
+    if all(c in result_df.columns for c in openness_cols):
+        log_instance.info("Calculating trade openness ratio")
+        result_df["Openness_Ratio"] = (result_df["X_USD_bn"] + result_df["M_USD_bn"]) / result_df["GDP_USD_bn"]
+        result_df["Openness_Ratio"] = result_df["Openness_Ratio"].round(Config.DECIMAL_PLACES_RATIOS)
+        non_na_count = result_df["Openness_Ratio"].notna().sum()
+        log_instance.info("Calculated Openness_Ratio for %s years", non_na_count)
+    else:
+        missing = [c for c in openness_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate Openness_Ratio - missing columns: %s", missing)
+        result_df["Openness_Ratio"] = np.nan
+
+    # Net exports
+    nx_cols = ["X_USD_bn", "M_USD_bn"]
+    if all(c in result_df.columns for c in nx_cols):
+        log_instance.info("Calculating net exports (NX_USD_bn)")
+        result_df["NX_USD_bn"] = result_df["X_USD_bn"] - result_df["M_USD_bn"]
+        result_df["NX_USD_bn"] = result_df["NX_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
+        non_na_count = result_df["NX_USD_bn"].notna().sum()
+        log_instance.info("Calculated NX_USD_bn for %s years", non_na_count)
+    else:
+        missing = [c for c in nx_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate NX_USD_bn - missing columns: %s", missing)
+        result_df["NX_USD_bn"] = np.nan
+
+    return result_df
+
+
+def _calculate_saving_indicators(result_df: pd.DataFrame, log_instance: logging.Logger) -> pd.DataFrame:
+    """Calculate saving-related indicators."""
+    # Total saving (National Saving = Y - C - G)
+    total_saving_cols = ["GDP_USD_bn", "C_USD_bn", "G_USD_bn"]
+    if all(c in result_df.columns for c in total_saving_cols):
+        log_instance.info("Calculating total national saving (S_USD_bn = Y - C - G)")
+        result_df["S_USD_bn"] = result_df["GDP_USD_bn"] - result_df["C_USD_bn"] - result_df["G_USD_bn"]
+        result_df["S_USD_bn"] = result_df["S_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
+        non_na_count = result_df["S_USD_bn"].notna().sum()
+        log_instance.info("Calculated S_USD_bn for %s years", non_na_count)
+    else:
+        missing = [c for c in total_saving_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate S_USD_bn - missing columns: %s", missing)
+        result_df["S_USD_bn"] = np.nan
+
+    # Public saving (government saving = tax revenue - government spending)
+    public_saving_cols = ["T_USD_bn", "G_USD_bn"]
+    if all(c in result_df.columns for c in public_saving_cols):
+        log_instance.info("Calculating public saving (S_pub_USD_bn)")
+        result_df["S_pub_USD_bn"] = result_df["T_USD_bn"] - result_df["G_USD_bn"]
+        result_df["S_pub_USD_bn"] = result_df["S_pub_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
+        non_na_count = result_df["S_pub_USD_bn"].notna().sum()
+        log_instance.info("Calculated S_pub_USD_bn for %s years", non_na_count)
+    else:
+        missing = [c for c in public_saving_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate S_pub_USD_bn - missing columns: %s", missing)
+        result_df["S_pub_USD_bn"] = np.nan
+
+    # Private saving (total saving - public saving)
+    private_saving_cols = ["S_USD_bn", "S_pub_USD_bn"]
+    if all(c in result_df.columns for c in private_saving_cols):
+        log_instance.info("Calculating private saving (S_priv_USD_bn)")
+        result_df["S_priv_USD_bn"] = result_df["S_USD_bn"] - result_df["S_pub_USD_bn"]
+        result_df["S_priv_USD_bn"] = result_df["S_priv_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
+        non_na_count = result_df["S_priv_USD_bn"].notna().sum()
+        log_instance.info("Calculated S_priv_USD_bn for %s years", non_na_count)
+    else:
+        missing = [c for c in private_saving_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate S_priv_USD_bn - missing columns: %s", missing)
+        result_df["S_priv_USD_bn"] = np.nan
+
+    # Saving rate (total saving as % of GDP)
+    saving_rate_cols = ["S_USD_bn", "GDP_USD_bn"]
+    if all(c in result_df.columns for c in saving_rate_cols):
+        log_instance.info("Calculating saving rate")
+        result_df["Saving_Rate"] = result_df["S_USD_bn"] / result_df["GDP_USD_bn"]
+        result_df["Saving_Rate"] = result_df["Saving_Rate"].round(Config.DECIMAL_PLACES_RATIOS)
+        non_na_count = result_df["Saving_Rate"].notna().sum()
+        log_instance.info("Calculated Saving_Rate for %s years", non_na_count)
+    else:
+        missing = [c for c in saving_rate_cols if c not in result_df.columns]
+        log_instance.warning("Cannot calculate Saving_Rate - missing columns: %s", missing)
+        result_df["Saving_Rate"] = np.nan
+
+    return result_df
+
+
 def calculate_economic_indicators(
     merged: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, log_instance: logging.Logger | None = None
 ) -> pd.DataFrame:
@@ -38,7 +159,7 @@ def calculate_economic_indicators(
     Args:
         merged: DataFrame containing merged economic data with columns such as
                 GDP_USD_bn, K_USD_bn, LF_mn, hc, TAX_pct_GDP, X_USD_bn, M_USD_bn, etc.
-        alpha: Capital share parameter for TFP calculation (0 < α < 1).
+        alpha: Capital share parameter for TFP calculation (0 < alpha < 1).
                Default value from Config.DEFAULT_ALPHA
         log_instance: Optional logger instance for detailed logging. If None, uses module log_instance.
 
@@ -60,113 +181,18 @@ def calculate_economic_indicators(
     if log_instance is None:
         log_instance = logger
 
-    df = merged.copy()
+    result_df = merged.copy()
 
     # Validate alpha parameter
     if not 0 < alpha < 1:
-        log_instance.warning(f"Invalid alpha value: {alpha}. Using default: {Config.DEFAULT_ALPHA}")
+        log_instance.warning("Invalid alpha value: %s. Using default: %s", alpha, Config.DEFAULT_ALPHA)
         alpha = Config.DEFAULT_ALPHA
 
-    # Calculate Total Factor Productivity (TFP)
-    log_instance.info("Calculating Total Factor Productivity (TFP)")
-    try:
-        df = calculate_tfp(df, alpha=alpha)
-        if "TFP" in df.columns:
-            non_na_count = df["TFP"].notna().sum()
-            log_instance.info(f"TFP calculated for {non_na_count} years")
-        else:
-            log_instance.warning("TFP calculation failed - TFP column not found")
-    except Exception as e:
-        log_instance.error(f"Error calculating TFP: {e}")
-        # Ensure TFP column exists even if calculation fails
-        if "TFP" not in df.columns:
-            df["TFP"] = np.nan
-
-    # Tax revenue in USD billions
-    if all(c in df.columns for c in ["TAX_pct_GDP", "GDP_USD_bn"]):
-        log_instance.info("Calculating tax revenue in USD billions (T_USD_bn)")
-        df["T_USD_bn"] = (df["TAX_pct_GDP"] / 100) * df["GDP_USD_bn"]
-        df["T_USD_bn"] = df["T_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
-        non_na_count = df["T_USD_bn"].notna().sum()
-        log_instance.info(f"Calculated T_USD_bn for {non_na_count} years")
-    else:
-        missing = [c for c in ["TAX_pct_GDP", "GDP_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate T_USD_bn - missing columns: {missing}")
-        df["T_USD_bn"] = np.nan
-
-    # Trade openness ratio (trade as % of GDP)
-    if all(c in df.columns for c in ["X_USD_bn", "M_USD_bn", "GDP_USD_bn"]):
-        log_instance.info("Calculating trade openness ratio")
-        # This is the ratio of total trade (exports + imports) to GDP
-        df["Openness_Ratio"] = (df["X_USD_bn"] + df["M_USD_bn"]) / df["GDP_USD_bn"]
-        df["Openness_Ratio"] = df["Openness_Ratio"].round(Config.DECIMAL_PLACES_RATIOS)
-        non_na_count = df["Openness_Ratio"].notna().sum()
-        log_instance.info(f"Calculated Openness_Ratio for {non_na_count} years")
-    else:
-        missing = [c for c in ["X_USD_bn", "M_USD_bn", "GDP_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate Openness_Ratio - missing columns: {missing}")
-        df["Openness_Ratio"] = np.nan
-
-    # Net exports
-    if all(c in df.columns for c in ["X_USD_bn", "M_USD_bn"]):
-        log_instance.info("Calculating net exports (NX_USD_bn)")
-        df["NX_USD_bn"] = df["X_USD_bn"] - df["M_USD_bn"]
-        df["NX_USD_bn"] = df["NX_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
-        non_na_count = df["NX_USD_bn"].notna().sum()
-        log_instance.info(f"Calculated NX_USD_bn for {non_na_count} years")
-    else:
-        missing = [c for c in ["X_USD_bn", "M_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate NX_USD_bn - missing columns: {missing}")
-        df["NX_USD_bn"] = np.nan
-
-    # Saving calculations
-    # Total saving (National Saving = Y - C - G)
-    if all(c in df.columns for c in ["GDP_USD_bn", "C_USD_bn", "G_USD_bn"]):
-        log_instance.info("Calculating total national saving (S_USD_bn = Y - C - G)")
-        df["S_USD_bn"] = df["GDP_USD_bn"] - df["C_USD_bn"] - df["G_USD_bn"]
-        df["S_USD_bn"] = df["S_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
-        non_na_count = df["S_USD_bn"].notna().sum()
-        log_instance.info(f"Calculated S_USD_bn for {non_na_count} years")
-    else:
-        missing = [c for c in ["GDP_USD_bn", "C_USD_bn", "G_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate S_USD_bn - missing columns: {missing}")
-        df["S_USD_bn"] = np.nan
-
-    # Public saving (government saving = tax revenue - government spending)
-    if all(c in df.columns for c in ["T_USD_bn", "G_USD_bn"]):
-        log_instance.info("Calculating public saving (S_pub_USD_bn)")
-        df["S_pub_USD_bn"] = df["T_USD_bn"] - df["G_USD_bn"]
-        df["S_pub_USD_bn"] = df["S_pub_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
-        non_na_count = df["S_pub_USD_bn"].notna().sum()
-        log_instance.info(f"Calculated S_pub_USD_bn for {non_na_count} years")
-    else:
-        missing = [c for c in ["T_USD_bn", "G_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate S_pub_USD_bn - missing columns: {missing}")
-        df["S_pub_USD_bn"] = np.nan
-
-    # Private saving (total saving - public saving)
-    if all(c in df.columns for c in ["S_USD_bn", "S_pub_USD_bn"]):
-        log_instance.info("Calculating private saving (S_priv_USD_bn)")
-        df["S_priv_USD_bn"] = df["S_USD_bn"] - df["S_pub_USD_bn"]
-        df["S_priv_USD_bn"] = df["S_priv_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
-        non_na_count = df["S_priv_USD_bn"].notna().sum()
-        log_instance.info(f"Calculated S_priv_USD_bn for {non_na_count} years")
-    else:
-        missing = [c for c in ["S_USD_bn", "S_pub_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate S_priv_USD_bn - missing columns: {missing}")
-        df["S_priv_USD_bn"] = np.nan
-
-    # Saving rate (total saving as % of GDP)
-    if all(c in df.columns for c in ["S_USD_bn", "GDP_USD_bn"]):
-        log_instance.info("Calculating saving rate")
-        df["Saving_Rate"] = df["S_USD_bn"] / df["GDP_USD_bn"]
-        df["Saving_Rate"] = df["Saving_Rate"].round(Config.DECIMAL_PLACES_RATIOS)
-        non_na_count = df["Saving_Rate"].notna().sum()
-        log_instance.info(f"Calculated Saving_Rate for {non_na_count} years")
-    else:
-        missing = [c for c in ["S_USD_bn", "GDP_USD_bn"] if c not in df.columns]
-        log_instance.warning(f"Cannot calculate Saving_Rate - missing columns: {missing}")
-        df["Saving_Rate"] = np.nan
+    # Calculate indicators using helper functions
+    result_df = _calculate_tfp_indicator(result_df, alpha, log_instance)
+    result_df = _calculate_tax_revenue(result_df, log_instance)
+    result_df = _calculate_trade_indicators(result_df, log_instance)
+    result_df = _calculate_saving_indicators(result_df, log_instance)
 
     log_instance.info("Economic indicators calculation completed")
-    return df
+    return result_df

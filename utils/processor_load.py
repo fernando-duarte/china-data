@@ -25,10 +25,8 @@ def _find_table_header(lines: list[str]) -> int:
 def _parse_header(header_line: str) -> list[str]:
     """Parse and clean the header line from markdown table."""
     # Clean up header line by removing leading/trailing |
-    if header_line.startswith("|"):
-        header_line = header_line[1:]
-    if header_line.endswith("|"):
-        header_line = header_line[:-1]
+    header_line = header_line.removeprefix("|")
+    header_line = header_line.removesuffix("|")
 
     # Split by | and strip whitespace
     return [h.strip() for h in header_line.split("|") if h.strip()]
