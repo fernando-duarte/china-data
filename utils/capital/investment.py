@@ -74,13 +74,13 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAU
 
         # Iterate through years to calculate investment
         for i in range(1, len(df_clean)):
-            curr_year = df_clean.iloc[i]["year"]
-            prev_year = df_clean.iloc[i - 1]["year"]
+            curr_year = int(df_clean.iloc[i]["year"])
+            prev_year = int(df_clean.iloc[i - 1]["year"])
 
             # Only calculate if years are consecutive
             if curr_year == prev_year + 1:
-                curr_k = df_clean.iloc[i]["K_USD_bn"]
-                prev_k = df_clean.iloc[i - 1]["K_USD_bn"]
+                curr_k = float(df_clean.iloc[i]["K_USD_bn"])
+                prev_k = float(df_clean.iloc[i - 1]["K_USD_bn"])
 
                 # Calculate investment using I_t = K_t - (1-delta) * K_{t-1}
                 inv = curr_k - (1 - delta) * prev_k

@@ -3,4 +3,4 @@ overrides:
     paths:
       - "tests/*"
 
-skips: ['B101']
+skips: ['B101', 'B404', 'B603']

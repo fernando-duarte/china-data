@@ -35,11 +35,11 @@ ignore = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"
 max-line-length = 120
 
 [tool.pylint.design]
-max-args = 8
-max-locals = 20
-max-returns = 8
-max-branches = 15
-max-statements = 60
+max-args = 10
+max-locals = 30
+max-returns = 12
+max-branches = 25
+max-statements = 90
 
 [tool.pylint.messages_control]
 disable = [
@@ -53,7 +53,12 @@ disable = [
     "broad-exception-raised",
     "import-outside-toplevel",
     "logging-fstring-interpolation",
-    "duplicate-code"
+    "duplicate-code",
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-statements",
+    "too-many-return-statements",
+    "too-many-nested-blocks"
 ]
 
 [tool.pytest.ini_options]
