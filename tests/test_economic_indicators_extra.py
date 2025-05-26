@@ -8,6 +8,26 @@ from config import Config
 from utils.economic_indicators import calculate_economic_indicators, calculate_tfp
 
 
+@pytest.fixture
+def complete_data():
+    """Sample data for economic indicator tests."""
+    return pd.DataFrame(
+        {
+            "year": [2020, 2021, 2022],
+            "GDP_USD_bn": [1000, 1100, 1200],
+            "C_USD_bn": [600, 650, 700],
+            "G_USD_bn": [150, 160, 170],
+            "I_USD_bn": [300, 330, 360],
+            "X_USD_bn": [200, 220, 240],
+            "M_USD_bn": [250, 260, 270],
+            "K_USD_bn": [3000, 3300, 3600],
+            "LF_mn": [100, 102, 104],
+            "hc": [2.5, 2.6, 2.7],
+            "TAX_pct_GDP": [15, 16, 17],
+        }
+    )
+
+
 class TestEconomicIndicatorsExtra:
     """Additional tests for economic indicators."""
     def test_total_savings_calculation(self, complete_data):

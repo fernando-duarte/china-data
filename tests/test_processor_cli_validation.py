@@ -16,12 +16,12 @@ class TestProcessorCLIValidation:
                 parse_arguments()
             assert exc_info.value.code == 1
 
-    def test_validation_error_messages(self, capsys):
-        """Test that validation error messages are informative."""
+    def test_validation_error_messages(self, caplog):
+        """Test that validation error messages are logged."""
         with patch.object(sys, "argv", ["prog", "--alpha", "1.5"]):
             with pytest.raises(SystemExit):
                 parse_arguments()
 
-            captured = capsys.readouterr()
-            assert "Input validation errors:" in captured.err
-            assert "Alpha parameter must be between 0 and 1" in captured.err
+        messages = "".join(record.message for record in caplog.records)
+        assert "Input validation errors:" in messages
+        assert "Alpha parameter must be between 0 and 1" in messages
