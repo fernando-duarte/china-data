@@ -9,7 +9,7 @@ Our `.pre-commit-config.yaml` follows modern best practices for Python projects:
 ### 1. **Core Configuration Settings**
 
 - **Version pinning**: All hooks use specific versions for reproducibility
-- **Default Python version**: Set to Python 3.8 for consistency
+- **Default Python version**: Set to Python 3.9 for consistency
 - **Fail fast disabled**: Shows all failures at once for better developer experience
 - **Global exclusions**: Centralized exclude patterns for virtual environments and caches
 

@@ -1,6 +1,33 @@
+[build-system]
+requires = ["setuptools>=67.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "china-data"
+requires-python = ">=3.9"
+description = "China Economic Data Analysis Pipeline"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Fernando Duarte", email = "fernando_duarte@brown.edu"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dynamic = ["version"]
+
 [tool.black]
 line-length = 120
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -28,7 +55,7 @@ ensure_newline_before_comments = true
 skip = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 
 [tool.pylint.main]
-py-version = "3.8"
+py-version = "3.9"
 ignore = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 
 [tool.pylint.format]
@@ -69,7 +96,7 @@ python_functions = "test_*"
 addopts = "-v --tb=short"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
