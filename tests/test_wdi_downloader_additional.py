@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 class TestWDIDownloaderAdditional:
     """Additional tests for WDI downloader."""
+
+    @patch("pandas_datareader.wb.WorldBankReader")
     def test_download_wdi_data_column_naming(self, mock_wb_reader_class):
         """Test that columns are named correctly."""
         # Create data with dots in column name
@@ -65,10 +67,10 @@ class TestWDIDownloaderAdditional:
         result = download_wdi_data("NY.GDP.MKTP.CD")
         assert isinstance(result, pd.DataFrame)
 
-        # Test with exception
+        # Test with exception -> should raise DataDownloadError
         mock_wb_reader_class.return_value.read.side_effect = Exception("Error")
-        result = download_wdi_data("NY.GDP.MKTP.CD")
-        assert isinstance(result, pd.DataFrame)
+        with pytest.raises(DataDownloadError):
+            download_wdi_data("NY.GDP.MKTP.CD")
 
         # Test with empty data
         mock_wb_reader_class.return_value.read.side_effect = None

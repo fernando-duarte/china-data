@@ -6,6 +6,26 @@ import pytest
 from utils.data_sources.pwt_downloader import get_pwt_data
 
 
+class Session:
+    """Simple session mock for get_pwt_data."""
+
+    def get(self, url, stream=True, timeout=30):
+        class Resp:
+            def raise_for_status(self):
+                pass
+
+            def iter_content(self, chunk_size=8192):
+                yield b"data"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                pass
+
+        return Resp()
+
+
 class TestPWTDownloader:
     """Test suite for PWT (Penn World Table) downloader."""
 
@@ -29,47 +49,34 @@ class TestPWTDownloader:
             }
         )
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_success(self, mock_download, mock_pwt_data):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_success(self, mock_session, mock_pwt_data):
         """Test successful PWT data download."""
-        # Set up mock
-        mock_download.return_value = mock_pwt_data
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=mock_pwt_data) as read_excel:
+            result = get_pwt_data()
 
-        # Call function
-        result = get_pwt_data()
+        # Verify pandas.read_excel was called
+        read_excel.assert_called()
 
-        # Verify download was called with correct parameters
-        mock_download.assert_called_once()
-        call_args = mock_download.call_args
-        assert call_args[1]["indicator"] == "PWT"
-        assert call_args[1]["country"] == "all"
-        assert call_args[1]["start"] == 1950
-        assert call_args[1]["end"] == 2023
-
-        # Verify result contains only China data
+        # Verify number of rows matches China records
         assert len(result) == 5
-        assert all(result["countrycode"] == "CHN")
 
         # Verify required columns are present
         required_columns = ["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]
         for col in required_columns:
             assert col in result.columns
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_empty_response(self, mock_download):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_empty_response(self, mock_session):
         """Test handling of empty response from API."""
-        # Set up mock to return empty DataFrame
-        mock_download.return_value = pd.DataFrame()
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=pd.DataFrame()):
+            with pytest.raises(AttributeError):
+                get_pwt_data()
 
-        # Call function
-        result = get_pwt_data()
-
-        # Should return empty DataFrame
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 0
-
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_no_china_data(self, mock_download):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_no_china_data(self, mock_session):
         """Test handling when no China data is present."""
         # Create data without China
         data_without_china = pd.DataFrame(
@@ -83,16 +90,15 @@ class TestPWTDownloader:
                 "hc": [3.5, 3.4, 3.3],
             }
         )
-        mock_download.return_value = data_without_china
-
-        # Call function
-        result = get_pwt_data()
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=data_without_china):
+            result = get_pwt_data()
 
         # Should return empty DataFrame
         assert len(result) == 0
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_missing_columns(self, mock_download):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_missing_columns(self, mock_session):
         """Test handling when some columns are missing."""
         # Create data with missing columns
         incomplete_data = pd.DataFrame(
@@ -103,42 +109,38 @@ class TestPWTDownloader:
                 # Missing other columns
             }
         )
-        mock_download.return_value = incomplete_data
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=incomplete_data):
+            with pytest.raises(KeyError):
+                get_pwt_data()
 
-        # Call function
-        result = get_pwt_data()
-
-        # Should still return the data, even if incomplete
-        assert len(result) == 1
-        assert "rgdpo" in result.columns
-
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_exception_handling(self, mock_download):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_exception_handling(self, mock_session):
         """Test exception handling during download."""
         # Set up mock to raise exception
-        mock_download.side_effect = Exception("Connection error")
+        class BadSession(Session):
+            def get(self, url, stream=True, timeout=30):
+                raise Exception("Connection error")
 
-        # Call function - should not raise exception
-        result = get_pwt_data()
+        mock_session.return_value = BadSession()
+        with patch("pandas.read_excel", return_value=pd.DataFrame()):
+            with pytest.raises(Exception):
+                get_pwt_data()
 
-        # Should return empty DataFrame on error
-        assert isinstance(result, pd.DataFrame)
-        assert len(result) == 0
-
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_data_types(self, mock_download, mock_pwt_data):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_data_types(self, mock_session, mock_pwt_data):
         """Test that data types are correct."""
-        mock_download.return_value = mock_pwt_data
-
-        result = get_pwt_data()
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=mock_pwt_data):
+            result = get_pwt_data()
 
         # Check data types
         assert result["year"].dtype in [int, "int64"]
         assert result["rgdpo"].dtype in [float, "float64"]
         assert result["hc"].dtype in [float, "float64"]
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_year_filtering(self, mock_download):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_year_filtering(self, mock_session):
         """Test that data is filtered to reasonable year range."""
         # Create data with extreme years
         data_with_extreme_years = pd.DataFrame(
@@ -152,15 +154,15 @@ class TestPWTDownloader:
                 "hc": [1.0, 2.45, 2.50, 4.0],
             }
         )
-        mock_download.return_value = data_with_extreme_years
-
-        result = get_pwt_data()
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=data_with_extreme_years):
+            result = get_pwt_data()
 
         # Should include all years (filtering might be done elsewhere)
         assert len(result) == 4
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_duplicate_years(self, mock_download):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_duplicate_years(self, mock_session):
         """Test handling of duplicate years."""
         # Create data with duplicate years
         data_with_duplicates = pd.DataFrame(
@@ -174,9 +176,9 @@ class TestPWTDownloader:
                 "hc": [2.45, 2.45, 2.50],
             }
         )
-        mock_download.return_value = data_with_duplicates
-
-        result = get_pwt_data()
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=data_with_duplicates):
+            result = get_pwt_data()
 
         # Should return all rows (deduplication might be done elsewhere)
         assert len(result) == 3

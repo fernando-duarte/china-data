@@ -15,6 +15,7 @@ from unittest import mock
 
 import pandas as pd
 import pytest
+from utils.error_handling import DataDownloadError
 
 # Use updated import structure
 from utils.data_sources import download_wdi_data, get_pwt_data
@@ -29,9 +30,15 @@ class wdi_downloader:
 
 class pwt_downloader:
     get_pwt_data = get_pwt_data
-    requests = __import__("requests")
     pd = __import__("pandas", fromlist=["pd"])
-    os = __import__("os")
+    requests = __import__("requests")
+
+
+class DummySession:
+    """Simple session mock returning a dummy response."""
+
+    def get(self, url, stream=True, timeout=30):  # noqa: D401 - brief docstring
+        return DummyResponse()
 
 
 def make_df(rows):
@@ -59,8 +66,8 @@ def test_download_wdi_data_failure(monkeypatch):
 
     monkeypatch.setattr(wdi_downloader.wb, "download", fail)
     monkeypatch.setattr(wdi_downloader.time, "sleep", lambda s: None)
-    df = wdi_downloader.download_wdi_data("BAD")
-    assert df.empty
+    with pytest.raises(DataDownloadError):
+        wdi_downloader.download_wdi_data("BAD")
 
 
 class DummyResponse:
@@ -81,7 +88,9 @@ class DummyResponse:
 
 
 def test_get_pwt_data_success(monkeypatch, tmp_path):
-    monkeypatch.setattr(pwt_downloader.requests, "get", lambda url, stream=True: DummyResponse())
+    monkeypatch.setattr(
+        "utils.data_sources.pwt_downloader.get_cached_session", lambda: DummySession()
+    )
     expected = pd.DataFrame(
         {
             "countrycode": ["CHN"],
@@ -100,9 +109,12 @@ def test_get_pwt_data_success(monkeypatch, tmp_path):
 
 
 def test_get_pwt_data_error(monkeypatch):
-    def boom(*a, **k):
-        raise pwt_downloader.requests.exceptions.HTTPError("bad")
+    class ErrorSession(DummySession):
+        def get(self, url, stream=True, timeout=30):
+            raise pwt_downloader.requests.exceptions.HTTPError("bad")
 
-    monkeypatch.setattr(pwt_downloader.requests, "get", boom)
+    monkeypatch.setattr(
+        "utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession()
+    )
     with pytest.raises(pwt_downloader.requests.exceptions.HTTPError):
         pwt_downloader.get_pwt_data()

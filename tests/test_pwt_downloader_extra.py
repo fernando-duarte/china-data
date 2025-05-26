@@ -6,6 +6,24 @@ import pytest
 from utils.data_sources.pwt_downloader import get_pwt_data
 
 
+class Session:
+    def get(self, url, stream=True, timeout=30):
+        class Resp:
+            def raise_for_status(self):
+                pass
+
+            def iter_content(self, chunk_size=8192):
+                yield b"data"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                pass
+
+        return Resp()
+
+
 class TestPWTDownloaderExtra:
     """Additional tests for PWT downloader."""
 
@@ -29,26 +47,27 @@ class TestPWTDownloaderExtra:
             }
         )
 
-    @patch("pandas_datareader.wb.download")
-    def test_get_pwt_data_column_order(self, mock_download, mock_pwt_data):
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    def test_get_pwt_data_column_order(self, mock_session, mock_pwt_data):
         """Test that columns are in expected order."""
-        mock_download.return_value = mock_pwt_data
-
-        result = get_pwt_data()
+        mock_session.return_value = Session()
+        with patch("pandas.read_excel", return_value=mock_pwt_data):
+            result = get_pwt_data()
 
         # Check that year is first column (common convention)
         assert list(result.columns)[0] == "year"
 
-    @patch("pandas_datareader.wb.download")
-    @patch("logging.Logger.warning")
-    def test_get_pwt_data_logs_warning_on_error(self, mock_log, mock_download):
-        """Test that warnings are logged on errors."""
-        mock_download.side_effect = Exception("API Error")
+    @patch("utils.data_sources.pwt_downloader.get_cached_session")
+    @patch("logging.Logger.error")
+    def test_get_pwt_data_logs_warning_on_error(self, mock_log, mock_session):
+        """Test that errors are logged on download failure."""
+        class BadSession:
+            def get(self, url, stream=True, timeout=30):
+                raise requests.exceptions.RequestException("API Error")
 
-        result = get_pwt_data()
+        mock_session.return_value = BadSession()
+        with patch("pandas.read_excel", return_value=pd.DataFrame()):
+            with pytest.raises(Exception):
+                get_pwt_data()
 
-        # Should log warning
         mock_log.assert_called()
-
-        # Should return empty DataFrame
-        assert len(result) == 0
