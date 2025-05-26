@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
       with:
         fetch-depth: 0
 
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
 
     - name: Install UV
       uses: astral-sh/setup-uv@v5
@@ -135,10 +135,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: [build, test-doctests]
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
     steps:
     - name: Deploy to GitHub Pages
       id: deployment
@@ -149,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
 
     - name: Install UV
       uses: astral-sh/setup-uv@v5
@@ -206,7 +202,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
 
     - name: Install UV
       uses: astral-sh/setup-uv@v5
@@ -230,7 +226,7 @@ jobs:
 
     - name: Upload coverage badge
       if: github.ref == 'refs/heads/main'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: docstring-coverage-badge
         path: docs/coverage.svg
