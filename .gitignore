@@ -101,6 +101,11 @@ ipython_config.py
 #uv.lock
 .uv-cache/
 
+# Documentation
+site/
+docs/_build/
+docs/coverage.svg
+
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more

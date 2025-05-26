@@ -14,6 +14,10 @@ help:
 	@echo "  make clean         - Clean up generated files"
 	@echo "  make run-download  - Download raw data"
 	@echo "  make run-process   - Process downloaded data"
+	@echo "  make docs-serve    - Start documentation development server"
+	@echo "  make docs-build    - Build documentation"
+	@echo "  make docs-test     - Test documentation"
+	@echo "  make docs-deploy   - Deploy documentation to GitHub Pages"
 
 # Install production dependencies
 install:
@@ -73,3 +77,34 @@ run-download:
 # Run data processing
 run-process:
 	python china_data_processor.py
+
+# Documentation
+docs-serve:
+	@echo "Starting documentation server..."
+	mkdocs serve
+
+docs-build:
+	@echo "Building documentation..."
+	mkdocs build
+
+docs-deploy:
+	@echo "Deploying documentation to GitHub Pages..."
+	mkdocs gh-deploy --force
+
+docs-test:
+	@echo "Testing documentation..."
+	pytest --doctest-modules --doctest-glob='*.md' docs/
+	mkdocs build --strict
+
+docs-clean:
+	@echo "Cleaning documentation build..."
+	rm -rf site/
+
+# Sphinx documentation (alternative)
+sphinx-build:
+	@echo "Building Sphinx documentation..."
+	sphinx-build -b html docs/ docs/_build/html
+
+sphinx-clean:
+	@echo "Cleaning Sphinx build..."
+	rm -rf docs/_build/
