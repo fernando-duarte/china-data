@@ -1,10 +1,12 @@
 # Architecture Decision Records (ADRs)
 
-This section contains Architecture Decision Records (ADRs) that document important architectural and design decisions made during the development of the China Economic Data Analysis package.
+This section contains Architecture Decision Records (ADRs) that document important architectural and design
+decisions made during the development of the China Economic Data Analysis package.
 
 ## What are ADRs?
 
-Architecture Decision Records are short text documents that capture important architectural decisions made along with their context and consequences. They help teams understand:
+Architecture Decision Records are short text documents that capture important architectural decisions made along
+with their context and consequences. They help teams understand:
 
 - **Why** certain decisions were made
 - **What** alternatives were considered

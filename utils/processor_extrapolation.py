@@ -158,7 +158,7 @@ def _calculate_historical_growth(historical_data: pd.DataFrame, col: str) -> flo
         last_years = historical_data.iloc[-n_years:][col].to_numpy()
         if len(last_years) > 1:
             growth_rates = [(last_years[i] / last_years[i - 1]) - 1 for i in range(1, len(last_years))]
-            return sum(growth_rates) / len(growth_rates)
+            return float(sum(growth_rates) / len(growth_rates))
     return _get_default_growth_rate(col)
 
 

@@ -57,7 +57,7 @@ def setup_structured_logging(
     )
 
     # Configure processors
-    processors = [
+    processors: list[Any] = [
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
@@ -119,7 +119,7 @@ def configure_logging(
     )
 
     # Configure processors based on format type
-    processors = [
+    processors: list[Any] = [
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
@@ -265,14 +265,14 @@ def _get_sampler() -> Any:
     if not OPENTELEMETRY_AVAILABLE:
         return None
 
-    from opentelemetry.sdk.trace.sampling import ALWAYS_OFF, ALWAYS_ON, TraceIdRatioBasedSampler
+    from opentelemetry.sdk.trace.sampling import ALWAYS_OFF, ALWAYS_ON, TraceIdRatioBased
 
     env = os.getenv("ENVIRONMENT", "development").lower()
     sample_rate = float(os.getenv("TRACE_SAMPLE_RATE", "1.0"))
 
     if env == "production":
         # Use rate-based sampling in production
-        return TraceIdRatioBasedSampler(sample_rate)
+        return TraceIdRatioBased(sample_rate)
     if env == "testing":
         # Disable tracing in tests unless explicitly enabled
         return ALWAYS_OFF if not os.getenv("ENABLE_TRACING_IN_TESTS") else ALWAYS_ON
@@ -308,7 +308,7 @@ def _log_hook(span: Any, record: Any) -> None:
         record.trace_id = format(span.get_span_context().trace_id, "032x")
 
 
-def get_logger(name: str, **context: Any) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str, **context: Any) -> Any:
     """Get a structured logger instance with optional context.
 
     Args:
@@ -371,7 +371,7 @@ class LoggerMixin:
     """Mixin class to add structured logging to any class."""
 
     @property
-    def logger(self) -> structlog.stdlib.BoundLogger:
+    def logger(self) -> Any:
         """Get a logger bound to this class."""
         if not hasattr(self, "_logger"):
             class_name = self.__class__.__name__
@@ -380,7 +380,7 @@ class LoggerMixin:
         return self._logger
 
 
-def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:
+def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[misc]
     """Decorator to log function performance metrics."""
 
     @functools.wraps(func)

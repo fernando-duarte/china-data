@@ -17,6 +17,7 @@ from .exceptions import ChinaDataError
 try:
     from utils.logging_config import get_logger
 
+    # Use get_logger for consistency
     logger = get_logger(__name__)
 except ImportError:
     # Fallback to standard logging if structured logging is not available

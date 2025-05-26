@@ -82,7 +82,9 @@
     A_{t+1} = A_t \left(1 + g + f(\text{spillovers}_t)\right),
   $$
 
-where $f(\text{spillovers}_t)$ captures the effect of trade openness, foreign direct investment, and other external factors influencing technology growth, which we model as in Barro and Sala-i-Martin (see Economic Growth, MIT Press, 2nd edition, Chapter 8, 2004, isbn: 9780262025539):
+where $f(\text{spillovers}_t)$ captures the effect of trade openness, foreign direct investment, and other
+external factors influencing technology growth, which we model as in Barro and Sala-i-Martin (see Economic
+Growth, MIT Press, 2nd edition, Chapter 8, 2004, isbn: 9780262025539):
 
 $$
   A_{t+1} = A_t \left(1 + g + \theta\, \text{openness}_t + \phi\, \text{fdi\_ratio}_t \right),
@@ -171,10 +173,10 @@ $$
 
 ### Compute next period's variable values
 
-8. Compute next period's capital:
+1. Compute next period's capital:
    $$ K\_{t+1} = (1-\delta) K_t + I_t $$
 
-9. Compute next period's TFP:
+2. Compute next period's TFP:
    $$
      A_{t+1} = A_t
        (1 + g
@@ -185,7 +187,10 @@ $$
 
 ## Data Notes
 
-The exogenous variables are based on historical data from the World Bank World Development Indicators, Penn World Table 10.01, and IMF Fiscal Monitor. The foreign income index ($Y^*_t$) represents an index of world GDP growth relative to 1980. Government spending and tax revenue show China's dramatic fiscal expansion over the reform period.
+The exogenous variables are based on historical data from the World Bank World Development Indicators, Penn
+World Table 10.01, and IMF Fiscal Monitor. The foreign income index ($Y^*_t$) represents an index of world
+GDP growth relative to 1980. Government spending and tax revenue show China's dramatic fiscal expansion over
+the reform period.
 
 ## Alternative Calibration
 

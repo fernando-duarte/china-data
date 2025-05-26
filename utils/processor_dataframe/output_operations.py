@@ -33,12 +33,13 @@ def prepare_output_data(
     logger.info("Using %s output columns: %s", len(output_columns), output_columns)
 
     # Check for duplicate years
-    duplicated_years = []
+    duplicated_years: list[int] = []
     if "year" in processed_df.columns:
-        duplicated_years = processed_df[processed_df.duplicated(subset=["year"], keep=False)]["year"].unique()
+        duplicated_years_array = processed_df[processed_df.duplicated(subset=["year"], keep=False)]["year"].unique()
+        duplicated_years = duplicated_years_array.tolist()
 
     if len(duplicated_years) > 0:
-        logger.warning("Found duplicate years in data: %s. Will keep first occurrence only.", duplicated_years.tolist())
+        logger.warning("Found duplicate years in data: %s. Will keep first occurrence only.", duplicated_years)
 
     # Drop duplicates
     df_unique = processed_df.drop_duplicates(subset=["year"], keep="first")

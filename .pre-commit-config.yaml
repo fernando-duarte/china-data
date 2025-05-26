@@ -1,7 +1,7 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 default_language_version:
-  python: python3.9
+  python: python3.13
 
 fail_fast: false
 
@@ -49,8 +49,8 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        files: ^(china_data_processor\.py|china_data_downloader\.py)$
-        args: [--ignore-missing-imports]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
+        args: [--ignore-missing-imports, --python-version=3.13]
         additional_dependencies: [types-requests, pandas-stubs, types-pytz]
 
   # Bandit security scanning is now included in Ruff (S prefix rules)
@@ -116,6 +116,7 @@ repos:
     hooks:
       - id: markdownlint
         args: ["--fix"]
+        exclude: ^\.github/
 
 ci:
   autofix_commit_msg: |

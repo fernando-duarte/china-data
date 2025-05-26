@@ -39,7 +39,8 @@ if Config.STRUCTURED_LOGGING_ENABLED:
     logger = get_logger(__name__)
 else:
     logging.basicConfig(level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT)
-    logger = logging.getLogger(__name__)
+    # Use get_logger for consistency even when structured logging is disabled
+    logger = get_logger(__name__)
 
 
 def download_wdi_indicators(end_year: int) -> tuple[dict[str, pd.DataFrame], bool, str]:
@@ -140,7 +141,6 @@ def handle_fallback_data(
                 updated_dates["pwt"] = f"{download_dates['pwt']} (fallback used)"
 
             return all_data, updated_dates
-        
         logger.error("Failed to load fallback data")
 
     return all_data, download_dates

@@ -1,10 +1,12 @@
 # Structured Logging Guide
 
-The China Data Processing project uses [structlog](https://www.structlog.org/) for structured logging, providing better observability, debugging capabilities, and monitoring support.
+The China Data Processing project uses [structlog](https://www.structlog.org/) for structured logging, providing
+better observability, debugging capabilities, and monitoring support.
 
 ## Overview
 
-Structured logging captures log events as structured data rather than plain text, making logs more searchable, analyzable, and suitable for modern log aggregation systems.
+Structured logging captures log events as structured data rather than plain text, making logs more searchable,
+analyzable, and suitable for modern log aggregation systems.
 
 ### Key Features
 
@@ -116,7 +118,7 @@ log_performance_metric(
 
 ### Human-Readable Format (Development)
 
-```
+```text
 2025-05-26 06:40:59 [INFO] Processing data file filename=data.csv file_size_mb=2.5 record_count=1000
 ```
 

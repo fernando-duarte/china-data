@@ -11,5 +11,6 @@
     "allowed_elements": ["br", "img", "a", "code", "pre", "details", "summary"]
   },
   "MD041": false,
+  "MD046": false,
   "no-hard-tabs": false
 }

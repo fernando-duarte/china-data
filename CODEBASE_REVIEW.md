@@ -2,12 +2,16 @@
 
 ### 1. Best Practices
 
-- **Industry Standards:** All code follows current Python guidelines and latest official documentation standards
-- **Tool Configuration:** Development tools (linters, formatters, testers) use latest stable versions and recommended settings
+- **Industry Standards:** All code follows current Python guidelines and latest official documentation
+  standards
+- **Tool Configuration:** Development tools (linters, formatters, testers) use latest stable versions and
+  recommended settings
 - **Code Quality:** Consistent application of clean code principles across all modules and functions
-- **Documentation Standards:** All documentation follows current best practices from official sources and style guides
+- **Documentation Standards:** All documentation follows current best practices from official sources and style
+  guides
 - **Security Compliance:** Code adheres to latest security best practices and vulnerability prevention guidelines
-- **Use Online Resources for Latest Updates:** Check relevant documentation and guides online to ensure most current best practices for codebase's dependencies
+- **Use Online Resources for Latest Updates:** Check relevant documentation and guides online to ensure most
+  current best practices for codebase's dependencies
 
 ## Project Management
 
@@ -21,7 +25,8 @@
 
 ### 2. Complete Documentation
 
-- **Updated README.md:** `README.md` files reflect current state of the codebase (do not add or remove anything from these files, just update if needed)
+- **Updated README.md:** `README.md` files reflect current state of the codebase (do not add or remove
+  anything from these files, just update if needed)
 - **Module Docstrings:** Every Python file has clear module-level docstring explaining purpose and functionality
 - **Function Documentation:** All functions have docstrings with parameter descriptions, return values, and usage examples
 - **Inline Comments:** Explanatory comments for complex logic and business rules

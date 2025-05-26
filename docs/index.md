@@ -8,13 +8,15 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-A comprehensive Python package for downloading, processing, and analyzing economic data for China from multiple authoritative sources including the World Bank, Penn World Table, and IMF Fiscal Monitor.
+A comprehensive Python package for downloading, processing, and analyzing economic data for China from multiple
+authoritative sources including the World Bank, Penn World Table, and IMF Fiscal Monitor.
 
 ## Features
 
 !!! tip "Key Capabilities"
 
-    - **Automated Data Retrieval**: Download economic indicators from World Bank WDI, Penn World Table, and IMF Fiscal Monitor
+    - **Automated Data Retrieval**: Download economic indicators from World Bank WDI, Penn World Table, and
+      IMF Fiscal Monitor
     - **Intelligent Processing**: Clean, validate, and harmonize data from multiple sources
     - **Statistical Extrapolation**: Extend time series using multiple econometric methods
     - **Flexible Output**: Generate data in multiple formats (CSV, Markdown, JSON)
@@ -27,31 +29,25 @@ Get up and running in minutes:
 
 === "Automated Setup"
 
-    ```bash
-    git clone https://github.com/fernandoduarte/china_data.git
-    cd china_data
-    ./setup.sh
-    ```
+        git clone https://github.com/fernandoduarte/china_data.git
+        cd china_data
+        ./setup.sh
 
 === "Manual Setup"
 
-    ```bash
-    git clone https://github.com/fernandoduarte/china_data.git
-    cd china_data
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    pip install -r requirements.txt
-    python china_data_downloader.py
-    python china_data_processor.py
-    ```
+        git clone https://github.com/fernandoduarte/china_data.git
+        cd china_data
+        python -m venv venv
+        source venv/bin/activate  # On Windows: venv\Scripts\activate
+        pip install -r requirements.txt
+        python china_data_downloader.py
+        python china_data_processor.py
 
 === "Docker"
 
-    ```bash
-    git clone https://github.com/fernandoduarte/china_data.git
-    cd china_data
-    docker compose run --rm dev
-    ```
+        git clone https://github.com/fernandoduarte/china_data.git
+        cd china_data
+        docker compose run --rm dev
 
 ## Data Sources
 
@@ -65,44 +61,40 @@ This package integrates data from three authoritative sources:
 
 ## Architecture Overview
 
-```mermaid
-graph TD
-    A[Data Sources] --> B[Downloader]
-    B --> C[Raw Data Cache]
-    C --> D[Processor]
-    D --> E[Validation]
-    E --> F[Extrapolation]
-    F --> G[Output Generation]
+    graph TD
+        A[Data Sources] --> B[Downloader]
+        B --> C[Raw Data Cache]
+        C --> D[Processor]
+        D --> E[Validation]
+        E --> F[Extrapolation]
+        F --> G[Output Generation]
 
-    A1[World Bank WDI] --> A
-    A2[Penn World Table] --> A
-    A3[IMF Fiscal Monitor] --> A
+        A1[World Bank WDI] --> A
+        A2[Penn World Table] --> A
+        A3[IMF Fiscal Monitor] --> A
 
-    G --> H1[CSV Files]
-    G --> H2[Markdown Reports]
-    G --> H3[JSON Data]
-```
+        G --> H1[CSV Files]
+        G --> H2[Markdown Reports]
+        G --> H3[JSON Data]
 
 ## Example Usage
 
-```python
-from config import Config
-from utils.data_sources.world_bank import WorldBankDataSource
-from utils.processor_dataframe.processor import DataProcessor
+    from config import Config
+    from utils.data_sources.world_bank import WorldBankDataSource
+    from utils.processor_dataframe.processor import DataProcessor
 
-# Configure data parameters
-config = Config()
-config.set_alpha(0.33)  # Capital share
-config.set_capital_output_ratio(3.0)  # K/Y ratio
+    # Configure data parameters
+    config = Config()
+    config.set_alpha(0.33)  # Capital share
+    config.set_capital_output_ratio(3.0)  # K/Y ratio
 
-# Download data
-wb_source = WorldBankDataSource()
-data = wb_source.fetch_data(['NY.GDP.MKTP.KD', 'SP.POP.TOTL'])
+    # Download data
+    wb_source = WorldBankDataSource()
+    data = wb_source.fetch_data(['NY.GDP.MKTP.KD', 'SP.POP.TOTL'])
 
-# Process and extrapolate
-processor = DataProcessor(data)
-processed_data = processor.process_all()
-```
+    # Process and extrapolate
+    processor = DataProcessor(data)
+    processed_data = processor.process_all()
 
 !!! example "Interactive Example"
 
@@ -128,7 +120,7 @@ processed_data = processor.process_all()
 
 ## Next Steps
 
-<div class="grid cards" markdown>
+<!-- Grid cards layout -->
 
 - :material-rocket-launch:{ .lg .middle } **Getting Started**
 
@@ -162,8 +154,6 @@ processed_data = processor.process_all()
 
   [:octicons-arrow-right-24: Development Guide](development/contributing.md)
 
-</div>
-
 ## Citation
 
 If you use this package in your research, please cite the original data sources:
@@ -178,7 +168,8 @@ If you use this package in your research, please cite the original data sources:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/fernandoduarte/china_data/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the
+[LICENSE](https://github.com/fernandoduarte/china_data/blob/main/LICENSE) file for details.
 
 !!! warning "Data Licensing"
 

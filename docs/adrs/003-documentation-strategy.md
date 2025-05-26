@@ -6,7 +6,9 @@
 
 ## Context
 
-The China Economic Data Analysis package needed a comprehensive documentation strategy to improve user experience, developer onboarding, and long-term maintainability. The existing documentation consisted primarily of README files and inline comments, which was insufficient for:
+The China Economic Data Analysis package needed a comprehensive documentation strategy to improve user
+experience, developer onboarding, and long-term maintainability. The existing documentation consisted
+primarily of README files and inline comments, which was insufficient for:
 
 1. **User Onboarding**: New users struggled to understand how to use the package effectively
 2. **API Discovery**: Developers couldn't easily find and understand available functions and classes
@@ -23,7 +25,9 @@ The project required a modern documentation solution that could:
 
 ## Decision
 
-We decided to implement a comprehensive documentation strategy using **MkDocs with Material theme** as the primary documentation platform, complemented by **Sphinx for API documentation** and **doctest integration** for interactive examples.
+We decided to implement a comprehensive documentation strategy using **MkDocs with Material theme** as the
+primary documentation platform, complemented by **Sphinx for API documentation** and **doctest integration**
+for interactive examples.
 
 ### Core Components
 
@@ -36,7 +40,7 @@ We decided to implement a comprehensive documentation strategy using **MkDocs wi
 
 ### Documentation Structure
 
-```
+```text
 docs/
 ├── index.md                    # Homepage
 ├── getting-started/           # User onboarding

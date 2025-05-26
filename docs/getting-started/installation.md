@@ -158,7 +158,7 @@ python china_data_downloader.py --end-year=2023
 
 Expected output:
 
-```
+```text
 Starting China economic data download...
 ✓ World Bank data downloaded successfully
 ✓ Penn World Table data downloaded successfully
@@ -175,7 +175,7 @@ python china_data_processor.py --end-year=2023
 
 Expected output:
 
-```
+```text
 Starting China economic data processing...
 ✓ Data loaded and validated
 ✓ Economic indicators calculated
@@ -193,7 +193,7 @@ pytest tests/ -v
 
 All tests should pass with output similar to:
 
-```
+```text
 tests/test_data_integrity.py::test_data_completeness PASSED
 tests/test_processor.py::test_basic_processing PASSED
 ...
@@ -206,7 +206,7 @@ tests/test_processor.py::test_basic_processing PASSED
 
 #### Python Version Error
 
-```
+```text
 Error: Python 3.9+ required, found 3.8.x
 ```
 
@@ -224,7 +224,7 @@ python3.9 -m venv venv
 
 #### Permission Errors
 
-```
+```text
 Permission denied: './setup.sh'
 ```
 
@@ -237,7 +237,7 @@ chmod +x setup.sh
 
 #### Network/Download Errors
 
-```
+```text
 ConnectionError: Failed to download data from World Bank
 ```
 
@@ -259,7 +259,7 @@ ConnectionError: Failed to download data from World Bank
 
 #### Memory Errors
 
-```
+```text
 MemoryError: Unable to allocate array
 ```
 
@@ -279,7 +279,7 @@ MemoryError: Unable to allocate array
 
 #### Dependency Conflicts
 
-```
+```text
 ERROR: pip's dependency resolver does not currently have a solution
 ```
 

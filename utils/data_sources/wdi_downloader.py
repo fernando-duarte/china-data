@@ -83,11 +83,7 @@ def _process_downloaded_data(data: pd.DataFrame, indicator_code: str) -> pd.Data
 
 
 def _handle_download_error(
-    error: Exception,
-    indicator_code: str,
-    country_code: str,
-    attempt: int,
-    is_final_attempt: bool
+    error: Exception, indicator_code: str, country_code: str, attempt: int, is_final_attempt: bool
 ) -> None:
     """Handle download errors with appropriate logging and retry logic."""
     error_context = {
@@ -114,10 +110,7 @@ def _handle_download_error(
         time.sleep(Config.RETRY_DELAY_SECONDS)
     else:
         log_error_with_context(
-            logger,
-            f"Failed to download {indicator_code} after {Config.MAX_RETRIES} attempts",
-            error,
-            error_context
+            logger, f"Failed to download {indicator_code} after {Config.MAX_RETRIES} attempts", error, error_context
         )
 
 
