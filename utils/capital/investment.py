@@ -130,9 +130,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAU
                 # Calculate investment as a percentage of capital stock
                 non_na["I_K_ratio"] = non_na["I_USD_bn"] / non_na["K_USD_bn"]
                 avg_i_k_ratio = non_na["I_K_ratio"].mean()
-                logger.info(
-                    f"Average investment-to-capital ratio: {avg_i_k_ratio:.4f} " f"({avg_i_k_ratio * 100:.2f}%)"
-                )
+                logger.info(f"Average investment-to-capital ratio: {avg_i_k_ratio:.4f} ({avg_i_k_ratio * 100:.2f}%)")
             else:
                 logger.warning("No valid investment calculations")
         else:

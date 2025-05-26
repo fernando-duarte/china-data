@@ -5,6 +5,7 @@ using the Cobb-Douglas production function.
 """
 
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd

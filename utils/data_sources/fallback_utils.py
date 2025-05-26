@@ -74,7 +74,7 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
                 parse_errors.append(f"Line {line_num}: Parse error - {e!s}")
 
     if parse_errors:
-        logger.warning(f"Parse errors in fallback file: {parse_errors[:Config.MAX_LOG_ERRORS_DISPLAYED]}")
+        logger.warning(f"Parse errors in fallback file: {parse_errors[: Config.MAX_LOG_ERRORS_DISPLAYED]}")
         if len(parse_errors) > Config.MAX_LOG_ERRORS_DISPLAYED:
             logger.warning(f"... and {len(parse_errors) - Config.MAX_LOG_ERRORS_DISPLAYED} more parse errors")
 

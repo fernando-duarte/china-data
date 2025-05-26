@@ -80,6 +80,28 @@ repos:
 
   # Docstring checking is now included in Ruff (D prefix rules)
 
+  # Code complexity analysis
+  - repo: local
+    hooks:
+      - id: radon-complexity
+        name: radon complexity check
+        entry: radon
+        language: system
+        args: [cc, --min, B, --show-complexity, .]
+        files: \.py$
+        exclude: ^(tests/|venv/|\.venv/)
+
+  # Docstring coverage checking
+  - repo: local
+    hooks:
+      - id: interrogate
+        name: interrogate docstring coverage
+        entry: interrogate
+        language: system
+        args: [--verbose, --fail-under=80, --exclude=tests, --exclude=venv, .]
+        files: \.py$
+        exclude: ^(tests/|venv/|\.venv/)
+
   # YAML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
@@ -104,5 +126,5 @@ ci:
   autoupdate_branch: ""
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
   autoupdate_schedule: weekly
-  skip: [pip-audit, pylint, mypy] # These require system dependencies
+  skip: [pip-audit, pylint, mypy, radon-complexity, interrogate] # These require system dependencies
   submodules: false

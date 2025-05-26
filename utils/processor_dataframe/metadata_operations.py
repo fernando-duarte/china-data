@@ -1,7 +1,7 @@
 """Functions for handling metadata in the China data processor."""
 
 import logging
-from typing import Any
+from typing import Any, Union
 
 import pandas as pd
 

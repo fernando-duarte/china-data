@@ -64,7 +64,7 @@ class TestChinaDataProcessorOutput:
 
         # Check structure
         assert "# Processed China Economic Data" in written_content
-        assert "| Year | GDP | Population |" in written_content
+        assert "| Union[Year, GDP] | Population |" in written_content
         assert "## Data Sources" in written_content
         assert "## Extrapolation to" in written_content
 

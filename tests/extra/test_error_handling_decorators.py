@@ -1,11 +1,14 @@
-import pandas as pd
 import logging
+
+import pandas as pd
 import pytest
+
 from utils.error_handling import decorators
 
 
 def test_handle_data_operation_return_on_error(monkeypatch):
     monkeypatch.setattr(decorators.logger, "log", lambda *a, **k: None)
+
     @decorators.handle_data_operation("divide", return_on_error="err")
     def divide(a, b):
         return a / b
@@ -16,6 +19,7 @@ def test_handle_data_operation_return_on_error(monkeypatch):
 
 def test_handle_data_operation_reraise(monkeypatch):
     monkeypatch.setattr(decorators.logger, "log", lambda *a, **k: None)
+
     @decorators.handle_data_operation("boom", reraise=True)
     def boom():
         raise ValueError("bad")

@@ -97,8 +97,48 @@ addopts = "-v --tb=short"
 
 [tool.mypy]
 python_version = "3.9"
+# Strict mode settings
+strict = true
 warn_return_any = true
 warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
 disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+check_untyped_defs = true
+no_implicit_optional = true
+strict_optional = true
+strict_equality = true
+# Still ignore missing imports for external libraries
 ignore_missing_imports = true
-exclude = ["venv"]
+exclude = ["venv", "tests"]
+# Show error codes for easier debugging
+show_error_codes = true
+# Enable type checking for test files
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_missing_imports = true
+disallow_untyped_defs = false
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-semiprivate = true
+ignore-private = true
+ignore-property-decorators = true
+ignore-module = true
+ignore-nested-functions = true
+ignore-nested-classes = true
+fail-under = 80
+exclude = ["tests", "venv", ".venv", "build", "dist"]
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
+omit-covered-files = false

@@ -1,7 +1,7 @@
 """Data validation utilities."""
 
 import logging
-from typing import Any
+from typing import Any, Dict, Union
 
 import pandas as pd
 
@@ -35,8 +35,8 @@ def validate_numeric_values(
     df: pd.DataFrame,
     column: str,
     *,
-    min_value: int | float | None = None,
-    max_value: int | float | None = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
     allow_na: bool = True,
     strict_positive: bool = False,
 ) -> None:
@@ -70,8 +70,7 @@ def validate_numeric_values(
         raise DataValidationError(
             column=column,
             message=(
-                f"Values in column '{column}' are below minimum {min_value}. "
-                f"Found: {invalid_values.head().tolist()}"
+                f"Values in column '{column}' are below minimum {min_value}. Found: {invalid_values.head().tolist()}"
             ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
@@ -81,8 +80,7 @@ def validate_numeric_values(
         raise DataValidationError(
             column=column,
             message=(
-                f"Values in column '{column}' are above maximum {max_value}. "
-                f"Found: {invalid_values.head().tolist()}"
+                f"Values in column '{column}' are above maximum {max_value}. Found: {invalid_values.head().tolist()}"
             ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
@@ -158,7 +156,7 @@ def validate_dataframe_with_rules(
 
 
 def validate_series(
-    series_to_validate: pd.Series,
+    series_to_validate: pd.Series[float],
     strict_positive: bool = False,
     min_value: float | None = None,
     max_value: float | None = None,

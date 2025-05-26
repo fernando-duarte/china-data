@@ -11,7 +11,7 @@ import argparse
 import logging
 import sys
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 from utils.validation_utils import validate_alpha, validate_capital_output_ratio, validate_end_year
 

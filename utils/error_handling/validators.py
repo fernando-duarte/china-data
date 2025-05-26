@@ -5,6 +5,7 @@ for data quality assurance.
 """
 
 import logging
+from typing import Any, Dict, List, Union
 
 import pandas as pd
 
@@ -17,7 +18,7 @@ def log_error_with_context(
     logger_instance: logging.Logger,
     message: str,
     error: Exception,
-    context: dict | None = None,
+    context: dict[str, Any] | None = None,
     level: int = logging.ERROR,
 ) -> None:
     """Log an error with additional context information.
@@ -53,7 +54,7 @@ def validate_dataframe_not_empty(df: pd.DataFrame, name: str) -> None:
         )
 
 
-def validate_required_columns(df: pd.DataFrame, required_columns: list, name: str) -> None:
+def validate_required_columns(df: pd.DataFrame, required_columns: list[str], name: str) -> None:
     """Validate that a DataFrame contains required columns.
 
     Args:
@@ -73,7 +74,7 @@ def validate_required_columns(df: pd.DataFrame, required_columns: list, name: st
         )
 
 
-def safe_numeric_conversion(series: pd.Series, column_name: str) -> pd.Series:
+def safe_numeric_conversion(series: pd.Series[str | float], column_name: str) -> pd.Series[float]:
     """Safely convert a pandas Series to numeric, with error handling.
 
     Args:

@@ -5,6 +5,7 @@ including tax revenue, openness ratios, and saving measures.
 """
 
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd

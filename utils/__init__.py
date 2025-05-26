@@ -11,7 +11,7 @@ contains the main scripts, utils/, tests/, input/, and output/ directories.
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ import functools
 import logging
 import time
 from collections.abc import Callable
-from typing import Any, TypeVar, cast
+from typing import Any, Tuple, TypeVar, Union, cast
 
 import pandas as pd
 
@@ -23,7 +23,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 def handle_data_operation(
     operation_name: str, return_on_error: Any = None, log_level: int = logging.ERROR, reraise: bool = False
-) -> Callable:
+) -> Callable[[Callable[..., T]], Callable[..., T | Any]]:
     """Decorator for consistent error handling in data operations.
 
     Args:
@@ -64,7 +64,9 @@ def handle_data_operation(
     return decorator
 
 
-def safe_dataframe_operation(operation_name: str, default_df: pd.DataFrame | None = None) -> Callable:
+def safe_dataframe_operation(
+    operation_name: str, default_df: pd.DataFrame | None = None
+) -> Callable[[Callable[..., pd.DataFrame]], Callable[..., pd.DataFrame]]:
     """Decorator specifically for DataFrame operations that should return empty DataFrame on error.
 
     Args:
@@ -102,7 +104,7 @@ def safe_dataframe_operation(operation_name: str, default_df: pd.DataFrame | Non
 def retry_on_exception(
     max_attempts: int = 3,
     delay: int = 5,
-    allowed_exceptions: tuple = (Exception,),
+    allowed_exceptions: tuple[type[BaseException], ...] = (Exception,),
     error_message: str = "Unexpected error",
 ) -> Callable[[F], F]:
     """Decorator to retry a function on exception."""
@@ -124,9 +126,9 @@ def retry_on_exception(
                     else:
                         logger.error("%s after %d attempts: %s", error_message, max_attempts, str(e))
                         raise
-            return cast(Any, None)  # This line will never be reached but makes mypy happy
+            return cast("Any", None)  # type: ignore[unreachable]  # This line will never be reached but makes mypy happy
 
-        return cast(F, wrapper)
+        return cast("F", wrapper)
 
     return decorator
 
@@ -142,4 +144,4 @@ def log_execution_time(func: F) -> F:
         logger.info("%s took %.2f seconds to execute", func.__name__, end_time - start_time)
         return result
 
-    return cast(F, wrapper)
+    return cast("F", wrapper)

@@ -5,6 +5,7 @@ cross-platform path handling.
 """
 
 from pathlib import Path
+from typing import Dict, List
 
 # Directory names
 INPUT_DIR_NAME = "input"
@@ -38,7 +39,7 @@ def get_absolute_output_path() -> Path:
     return get_project_root() / OUTPUT_DIR_NAME
 
 
-def get_search_locations_relative_to_root() -> dict:
+def get_search_locations_relative_to_root() -> dict[str, list[str]]:
     """Get search locations for various file types relative to project root.
 
     Returns:

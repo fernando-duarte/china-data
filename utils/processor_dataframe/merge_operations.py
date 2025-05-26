@@ -1,7 +1,7 @@
 """Functions for merging dataframes and data in the China data processor."""
 
 import logging
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd

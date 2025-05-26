@@ -95,17 +95,15 @@ select = [
 
 # Ignore specific rules
 ignore = [
+    # Keep some docstring rules disabled for now, but enable more
     "D100",   # Missing docstring in public module
-    "D101",   # Missing docstring in public class
-    "D102",   # Missing docstring in public method
-    "D103",   # Missing docstring in public function
     "D104",   # Missing docstring in public package
     "D105",   # Missing docstring in magic method
-    "D106",   # Missing docstring in public nested class
     "D107",   # Missing docstring in __init__
+    # Enable more annotation rules by removing some ignores
     "ANN101", # Missing type annotation for self
     "ANN102", # Missing type annotation for cls
-    "ANN401", # Dynamically typed expressions (Any)
+    "ANN401", # Dynamically typed expressions (Any) - keep for flexibility
     "S101",   # Use of assert detected
     "T201",   # Print found
     "T203",   # pprint found
