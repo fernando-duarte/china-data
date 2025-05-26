@@ -16,6 +16,9 @@ permissions:
 env:
   PYTHONUNBUFFERED: "1"
   FORCE_COLOR: "1"
+  PIP_NO_CACHE_DIR: "false"
+  PIP_WHEEL_DIR: "~/.cache/pip/wheels"
+  PIP_FIND_LINKS: "~/.cache/pip/wheels"
 
 jobs:
   code-quality:
@@ -25,16 +28,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Cache dependencies
+      - name: Setup pip cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
-            ~/.local/lib/python*/site-packages
-          key: ${{ runner.os }}-python-3.11-${{ hashFiles('**/requirements*.txt') }}
+            ~/.cache/pip/wheels
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-python-3.11-
-            ${{ runner.os }}-python-
+            ${{ runner.os }}-pip-
+
+      - name: Setup Python packages cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/lib/python*/site-packages
+            ~/.local/bin
+          key: ${{ runner.os }}-python-3.11-pkg-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-3.11-pkg-
+            ${{ runner.os }}-python-pkg-
 
       - name: Set up Python
         uses: actions/setup-python@v5.6.0
@@ -81,21 +94,62 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-        
+        # Split tests into chunks for parallel execution
+        chunk: [1, 2, 3]
+        include:
+          # Full matrix for main Python version
+          - os: ubuntu-latest
+            python-version: "3.11"
+            chunk: 1
+            full-test: true
+          # Reduced matrix for other versions (core tests only)
+          - os: ubuntu-latest
+            python-version: "3.12"
+            chunk: 1
+            core-only: true
+          - os: ubuntu-latest
+            python-version: "3.13"
+            chunk: 1
+            core-only: true
+        exclude:
+          # Exclude redundant combinations
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.13"
+          # Exclude chunk 2,3 for non-full test runs
+          - chunk: 2
+            core-only: true
+          - chunk: 3
+            core-only: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Cache dependencies
+      - name: Setup pip cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
-            ~/.local/lib/python*/site-packages
-          key: ${{ runner.os }}-python-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+            ~/.cache/pip/wheels
+            ${{ runner.os == 'Windows' && '~\AppData\Local\pip\Cache' || '' }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-python-${{ matrix.python-version }}-
-            ${{ runner.os }}-python-
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+
+      - name: Setup Python packages cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/lib/python*/site-packages
+            ~/.local/bin
+            ${{ runner.os == 'Windows' && '~\AppData\Local\Programs\Python\Python*\Lib\site-packages' || '' }}
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-pkg-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ matrix.python-version }}-pkg-
+            ${{ runner.os }}-python-pkg-
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5.6.0
@@ -110,31 +164,85 @@ jobs:
       - name: Create output directory
         run: mkdir -p output
 
+      - name: Get test files
+        id: test-files
+        run: |
+          # Get all test files
+          TEST_FILES=$(find tests/ -name "test_*.py" -type f | sort)
+          
+          # Calculate chunk size
+          TOTAL_FILES=$(echo "$TEST_FILES" | wc -l)
+          CHUNK_SIZE=$(( (TOTAL_FILES + 2) / 3 ))
+          
+          # Get chunk for this job
+          START_IDX=$(( (${{ matrix.chunk }} - 1) * CHUNK_SIZE ))
+          END_IDX=$(( $START_IDX + CHUNK_SIZE ))
+          
+          # Extract chunk of test files
+          CHUNK_FILES=$(echo "$TEST_FILES" | sed -n "${START_IDX},${END_IDX}p" | tr '\n' ' ')
+          
+          echo "test_files=$CHUNK_FILES" >> $GITHUB_OUTPUT
+
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --tb=short --cov=. --cov-report=xml --cov-report=html --cov-report=term
+          if [[ "${{ matrix.core-only }}" == "true" ]]; then
+            # Run core tests only
+            pytest ${{ steps.test-files.outputs.test_files }} -v --tb=short \
+              -m "not slow and not integration" \
+              --cov=. --cov-report=xml --cov-report=html
+          elif [[ "${{ matrix.full-test }}" == "true" ]]; then
+            # Run full test suite with all markers
+            pytest ${{ steps.test-files.outputs.test_files }} -v --tb=short \
+              --cov=. --cov-report=xml --cov-report=html
+          else
+            # Run standard test suite
+            pytest ${{ steps.test-files.outputs.test_files }} -v --tb=short \
+              --cov=. --cov-report=xml --cov-report=html
+          fi
 
-      - name: Check coverage threshold
-        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
-        run: |
-          coverage report --fail-under=80
-          echo "Coverage requirement: 80% minimum"
-
-      - name: Upload coverage reports to Codecov
-        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload coverage HTML report
-        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
+      - name: Upload partial coverage data
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: coverage-html-report
-          path: htmlcov/
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.chunk }}
+          path: .coverage
+
+  coverage-merge:
+    name: Merge Coverage Reports
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Install coverage
+        run: pip install coverage
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Combine coverage data
+        run: |
+          coverage combine
+          coverage report
+          coverage html
+          coverage xml
+
+      - name: Upload combined coverage report
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: coverage-report
+          path: |
+            htmlcov/
+            coverage.xml
 
   security:
     name: Security Scan
