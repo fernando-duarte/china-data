@@ -1,11 +1,17 @@
 {
   "name": "China Data Analysis",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
 
   "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "username": "vscode"
+    },
     "ghcr.io/devcontainers/features/git:1": {
       "ppa": true,
-      "version": "latest"
+      "version": "os-provided"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {
       "installDirectlyFromGitHubRelease": true,
@@ -53,6 +59,8 @@
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.terminal.activateEnvironment": true,
         "python.analysis.autoImportCompletions": true,
+        "python.analysis.autoSearchPaths": true,
+        "python.analysis.diagnosticMode": "workspace",
         "python.analysis.typeCheckingMode": "strict",
         "python.formatting.provider": "none",
         "[python]": {
@@ -65,6 +73,8 @@
         "black-formatter.args": ["--line-length=120"],
         "isort.args": ["--profile", "black", "--line-length", "120"],
         "ruff.args": ["--line-length=120"],
+        "ruff.enable": true,
+        "ruff.organizeImports": true,
         "mypy-type-checker.args": ["--strict"],
         "pylint.args": ["--max-line-length=120"],
         "python.testing.pytestEnabled": true,
@@ -94,7 +104,10 @@
     }
   },
 
-  "onCreateCommand": "pip install --upgrade pip && pip install uv",
+  "onCreateCommand": {
+    "pip-upgrade": "pip install --upgrade pip",
+    "install-uv": "pip install uv"
+  },
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
   "waitFor": "postCreateCommand",
@@ -105,7 +118,9 @@
   "containerEnv": {
     "PYTHONPATH": "${containerWorkspaceFolder}",
     "PYTHONUNBUFFERED": "1",
-    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "UV_CACHE_DIR": "/tmp/uv-cache"
   },
 
   "mounts": [

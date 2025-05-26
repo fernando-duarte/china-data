@@ -1,6 +1,8 @@
 # VS Code Development Container
 
-This directory contains the VS Code Development Container configuration for the China Data Analysis project. The devcontainer provides a consistent, fully-configured development environment that works across different machines and operating systems.
+This directory contains the VS Code Development Container configuration for the China Data Analysis project.
+The devcontainer provides a consistent, fully-configured development environment that works across different
+machines and operating systems.
 
 ## 🚀 Quick Start
 
@@ -36,7 +38,9 @@ This directory contains the VS Code Development Container configuration for the 
 
 ### Base Environment
 
-- **Python 3.11** with all project dependencies
+- **Python 3.12** with all project dependencies (latest stable release)
+- **Debian Bookworm** base system (2025 LTS)
+- **Zsh with Oh My Zsh** for enhanced shell experience
 - **Git** and **GitHub CLI** for version control
 - **Docker-in-Docker** for container operations
 - **SQLite3** for database operations
@@ -55,7 +59,7 @@ This directory contains the VS Code Development Container configuration for the 
 
 - **Black** formatter (120 character line length)
 - **isort** import sorting
-- **Ruff** fast Python linter
+- **Ruff** fast Python linter with enhanced features
 - **MyPy** static type checking
 - **pytest** testing framework
 - **pre-commit** hooks
@@ -129,7 +133,7 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 
 ### Python Environment
 
-- **Interpreter**: `/usr/local/bin/python` (Python 3.11)
+- **Interpreter**: `/usr/local/bin/python` (Python 3.12)
 - **Package Manager**: `uv` for fast dependency resolution
 - **Virtual Environment**: Managed automatically by the container
 
@@ -138,7 +142,7 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 - **Line Length**: 120 characters
 - **Formatter**: Black with isort integration
 - **Auto-format**: On save
-- **Import Organization**: Automatic with isort
+- **Import Organization**: Automatic with isort and Ruff
 
 ### Testing Configuration
 
@@ -150,6 +154,26 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 
 - **8888**: Jupyter Lab server
 - **8000**: MkDocs development server
+
+## 🆕 2025 Enhancements
+
+### Modern Base Image
+
+- **Python 3.12**: Latest stable Python release with performance improvements
+- **Debian Bookworm**: Current LTS base system for enhanced security and compatibility
+- **Enhanced Shell**: Zsh with Oh My Zsh for improved developer experience
+
+### Optimized Performance
+
+- **Parallel Command Execution**: Faster container startup with parallel pip and uv installation
+- **Enhanced Caching**: UV cache directory optimization for faster dependency resolution
+- **Modern Python Settings**: Optimized environment variables for Python 3.12
+
+### Enhanced Development Tools
+
+- **Ruff Integration**: Enhanced linting and import organization
+- **Advanced Python Analysis**: Workspace-wide diagnostics and auto-search paths
+- **Common Utilities**: Pre-installed development tools and shell enhancements
 
 ## 🐛 Troubleshooting
 
@@ -202,4 +226,4 @@ When modifying the devcontainer configuration:
 
 ---
 
-**Happy coding! 🎉**
+## Happy coding! 🎉
