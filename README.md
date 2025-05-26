@@ -8,7 +8,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Python package for downloading, processing, and analyzing economic data for China from the World Bank, Penn World Table, and IMF Fiscal Monitor. Includes automated data retrieval, processing pipelines, statistical extrapolation, and CI/CD workflows.
+Python package for downloading, processing, and analyzing economic data for China from the World Bank,
+Penn World Table, and IMF Fiscal Monitor. Includes automated data retrieval, processing pipelines,
+statistical extrapolation, and CI/CD workflows.
 
 ## Quick Start
 
@@ -66,8 +68,34 @@ cd china_data
 
 # Testing only - skip data processing
 ./setup.sh --test
+
+# Use uv for faster dependency resolution (requires: pip install uv)
+./setup.sh --uv --dev
 ```
 
+### Dependency Management Options
+
+This project supports both traditional pip and modern uv for dependency management:
+
+**Using pip (traditional):**
+
+```bash
+make install      # Production dependencies
+make install-dev  # Development dependencies
+```
+
+**Using uv (faster, recommended):**
+
+```bash
+make install-uv      # Production dependencies with uv
+make install-dev-uv  # Development dependencies with uv
+```
+
+**Security scanning:**
+
+```bash
+make security-scan   # Run vulnerability scan on dependencies
+```
 
 ### Setup Options
 
@@ -97,10 +125,10 @@ docker compose build
 docker compose run --rm dev
 ```
 
-This opens a shell inside a container with all dependencies installed. The repository is mounted at `/app`, so you can run `make test` or `./setup.sh` as usual.
+This opens a shell inside a container with all dependencies installed. The repository is mounted at `/app`,
+so you can run `make test` or `./setup.sh` as usual.
 
 ### Manual Setup
-
 
 <details>
 <summary>Click to expand manual setup instructions</summary>
