@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite
+*.db
+*.cache
+.mypy_cache/
+.pytest_cache/
+.venv/
+venv/
+output/
+input/
+workflow_outputs/
+.DS_Store
