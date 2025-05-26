@@ -68,6 +68,7 @@ cd china_data
 ./setup.sh --test
 ```
 
+
 ### Setup Options
 
 ```bash
@@ -89,7 +90,17 @@ cd china_data
 ./setup.sh -a=0.4 -k=2.5 -o=custom_output --end-year=2030 --dev
 ```
 
+### Development with Docker Compose
+
+```bash
+docker compose build
+docker compose run --rm dev
+```
+
+This opens a shell inside a container with all dependencies installed. The repository is mounted at `/app`, so you can run `make test` or `./setup.sh` as usual.
+
 ### Manual Setup
+
 
 <details>
 <summary>Click to expand manual setup instructions</summary>
