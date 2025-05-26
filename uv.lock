@@ -483,6 +483,7 @@ dependencies = [
     { name = "requests-cache" },
     { name = "scikit-learn" },
     { name = "statsmodels" },
+    { name = "structlog" },
 ]
 
 [package.optional-dependencies]
@@ -647,6 +648,7 @@ requires-dist = [
     { name = "scikit-learn", specifier = ">=1.3.2,<2.0" },
     { name = "semgrep", marker = "extra == 'dev'", specifier = ">=1.0,<2.0" },
     { name = "statsmodels", specifier = ">=0.14.4,<1.0" },
+    { name = "structlog", specifier = ">=25.1.0,<26.0" },
     { name = "syrupy", marker = "extra == 'dev'", specifier = ">=4.0,<5.0" },
     { name = "types-pytz", marker = "extra == 'dev'", specifier = ">=2025.2,<2026.0" },
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32,<3.0" },
@@ -3941,6 +3943,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/28/3f/13cacea96900bbd31bb05c6b74135f85d15564fc583802be56976c940470/stevedore-5.4.1.tar.gz", hash = "sha256:3135b5ae50fe12816ef291baff420acb727fcd356106e3e9cbfa9e5985cd6f4b", size = 513858, upload-time = "2025-02-20T14:03:57.285Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f7/45/8c4ebc0c460e6ec38e62ab245ad3c7fc10b210116cea7c16d61602aa9558/stevedore-5.4.1-py3-none-any.whl", hash = "sha256:d10a31c7b86cba16c1f6e8d15416955fc797052351a56af15e608ad20811fcfe", size = 49533, upload-time = "2025-02-20T14:03:55.849Z" },
+]
+
+[[package]]
+name = "structlog"
+version = "25.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ff/6a/b0b6d440e429d2267076c4819300d9929563b1da959cf1f68afbcd69fe45/structlog-25.3.0.tar.gz", hash = "sha256:8dab497e6f6ca962abad0c283c46744185e0c9ba900db52a423cb6db99f7abeb", size = 1367514, upload-time = "2025-04-25T16:00:39.167Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f5/52/7a2c7a317b254af857464da3d60a0d3730c44f912f8c510c76a738a207fd/structlog-25.3.0-py3-none-any.whl", hash = "sha256:a341f5524004c158498c3127eecded091eb67d3a611e7a3093deca30db06e172", size = 68240, upload-time = "2025-04-25T16:00:37.295Z" },
 ]
 
 [[package]]
