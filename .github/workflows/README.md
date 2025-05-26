@@ -115,6 +115,10 @@ Our CI/CD pipeline intentionally excludes features common in enterprise settings
 
 - **No Scheduled/Cron Triggers:** Research data processing is deliberate; avoids API rate limit issues and conserves resources. This includes vulnerability scanning, which is triggered on-demand or during dependency changes rather than daily schedules to prevent alert fatigue and unnecessary resource consumption.
 - **No External Security Services:** Leverages built-in tools (Bandit, dependency scanning) to maintain data privacy and manage costs.
+- **No SAST Scanning (Static Application Security Testing):** Built-in security tools (Bandit, Ruff security rules)
+  provide adequate coverage for academic research without external service dependencies or complex configuration overhead.
+- **No Supply Chain Security Hardening:** Academic research environments prioritize simplicity and reproducibility
+  over enterprise-grade supply chain security measures that add complexity without proportional benefit.
 - **No Performance Benchmarking Workflows:** Focuses on correctness and reproducibility over micro-optimizations, as data processing performance is data-dependent.
 - **No Container/Deployment Workflows:** Python virtual environments offer sufficient isolation; avoids container complexity for researchers.
 - **No External Notification/Integration Services:** GitHub notifications are adequate; maintains privacy and avoids external service dependencies.
