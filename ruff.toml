@@ -3,8 +3,8 @@
 # Updated to latest Ruff v0.11+ best practices
 # Compatible with Ruff v0.11.10 and later
 
-# Python version target
-target-version = "py39"
+# Python version target (updated for 2025)
+target-version = "py310"
 
 # Same as Black
 line-length = 120
@@ -43,6 +43,7 @@ exclude = [
 [lint]
 # Enable a comprehensive set of rules
 select = [
+    # Existing rules...
     "E",      # pycodestyle errors
     "W",      # pycodestyle warnings
     "F",      # Pyflakes
@@ -91,6 +92,13 @@ select = [
     "AIR",    # Airflow
     "PERF",   # Perflint
     "RUF",    # Ruff-specific rules
+
+    # 2025 additions
+    "ASYNC",  # async/await best practices
+    "TRIO",   # Trio async framework patterns
+    "FURB",   # refurb - modernize Python code
+    "LOG",    # logging best practices
+    "FA",     # flake8-future-annotations
 ]
 
 # Ignore specific rules
@@ -131,6 +139,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",    # Don't require type annotations in tests
     "PD901",  # Generic DataFrame names are fine in tests
     "BLE001", # Blind except is sometimes needed in tests
+    "ASYNC",  # Additional test-specific ignores
+    "LOG",    # Logging rules relaxed in tests
 ]
 
 # Special rules for factory files
@@ -154,6 +164,16 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 # Ignore import violations in __init__ files
 "__init__.py" = ["F401", "F403"]
+
+# Enhanced per-file ignores for better granularity
+"examples/**/*.py" = [
+    "T201", "T203", # Allow prints and relaxed docs in examples
+    "D", "ANN"      # Relaxed documentation and annotations
+]
+
+"scripts/**/*.py" = [
+    "T201", "S602", "S603"  # Allow prints and subprocess in scripts
+]
 
 [lint.isort]
 known-first-party = ["utils"]
