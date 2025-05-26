@@ -96,7 +96,7 @@ class TestEconomicIndicatorsExtra:
         """Test that custom logger is used when provided."""
         mock_logger = MagicMock()
 
-        calculate_economic_indicators(complete_data, logger=mock_logger)
+        calculate_economic_indicators(complete_data, log_instance=mock_logger)
 
         # Logger should have been called
         assert mock_logger.info.called

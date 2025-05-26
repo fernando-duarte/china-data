@@ -38,7 +38,7 @@ def test_calculate_economic_indicators():
     # Create a mock logger
     mock_logger = mock.MagicMock()
 
-    result = calculate_economic_indicators(data, alpha=1 / 3, logger=mock_logger)
+    result = calculate_economic_indicators(data, alpha=1 / 3, log_instance=mock_logger)
 
     # Check that all expected columns were added
     assert "NX_USD_bn" in result.columns
