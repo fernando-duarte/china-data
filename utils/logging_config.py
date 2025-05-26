@@ -317,6 +317,7 @@ class LoggerMixin:
 
 def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to log function performance metrics."""
+
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         perf_logger = get_logger(func.__module__)
@@ -334,10 +335,10 @@ def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:
                 error=str(e),
             )
             raise
-        else:
-            duration = time.time() - start_time
-            perf_logger.info("Function completed", function=func.__name__, duration_seconds=duration, status="success")
-            return result
+
+        duration = time.time() - start_time
+        perf_logger.info("Function completed", function=func.__name__, duration_seconds=duration, status="success")
+        return result
 
     return wrapper
 
