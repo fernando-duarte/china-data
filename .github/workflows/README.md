@@ -1,6 +1,8 @@
 # GitHub Actions Workflows Documentation
 
-This directory contains the comprehensive CI/CD workflows for the China Economic Data Analysis project. This document provides detailed information about each workflow, their implementation, performance optimization, security features, and operational guidelines.
+This directory contains the comprehensive CI/CD workflows for the China Economic Data Analysis project.
+This document provides detailed information about each workflow, their implementation, performance optimization,
+security features, and operational guidelines.
 
 ---
 
@@ -22,23 +24,28 @@ This directory contains the comprehensive CI/CD workflows for the China Economic
 
 ## Workflow Overview
 
-Our CI/CD pipeline automates key aspects of development, testing, and release processes using 5 core workflows tailored for academic research environments.
+Our CI/CD pipeline automates key aspects of development, testing, and release processes using 6 core workflows
+tailored for academic research environments.
 
 | Workflow              | File                    | Purpose                               | Triggers                 |
 |-----------------------|-------------------------|---------------------------------------|--------------------------|
 | Main CI               | `ci.yml`                | Code quality, testing, security       | Push/PR to main/develop  |
 | Release               | `release.yml`           | Automated dual releases               | Version tags, manual     |
 | Dependency Security   | `dependency-check.yml`  | Security audits, compliance           | Manual trigger           |
+| Vulnerability Scan    | `vulnerability-scan.yml`| Dependency vulnerability detection    | PR dependency changes, manual |
 | Automated Updates     | `dependency-update.yml` | Dependency management                 | Manual trigger           |
 | Auto-Assignment       | `auto-assign.yml`       | PR/issue automation                   | PR/issue events          |
 
-Key workflow automation achievements include a 30-50% build time reduction via intelligent caching and a 95%+ success rate on automated dependency updates.
+Key workflow automation achievements include a 30-50% build time reduction via intelligent caching and a 95%+
+success rate on automated dependency updates.
 
 ---
 
 ## CI/CD Pipeline Architecture
 
-The CI/CD pipeline is designed with a focus on academic research needs, emphasizing simplicity, privacy, cost-effectiveness, educational value, and reproducibility. This philosophy is further detailed in the [Design Exclusions](#design-exclusions) section.
+The CI/CD pipeline is designed with a focus on academic research needs, emphasizing simplicity, privacy,
+cost-effectiveness, educational value, and reproducibility. This philosophy is further detailed in the
+[Design Exclusions](#design-exclusions) section.
 
 ### Main CI Pipeline (`ci.yml`)
 
@@ -60,6 +67,13 @@ The CI/CD pipeline is designed with a focus on academic research needs, emphasiz
 **Triggers:** Manual dispatch.
 **Key Outcomes/Artifacts:** Security audit reports (Bandit, dependency tree), license compliance reports, dependency update reports with security context, security advisory summaries.
 **Details:** Consult `dependency-check.yml` for jobs covering dependency audits, license compliance checks against problematic categories, cross-version compatibility testing, and update monitoring.
+
+### Vulnerability Scanning (`vulnerability-scan.yml`)
+
+**Purpose:** Provides targeted vulnerability detection for dependencies using pip-audit and safety tools.
+**Triggers:** Pull requests that modify dependency files (`requirements*.txt`, `pyproject.toml`), manual dispatch.
+**Key Outcomes/Artifacts:** Vulnerability scan results (JSON, SARIF), automated PR comments with security status, optional issue creation for critical vulnerabilities.
+**Details:** The `vulnerability-scan.yml` file implements on-demand vulnerability scanning that integrates with GitHub Security tab via SARIF uploads. **Design Note:** This workflow intentionally excludes scheduled/cron triggers to prevent alert fatigue and unnecessary resource consumption, aligning with our academic research focus on deliberate, event-driven security monitoring.
 
 ### Automated Updates (`dependency-update.yml`)
 
@@ -99,7 +113,7 @@ Workflow performance and reliability are key metrics. We monitor build success r
 
 Our CI/CD pipeline intentionally excludes features common in enterprise settings that are less suitable or counterproductive for academic research. This design prioritizes simplicity, privacy, resource conservation, and educational value.
 
-- **No Scheduled/Cron Triggers:** Research data processing is deliberate; avoids API rate limit issues and conserves resources.
+- **No Scheduled/Cron Triggers:** Research data processing is deliberate; avoids API rate limit issues and conserves resources. This includes vulnerability scanning, which is triggered on-demand or during dependency changes rather than daily schedules to prevent alert fatigue and unnecessary resource consumption.
 - **No External Security Services:** Leverages built-in tools (Bandit, dependency scanning) to maintain data privacy and manage costs.
 - **No Performance Benchmarking Workflows:** Focuses on correctness and reproducibility over micro-optimizations, as data processing performance is data-dependent.
 - **No Container/Deployment Workflows:** Python virtual environments offer sufficient isolation; avoids container complexity for researchers.

@@ -54,6 +54,7 @@
 - Added Makefile targets for uv installation and security scanning
 - Updated README.md with dependency management documentation
 - Added `.uv-cache/` to `.gitignore` for uv cache directory
+- Intentionally excluded daily scheduled scans to prevent alert fatigue and align with academic research workflow philosophy
 
 ### 4. Security Enhancements
 
