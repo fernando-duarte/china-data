@@ -69,12 +69,12 @@ class TestCreateMarkdownTable:
         written_content = "".join(call.args[0] for call in mock_file().write.call_args_list)
 
         # Check table headers
-        assert "| Union[Year, GDP] | Population |" in written_content
+        assert "| Year | GDP | Population |" in written_content
         assert "|---|---|---|" in written_content
 
         # Check data rows
-        assert "| Union[2020, 14722].Union[73, 1439].32 |" in written_content
-        assert "| Union[2021, 17744].Union[64, 1444].22 |" in written_content
+        assert "| 2020 | 14722.73 | 1439.32 |" in written_content
+        assert "| 2021 | 17744.64 | 1444.22 |" in written_content
 
     @patch("builtins.open", new_callable=mock_open)
     def test_extrapolation_notes(self, mock_file, sample_data, extrapolation_info):

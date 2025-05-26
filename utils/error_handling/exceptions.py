@@ -4,6 +4,8 @@ This module defines all custom exceptions used throughout the China data
 processing pipeline for consistent error handling.
 """
 
+from typing import Optional
+
 
 class ChinaDataError(Exception):
     """Base exception for China data processing errors."""

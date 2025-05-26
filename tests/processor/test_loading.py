@@ -17,9 +17,9 @@ def test_load_raw_data_success(monkeypatch, tmp_path):
     with open(dummy_raw_md_path, "w") as f:
         f.write("# China Economic Data\n\n")
         f.write("## Economic Data (1960-present)\n\n")
-        f.write("| Union[Year, GDP] (USD) |\n")
+        f.write("| Year | GDP (USD) |\n")
         f.write("|------|-----------|\n")
-        f.write("| Union[2020, 100]       |\n")
+        f.write("| 2020 | 100 |\n")
 
     # Mock the find_file function to return our temporary file
     def mock_find_file(filename, possible_locations_relative_to_root=None):
