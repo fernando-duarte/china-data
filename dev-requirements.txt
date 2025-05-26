@@ -4,7 +4,10 @@
 # Security and code quality tools
 bandit>=1.7,<2.0
 black>=25.1,<26.0
-ruff>=0.4,<0.5
+factory-boy>=3.3,<4.0  # Test data factories
+
+# Advanced testing tools
+hypothesis>=6.100,<7.0  # Property-based testing
 
 # Docstring coverage checking
 interrogate>=1.7,<2.0
@@ -15,6 +18,7 @@ jupyter>=1.1,<2.0
 
 # Performance profiling
 memory-profiler>=0.61,<1.0
+mutmut>=2.4,<3.0       # Mutation testing
 
 # Type checking
 mypy>=1.15,<2.0
@@ -36,6 +40,7 @@ pytest-cov>=4.1,<5.0
 
 # Code complexity analysis
 radon>=6.0,<7.0
+ruff>=0.4,<0.5
 
 # Security scanning
 safety>=3.0,<4.0

@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-uv install-dev-uv format lint test clean run-download run-process security-scan
+.PHONY: help install install-dev install-uv install-dev-uv format lint test test-property test-mutation test-factories test-all clean run-download run-process security-scan
 
 # Default target
 help:
@@ -9,7 +9,11 @@ help:
 	@echo "  make install-dev-uv - Install development dependencies (uv)"
 	@echo "  make format        - Format code with black and isort"
 	@echo "  make lint          - Run linting checks"
-	@echo "  make test          - Run tests"
+	@echo "  make test          - Run standard tests"
+	@echo "  make test-property - Run property-based tests with Hypothesis"
+	@echo "  make test-mutation - Run mutation tests with mutmut"
+	@echo "  make test-factories - Run factory demonstration tests"
+	@echo "  make test-all      - Run all types of tests"
 	@echo "  make security-scan - Run dependency vulnerability scan"
 	@echo "  make clean         - Clean up generated files"
 	@echo "  make run-download  - Download raw data"
@@ -49,9 +53,29 @@ lint:
 	flake8 . --exclude=venv
 	pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv
 
-# Run tests
+# Run standard tests
 test:
-	pytest tests/ -v
+	pytest tests/ -v --ignore=tests/test_property_based.py --ignore=tests/test_factories_demo.py
+
+# Run property-based tests with Hypothesis
+test-property:
+	@echo "Running property-based tests with Hypothesis..."
+	pytest tests/test_property_based.py -v --hypothesis-show-statistics
+
+# Run mutation tests with mutmut
+test-mutation:
+	@echo "Running mutation tests with mutmut..."
+	@echo "This may take a while as it tests many code mutations..."
+	mutmut run --paths-to-mutate utils/economic_indicators/ --runner "python -m pytest tests/test_economic_indicators.py -x"
+
+# Run factory demonstration tests
+test-factories:
+	@echo "Running factory demonstration tests..."
+	pytest tests/test_factories_demo.py -v
+
+# Run all types of tests
+test-all: test test-property test-factories
+	@echo "All tests completed!"
 
 # Run dependency vulnerability scan
 security-scan:

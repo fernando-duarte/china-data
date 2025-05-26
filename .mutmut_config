@@ -1,0 +1,37 @@
+[mutmut]
+# Paths to mutate
+paths_to_mutate = utils/,china_data_downloader.py,china_data_processor.py
+
+# Test runner command
+runner = python -m pytest tests/ -x --tb=short
+
+# Test directory
+tests_dir = tests/
+
+# Backup original files before mutation
+backup = false
+
+# Exclude patterns
+exclude_patterns =
+    */__pycache__/*
+    */test_*
+    */.git/*
+    */venv/*
+    */.venv/*
+    */.pytest_cache/*
+    */.mypy_cache/*
+    */htmlcov/*
+    */build/*
+    */dist/*
+
+# Cache directory for mutation results
+cache_dir = .mutmut-cache
+
+# Timeout for each test run (in seconds)
+timeout = 60
+
+# Use coverage to only mutate covered lines
+use_coverage = true
+
+# Coverage file to use
+coverage_file = .coverage
