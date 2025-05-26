@@ -54,7 +54,7 @@ format:
 # Run linting
 lint:
 	flake8 . --exclude=venv
-	pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv
+	pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv --jobs=0
 
 # Run standard tests
 test:

@@ -44,6 +44,7 @@ repos:
         entry: pylint
         language: system
         files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
+        args: [--jobs=0] # Use all available CPU cores for parallel processing
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0

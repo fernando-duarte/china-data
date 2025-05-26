@@ -199,6 +199,14 @@ skip = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 py-version = "3.10"
 ignore = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
 
+# Performance optimizations
+jobs = 0  # Use all available CPU cores for parallel processing
+persistent = true  # Enable persistent caching for faster subsequent runs
+limit-inference-results = 50  # Reduce inference depth for better performance
+
+# Cache optimization
+clear-cache-post-run = false  # Keep cache between runs for better performance
+
 [tool.pylint.format]
 max-line-length = 120
 

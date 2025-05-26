@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""GitHub Actions Log Viewer
+"""GitHub Actions Log Viewer.
+
 A script to fetch and view GitHub Actions workflow runs and logs.
 """
 
@@ -8,12 +9,15 @@ import os
 import sys
 import zipfile
 from datetime import datetime
+from pathlib import Path
 
 import requests
 
 
 class GitHubActionsLogViewer:
-    def __init__(self, token: str, owner: str, repo: str):
+    """GitHub Actions Log Viewer for fetching and displaying workflow information."""
+
+    def __init__(self, token: str, owner: str, repo: str) -> None:
         """Initialize the GitHub Actions Log Viewer.
 
         Args:
@@ -32,7 +36,11 @@ class GitHubActionsLogViewer:
         }
 
     def get_workflow_runs(
-        self, status: str = None, conclusion: str = None, branch: str = None, per_page: int = 30
+        self,
+        status: str | None = None,
+        conclusion: str | None = None,
+        branch: str | None = None,
+        per_page: int = 30,
     ) -> list[dict]:
         """Get workflow runs for the repository.
 
@@ -56,7 +64,7 @@ class GitHubActionsLogViewer:
             params["branch"] = branch
 
         try:
-            response = requests.get(url, headers=self.headers, params=params)
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
             response.raise_for_status()
             return response.json().get("workflow_runs", [])
         except requests.exceptions.RequestException as e:
@@ -75,14 +83,14 @@ class GitHubActionsLogViewer:
         url = f"{self.base_url}/repos/{self.owner}/{self.repo}/actions/runs/{run_id}/jobs"
 
         try:
-            response = requests.get(url, headers=self.headers)
+            response = requests.get(url, headers=self.headers, timeout=30)
             response.raise_for_status()
             return response.json().get("jobs", [])
         except requests.exceptions.RequestException as e:
             print(f"Error fetching jobs for run {run_id}: {e}")
             return []
 
-    def download_workflow_run_logs(self, run_id: int, output_dir: str = None) -> str | None:
+    def download_workflow_run_logs(self, run_id: int, output_dir: str | None = None) -> str | None:
         """Download logs for a workflow run.
 
         Args:
@@ -95,26 +103,25 @@ class GitHubActionsLogViewer:
         url = f"{self.base_url}/repos/{self.owner}/{self.repo}/actions/runs/{run_id}/logs"
 
         try:
-            response = requests.get(url, headers=self.headers, allow_redirects=True)
+            response = requests.get(url, headers=self.headers, allow_redirects=True, timeout=30)
             response.raise_for_status()
 
             if output_dir:
-                os.makedirs(output_dir, exist_ok=True)
-                log_file = os.path.join(output_dir, f"workflow_run_{run_id}_logs.zip")
+                Path(output_dir).mkdir(parents=True, exist_ok=True)
+                log_file = Path(output_dir) / f"workflow_run_{run_id}_logs.zip"
             else:
-                log_file = f"workflow_run_{run_id}_logs.zip"
+                log_file = Path(f"workflow_run_{run_id}_logs.zip")
 
-            with open(log_file, "wb") as f:
-                f.write(response.content)
+            log_file.write_bytes(response.content)
 
             print(f"Downloaded logs to: {log_file}")
-            return log_file
+            return str(log_file)
 
         except requests.exceptions.RequestException as e:
             print(f"Error downloading logs for run {run_id}: {e}")
             return None
 
-    def extract_and_display_logs(self, zip_path: str, job_name: str = None):
+    def extract_and_display_logs(self, zip_path: str, job_name: str | None = None) -> None:
         """Extract and display logs from a zip file.
 
         Args:
@@ -146,10 +153,10 @@ class GitHubActionsLogViewer:
 
                         print(f"{'=' * 60}\n")
 
-        except Exception as e:
+        except (zipfile.BadZipFile, OSError) as e:
             print(f"Error extracting logs: {e}")
 
-    def display_workflow_runs(self, runs: list[dict]):
+    def display_workflow_runs(self, runs: list[dict]) -> None:
         """Display workflow runs in a formatted table."""
         if not runs:
             print("No workflow runs found.")
@@ -170,12 +177,13 @@ class GitHubActionsLogViewer:
                 try:
                     created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
                     created = created_dt.strftime("%Y-%m-%d %H:%M")
-                except:
+                except ValueError:
+                    # Keep original value if parsing fails
                     pass
 
             print(f"{run_id:<12} {name:<25} {status:<12} {conclusion:<12} {branch:<15} {created:<20}")
 
-    def display_jobs(self, jobs: list[dict]):
+    def display_jobs(self, jobs: list[dict]) -> None:
         """Display jobs in a formatted table."""
         if not jobs:
             print("No jobs found.")
@@ -195,13 +203,64 @@ class GitHubActionsLogViewer:
                 try:
                     started_dt = datetime.fromisoformat(started.replace("Z", "+00:00"))
                     started = started_dt.strftime("%Y-%m-%d %H:%M")
-                except:
+                except ValueError:
+                    # Keep original value if parsing fails
                     pass
 
             print(f"{job_id:<12} {name:<30} {status:<12} {conclusion:<12} {started:<20}")
 
 
-def main():
+def _handle_specific_run(viewer: GitHubActionsLogViewer, args: argparse.Namespace) -> None:
+    """Handle operations for a specific workflow run.
+
+    Args:
+        viewer: GitHubActionsLogViewer instance
+        args: Parsed command line arguments
+    """
+    print(f"Fetching details for workflow run: {args.run_id}")
+
+    if args.show_jobs:
+        jobs = viewer.get_workflow_run_jobs(args.run_id)
+        viewer.display_jobs(jobs)
+
+    if args.download_logs:
+        log_file = viewer.download_workflow_run_logs(args.run_id, args.output_dir)
+        if log_file and input("Extract and display logs? (y/N): ").lower() == "y":
+            viewer.extract_and_display_logs(log_file, args.job_name)
+
+
+def _handle_multiple_runs(viewer: GitHubActionsLogViewer, args: argparse.Namespace) -> None:
+    """Handle operations for multiple workflow runs.
+
+    Args:
+        viewer: GitHubActionsLogViewer instance
+        args: Parsed command line arguments
+    """
+    # Get workflow runs
+    print(f"Fetching workflow runs for {args.owner}/{args.repo}...")
+    runs = viewer.get_workflow_runs(
+        status=args.status, conclusion=args.conclusion, branch=args.branch, per_page=args.limit
+    )
+
+    # Display runs
+    viewer.display_workflow_runs(runs[: args.limit])
+
+    # Show jobs if requested
+    if args.show_jobs and runs:
+        for run in runs[:3]:  # Show jobs for first 3 runs
+            print(f"\nJobs for workflow run {run['id']} ({run['name']}):")
+            jobs = viewer.get_workflow_run_jobs(run["id"])
+            viewer.display_jobs(jobs)
+
+    # Download logs if requested
+    if args.download_logs and runs:
+        for run in runs[: args.limit]:
+            print(f"\nDownloading logs for run {run['id']}...")
+            viewer.download_workflow_run_logs(run["id"], args.output_dir)
+
+
+def main() -> None:
+    """Main function to handle command line arguments and execute operations."""
     parser = argparse.ArgumentParser(description="GitHub Actions Log Viewer")
     parser.add_argument("owner", help="Repository owner (username or organization)")
     parser.add_argument("repo", help="Repository name")
@@ -242,38 +301,9 @@ def main():
 
     # If specific run ID provided, focus on that
     if args.run_id:
-        print(f"Fetching details for workflow run: {args.run_id}")
-
-        if args.show_jobs:
-            jobs = viewer.get_workflow_run_jobs(args.run_id)
-            viewer.display_jobs(jobs)
-
-        if args.download_logs:
-            log_file = viewer.download_workflow_run_logs(args.run_id, args.output_dir)
-            if log_file and input("Extract and display logs? (y/N): ").lower() == "y":
-                viewer.extract_and_display_logs(log_file, args.job_name)
+        _handle_specific_run(viewer, args)
     else:
-        # Get workflow runs
-        print(f"Fetching workflow runs for {args.owner}/{args.repo}...")
-        runs = viewer.get_workflow_runs(
-            status=args.status, conclusion=args.conclusion, branch=args.branch, per_page=args.limit
-        )
-
-        # Display runs
-        viewer.display_workflow_runs(runs[: args.limit])
-
-        # Show jobs if requested
-        if args.show_jobs and runs:
-            for run in runs[:3]:  # Show jobs for first 3 runs
-                print(f"\nJobs for workflow run {run['id']} ({run['name']}):")
-                jobs = viewer.get_workflow_run_jobs(run["id"])
-                viewer.display_jobs(jobs)
-
-        # Download logs if requested
-        if args.download_logs and runs:
-            for run in runs[: args.limit]:
-                print(f"\nDownloading logs for run {run['id']}...")
-                log_file = viewer.download_workflow_run_logs(run["id"], args.output_dir)
+        _handle_multiple_runs(viewer, args)
 
 
 if __name__ == "__main__":

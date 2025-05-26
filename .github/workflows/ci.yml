@@ -47,7 +47,7 @@ jobs:
 
       - name: Lint with pylint
         run: |
-          uv run pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv || true
+          uv run pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv --jobs=0 || true
 
       - name: Type check with mypy
         run: |
