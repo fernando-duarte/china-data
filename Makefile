@@ -3,10 +3,10 @@
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  make install       - Install production dependencies (pip)"
-	@echo "  make install-dev   - Install development dependencies (pip)"
-	@echo "  make install-uv    - Install production dependencies (uv)"
-	@echo "  make install-dev-uv - Install development dependencies (uv)"
+	@echo "  make install       - Install production dependencies (UV)"
+	@echo "  make install-dev   - Install development dependencies (UV)"
+	@echo "  make install-pip   - Install production dependencies (legacy pip)"
+	@echo "  make install-dev-pip - Install development dependencies (legacy pip)"
 	@echo "  make format        - Format code with black and isort"
 	@echo "  make lint          - Run linting checks"
 	@echo "  make test          - Run standard tests"
@@ -26,24 +26,24 @@ help:
 	@echo "  make docs-test     - Test documentation"
 	@echo "  make docs-deploy   - Deploy documentation to GitHub Pages"
 
-# Install production dependencies
+# Install production dependencies (UV-first)
 install:
-	pip install -r requirements.txt
+	@command -v uv >/dev/null 2>&1 || { echo "uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
+	uv sync --no-dev
 
-# Install development dependencies
+# Install development dependencies (UV-first)
 install-dev:
-	pip install -r dev-requirements.txt
+	@command -v uv >/dev/null 2>&1 || { echo "uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
+	uv sync
 
-# Install production dependencies with uv
-install-uv:
-	@command -v uv >/dev/null 2>&1 || { echo "uv not found. Install with: pip install uv"; exit 1; }
-	uv venv --python 3.9
+# Legacy pip install (deprecated)
+install-pip:
+	@echo "⚠️  Warning: pip install is deprecated. Use 'make install' for UV-based installation."
 	uv pip install -e .
 
-# Install development dependencies with uv
-install-dev-uv:
-	@command -v uv >/dev/null 2>&1 || { echo "uv not found. Install with: pip install uv"; exit 1; }
-	uv venv --python 3.9
+# Legacy pip dev install (deprecated)
+install-dev-pip:
+	@echo "⚠️  Warning: pip install is deprecated. Use 'make install-dev' for UV-based installation."
 	uv pip install -e ".[dev]"
 
 # Format code
