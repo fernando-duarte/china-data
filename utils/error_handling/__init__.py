@@ -8,6 +8,8 @@ import logging
 import sys
 from typing import Any, NoReturn
 
+import structlog
+
 from .decorators import handle_data_operation, safe_dataframe_operation
 from .exceptions import ChinaDataError, DataDownloadError, DataValidationError, FileOperationError, ProjectionError
 from .validators import (
@@ -19,7 +21,11 @@ from .validators import (
 
 
 def setup_error_handling() -> None:
-    """Configure logging for error handling."""
+    """Configure logging for error handling.
+
+    This function is deprecated. Use utils.logging_config.setup_structured_logging() instead.
+    """
+    # For backward compatibility, set up basic logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(levelname)s %(name)s:%(filename)s:%(lineno)d %(message)s",

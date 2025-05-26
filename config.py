@@ -5,6 +5,7 @@ used throughout the China data processing pipeline.
 """
 
 from pathlib import Path
+from typing import Optional
 
 
 class Config:
@@ -129,6 +130,13 @@ class Config:
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+    # Structured logging configuration
+    STRUCTURED_LOGGING_ENABLED = True
+    STRUCTURED_LOGGING_LEVEL = "INFO"
+    STRUCTURED_LOGGING_JSON_FORMAT = False  # Set to True for production/log aggregation
+    STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO = True
+    STRUCTURED_LOGGING_FILE = "china_data.log"
+
     # Caching configuration
     CACHE_NAME = "china_data_cache"
     CACHE_BACKEND = "sqlite"  # Use sqlite for persistence
@@ -141,7 +149,7 @@ class Config:
         return cls.OUTPUT_DIR
 
     @classmethod
-    def get_input_file_path(cls, filename: str) -> Path | None:
+    def get_input_file_path(cls, filename: str) -> Optional[Path]:
         """Get the full path for an input file."""
         path = cls.INPUT_DIR / filename
         return path if path.exists() else None

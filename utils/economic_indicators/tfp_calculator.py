@@ -11,7 +11,13 @@ import pandas as pd
 
 from config import Config
 
-logger = logging.getLogger(__name__)
+try:
+    from utils.logging_config import get_logger
+
+    logger = get_logger(__name__)
+except ImportError:
+    # Fallback to standard logging if structured logging is not available
+    logger = logging.getLogger(__name__)
 
 
 def calculate_tfp(

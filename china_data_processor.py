@@ -89,17 +89,30 @@ def main() -> None:
         # Parse command line arguments
         args = parse_and_validate_args()
 
-        # Configure logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format=Config.LOG_FORMAT,
-            datefmt=Config.LOG_DATE_FORMAT,
-        )
+        # Configure structured logging
+        if Config.STRUCTURED_LOGGING_ENABLED:
+            from utils.logging_config import get_logger, setup_structured_logging
+
+            setup_structured_logging(
+                log_level=Config.STRUCTURED_LOGGING_LEVEL,
+                log_file=Config.STRUCTURED_LOGGING_FILE,
+                enable_json=Config.STRUCTURED_LOGGING_JSON_FORMAT,
+                include_process_info=Config.STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO,
+            )
+            # Use a different variable name to avoid redefinition
+            structured_logger = get_logger(__name__)
+        else:
+            logging.basicConfig(
+                level=logging.INFO,
+                format=Config.LOG_FORMAT,
+                datefmt=Config.LOG_DATE_FORMAT,
+            )
+            structured_logger = logging.getLogger(__name__)
 
         # Load raw data
         raw_data = load_raw_data(args.input_file)
         if raw_data.empty:
-            logger.error("Failed to load raw data")
+            structured_logger.error("Failed to load raw data")
             sys.exit(1)
 
         # Load IMF tax revenue data
@@ -115,17 +128,17 @@ def main() -> None:
         output_base = output_dir / args.output_file
         csv_file = output_base.with_suffix(".csv")
         processed_data.to_csv(csv_file, index=False, encoding=Config.FILE_ENCODING)
-        logger.info(f"Saved processed data to {csv_file}")
+        structured_logger.info("Saved processed data to %s", csv_file)
 
         # Create markdown output
         md_file = output_base.with_suffix(".md")
         create_markdown_table(processed_data, md_file, extrapolation_info)
-        logger.info(f"Created markdown table at {md_file}")
+        structured_logger.info("Created markdown table at %s", md_file)
 
         return
 
     except Exception as e:
-        logger.error(f"Error processing data: {e}", exc_info=True)
+        structured_logger.error("Error processing data: %s", e, exc_info=True)
         sys.exit(1)
 
 

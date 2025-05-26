@@ -24,11 +24,22 @@ from utils.data_sources.fallback_loader import load_fallback_data
 from utils.data_sources.imf_loader import load_imf_tax_data
 from utils.data_sources.pwt_downloader import get_pwt_data
 from utils.data_sources.wdi_downloader import download_wdi_data
+from utils.logging_config import get_logger, setup_structured_logging
 from utils.markdown_utils import render_markdown_table
 from utils.path_constants import get_search_locations_relative_to_root
 
-logging.basicConfig(level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT)
-logger = logging.getLogger(__name__)
+# Set up structured logging
+if Config.STRUCTURED_LOGGING_ENABLED:
+    setup_structured_logging(
+        log_level=Config.STRUCTURED_LOGGING_LEVEL,
+        log_file=Config.STRUCTURED_LOGGING_FILE,
+        enable_json=Config.STRUCTURED_LOGGING_JSON_FORMAT,
+        include_process_info=Config.STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO,
+    )
+    logger = get_logger(__name__)
+else:
+    logging.basicConfig(level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT)
+    logger = logging.getLogger(__name__)
 
 
 def main() -> None:

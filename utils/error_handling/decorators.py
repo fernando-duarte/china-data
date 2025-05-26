@@ -14,7 +14,13 @@ import pandas as pd
 
 from .exceptions import ChinaDataError
 
-logger = logging.getLogger(__name__)
+try:
+    from utils.logging_config import get_logger
+
+    logger = get_logger(__name__)
+except ImportError:
+    # Fallback to standard logging if structured logging is not available
+    logger = logging.getLogger(__name__)
 
 # Type variable for generic return types
 T = TypeVar("T")
@@ -45,16 +51,31 @@ def handle_data_operation(
                 # Re-raise our custom exceptions
                 raise
             except Exception as e:
-                logger.log(
-                    log_level,
-                    f"Error in {operation_name}: {e!s}",
-                    extra={
-                        "operation": operation_name,
-                        "function": func.__name__,
-                        "args": str(args)[:100],  # Truncate long args
-                        "kwargs": str(kwargs)[:100],
-                    },
-                )
+                # Use structured logging if available, otherwise fall back to standard logging
+                if hasattr(logger, "bind"):
+                    # Structured logging
+                    logger.error(
+                        f"Error in {operation_name}",
+                        operation=operation_name,
+                        function=func.__name__,
+                        error_type=type(e).__name__,
+                        error_message=str(e),
+                        args_preview=str(args)[:100],  # Truncate long args
+                        kwargs_preview=str(kwargs)[:100],
+                        exc_info=True,
+                    )
+                else:
+                    # Standard logging
+                    logger.log(
+                        log_level,
+                        f"Error in {operation_name}: {e!s}",
+                        extra={
+                            "operation": operation_name,
+                            "function": func.__name__,
+                            "args": str(args)[:100],  # Truncate long args
+                            "kwargs": str(kwargs)[:100],
+                        },
+                    )
                 if reraise:
                     raise
                 return return_on_error
@@ -119,12 +140,35 @@ def retry_on_exception(
                 except allowed_exceptions as e:
                     attempts += 1
                     if attempts < max_attempts:
-                        logger.warning(
-                            "%s on attempt %d, retrying in %d seconds: %s", error_message, attempts, delay, str(e)
-                        )
+                        if hasattr(logger, "bind"):
+                            # Structured logging
+                            logger.warning(
+                                f"{error_message} on attempt {attempts}, retrying",
+                                attempt=attempts,
+                                max_attempts=max_attempts,
+                                delay_seconds=delay,
+                                error_type=type(e).__name__,
+                                error_message=str(e),
+                            )
+                        else:
+                            # Standard logging
+                            logger.warning(
+                                "%s on attempt %d, retrying in %d seconds: %s", error_message, attempts, delay, str(e)
+                            )
                         time.sleep(delay)
                     else:
-                        logger.error("%s after %d attempts: %s", error_message, max_attempts, str(e))
+                        if hasattr(logger, "bind"):
+                            # Structured logging
+                            logger.error(
+                                f"{error_message} after {max_attempts} attempts",
+                                max_attempts=max_attempts,
+                                error_type=type(e).__name__,
+                                error_message=str(e),
+                                exc_info=True,
+                            )
+                        else:
+                            # Standard logging
+                            logger.error("%s after %d attempts: %s", error_message, max_attempts, str(e))
                         raise
             # This should never be reached due to the logic above, but mypy needs it
             raise RuntimeError(f"Unexpected exit from retry loop after {max_attempts} attempts")
@@ -142,7 +186,14 @@ def log_execution_time(func: F) -> F:
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
-        logger.info("%s took %.2f seconds to execute", func.__name__, end_time - start_time)
+        if hasattr(logger, "bind"):
+            # Structured logging
+            logger.info(
+                "Function execution completed", function=func.__name__, duration_seconds=round(end_time - start_time, 3)
+            )
+        else:
+            # Standard logging
+            logger.info("%s took %.2f seconds to execute", func.__name__, end_time - start_time)
         return result
 
     return cast("F", wrapper)
