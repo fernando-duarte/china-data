@@ -2,7 +2,7 @@
 # Uses UV package manager for fast dependency installation
 
 # Build stage
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 # Install UV package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
@@ -41,14 +41,12 @@ COPY --from=builder /app/.venv /app/.venv
 # Copy application code
 COPY --chown=app:app . .
 
-# Ensure ownership of the application directory
-RUN chown -R app:app /app
+# Create required directories and ensure proper ownership
+RUN mkdir -p input output && \
+    chown -R app:app /app
 
 # Switch to non-root user
 USER app
-
-# Create required directories
-RUN mkdir -p input output
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

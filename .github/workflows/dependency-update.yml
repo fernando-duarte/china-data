@@ -197,6 +197,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install pip-tools and test dependency updates
+        env:
+          UPDATE_TYPE: ${{ github.event.inputs.update_type || 'minor' }}
         run: |
           python -m pip install --upgrade pip
           pip install pip-tools
@@ -225,8 +227,6 @@ jobs:
           fi
 
           # Update and test dependencies
-          UPDATE_TYPE="${{ github.event.inputs.update_type || 'minor' }}"
-
           if [ "$UPDATE_TYPE" = "patch" ]; then
             pip-compile --upgrade-package "*" --resolver=backtracking requirements.in
           elif [ "$UPDATE_TYPE" = "major" ]; then
@@ -304,6 +304,8 @@ jobs:
           pip install pip-tools
 
       - name: Update dependency files
+        env:
+          UPDATE_TYPE: ${{ github.event.inputs.update_type || 'minor' }}
         run: |
           # Backup current requirements
           cp requirements.txt requirements.txt.backup
@@ -355,8 +357,6 @@ jobs:
           EOF
 
           # Update dependencies
-          UPDATE_TYPE="${{ github.event.inputs.update_type || 'minor' }}"
-
           if [ "$UPDATE_TYPE" = "patch" ]; then
             pip-compile --upgrade-package "*" --resolver=backtracking requirements.in
             pip-compile --upgrade-package "*" --resolver=backtracking dev-requirements.in
@@ -471,6 +471,14 @@ jobs:
     steps:
       - name: Create issue on failure
         uses: actions/github-script@v7
+        env:
+          WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+          UPDATE_TYPE: ${{ github.event.inputs.update_type || 'minor' }}
+          TARGET_PYTHON: ${{ github.event.inputs.target_python || '3.11' }}
+          CHECK_DEPS_RESULT: ${{ needs.check-dependencies.result }}
+          TEST_DEPS_RESULT: ${{ needs.test-updated-dependencies.result }}
+          CREATE_PR_RESULT: ${{ needs.create-update-pr.result }}
         with:
           script: |
             const title = '🚨 Automated Dependency Update Failed';
@@ -479,15 +487,15 @@ jobs:
 
             The automated dependency update workflow failed.
 
-            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            **Triggered by:** ${{ github.event_name }}
-            **Update Type:** ${{ github.event.inputs.update_type || 'minor' }}
-            **Target Python:** ${{ github.event.inputs.target_python || '3.11' }}
+            **Workflow Run:** ${process.env.WORKFLOW_RUN_URL}
+            **Triggered by:** ${process.env.EVENT_NAME}
+            **Update Type:** ${process.env.UPDATE_TYPE}
+            **Target Python:** ${process.env.TARGET_PYTHON}
 
             ### Failure Analysis
-            - **Check Dependencies:** ${{ needs.check-dependencies.result }}
-            - **Test Updated Dependencies:** ${{ needs.test-updated-dependencies.result }}
-            - **Create Update PR:** ${{ needs.create-update-pr.result }}
+            - **Check Dependencies:** ${process.env.CHECK_DEPS_RESULT}
+            - **Test Updated Dependencies:** ${process.env.TEST_DEPS_RESULT}
+            - **Create Update PR:** ${process.env.CREATE_PR_RESULT}
 
             ### Possible Causes
             - Dependency conflicts between packages
