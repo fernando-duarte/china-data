@@ -62,10 +62,13 @@ class TestFactoryBoyIntegration:
         assert economic_indicators["TFP"] > 0
 
     @pytest.mark.parametrize("economic_data__GDP_USD_bn", [1000.0, 5000.0, 10000.0])
-    def test_parametrized_factory_attributes(self, economic_data: dict[str, Any]) -> None:
+    def test_parametrized_factory_attributes(
+        self, economic_data: dict[str, Any], economic_data__gdp_usd_bn: float
+    ) -> None:
         """Test parametrizing factory attributes using pytest-factoryboy syntax."""
         # The economic_data fixture will have the parametrized GDP values
         assert economic_data["GDP_USD_bn"] in [1000.0, 5000.0, 10000.0]
+        assert economic_data["GDP_USD_bn"] == economic_data__gdp_usd_bn
 
     @pytest.mark.parametrize("economic_data__year", [2020, 2021, 2022])
     def test_parametrized_years(self, economic_data: dict[str, Any]) -> None:

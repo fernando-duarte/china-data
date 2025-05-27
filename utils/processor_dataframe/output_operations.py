@@ -106,3 +106,23 @@ def save_output_files(
         success = False
 
     return success
+
+
+def prepare_final_dataframe(df: pd.DataFrame, column_map: dict[str, str]) -> pd.DataFrame:
+    """Prepare final dataframe for output (backward compatibility alias).
+
+    Args:
+        df: Input dataframe
+        column_map: Mapping from internal column names to output column names
+
+    Returns:
+        DataFrame with selected and renamed columns, duplicates removed
+    """
+    # Drop duplicates based on year if present
+    df_unique = df.drop_duplicates(subset=["year"], keep="first") if "year" in df.columns else df.drop_duplicates()
+
+    # Select only columns that exist in both the dataframe and the column map
+    available_columns = [col for col in column_map if col in df_unique.columns]
+
+    # Select and rename columns
+    return df_unique[available_columns].rename(columns={col: column_map[col] for col in available_columns})
