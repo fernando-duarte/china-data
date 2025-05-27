@@ -5,13 +5,15 @@ This module demonstrates snapshot testing to ensure data processing
 output remains consistent across changes.
 """
 
+from typing import Any
+
 import pandas as pd
 import pytest
 from syrupy import SnapshotAssertion
 
 
 # Mock data processing functions for testing
-def process_china_data_sample() -> dict:
+def process_china_data_sample() -> dict[str, Any]:
     """Process a sample of China data for testing."""
     return {
         "gdp_growth": [6.1, 2.3, 8.1],
@@ -67,12 +69,15 @@ class TestDataProcessingSnapshots:
         }
 
         # Transform data (calculate GDP per capita)
+        gdp_nominal = raw_data["gdp_nominal"]  # type: ignore[assignment]
+        population = raw_data["population"]  # type: ignore[assignment]
         transformed = {
             "year": raw_data["years"],
             "gdp_per_capita": [
-                gdp / pop for gdp, pop in zip(raw_data["gdp_nominal"], raw_data["population"], strict=False)
+                gdp / pop
+                for gdp, pop in zip(gdp_nominal, population, strict=False)  # type: ignore[call-overload]
             ],
-            "gdp_nominal_trillions": [gdp / 1e12 for gdp in raw_data["gdp_nominal"]],
+            "gdp_nominal_trillions": [gdp / 1e12 for gdp in gdp_nominal],  # type: ignore[attr-defined]
             "transformation_metadata": {"method": "gdp_per_capita_calculation", "currency": "USD", "base_year": 2020},
         }
 
@@ -128,15 +133,16 @@ class TestDataValidationSnapshots:
                 upper_bound = q3 + 1.5 * iqr
 
                 outlier_mask = (df[col] < lower_bound) | (df[col] > upper_bound)
+                outlier_indices = df[outlier_mask].index.tolist()
                 outliers[col] = {
                     "outlier_count": int(outlier_mask.sum()),
-                    "outlier_indices": outlier_mask[outlier_mask].index.tolist(),
+                    "outlier_indices": outlier_indices,
                     "bounds": {"lower": float(lower_bound), "upper": float(upper_bound)},
                 }
 
         result = {
             "outlier_analysis": outliers,
-            "total_outliers": sum(info["outlier_count"] for info in outliers.values()),
+            "total_outliers": sum(info["outlier_count"] for info in outliers.values()),  # type: ignore[misc]
         }
 
         assert result == snapshot

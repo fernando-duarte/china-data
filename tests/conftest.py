@@ -17,7 +17,7 @@ from utils.processor_load import load_raw_data
 
 # Register factories as pytest fixtures using pytest-factoryboy
 # This creates automatic fixtures: economic_data_factory, economic_data, etc.
-register(EconomicDataFactory)
+register(EconomicDataFactory, "economic_data")
 register(PWTDataFactory, "pwt_data")
 register(IMFTaxDataFactory, "imf_tax_data")
 register(EconomicIndicatorsFactory, "economic_indicators")
