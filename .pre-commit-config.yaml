@@ -71,6 +71,21 @@ repos:
     hooks:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
+        exclude: |
+          (?x)^(
+            \.mypy_cache/.*|
+            \.venv/.*|
+            venv/.*|
+            __pycache__/.*|
+            \.pytest_cache/.*|
+            \.ruff_cache/.*|
+            \.hypothesis/.*|
+            node_modules/.*|
+            htmlcov/.*|
+            workflow_outputs/.*|
+            uv\.lock|
+            coverage\.xml
+          )$
 
   # Python upgrade syntax
   - repo: https://github.com/asottile/pyupgrade

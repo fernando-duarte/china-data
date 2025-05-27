@@ -40,12 +40,13 @@
 
 # Configuration and setup
 "configuration":
-  - "requirements*.txt"
   - "pyproject.toml"
+  - "uv.lock"
   - "setup.py"
   - "Makefile"
   - ".flake8"
   - ".gitignore"
+  - "renovate.json5"
 
 # CI/CD and workflows
 "ci-cd":
@@ -54,9 +55,9 @@
 
 # Dependencies
 "dependencies":
-  - "requirements.txt"
-  - "dev-requirements.txt"
   - "pyproject.toml"
+  - "uv.lock"
+  - "renovate.json5"
 
 # Performance related
 "performance":

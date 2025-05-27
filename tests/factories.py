@@ -148,7 +148,10 @@ class DataFrameFactory:
 
     @staticmethod
     def create_economic_dataframe(
-        years: list[int] = None, num_rows: int = 10, include_missing: bool = False, missing_probability: float = 0.1
+        years: list[int] | None = None,
+        num_rows: int = 10,
+        include_missing: bool = False,
+        missing_probability: float = 0.1,
     ) -> pd.DataFrame:
         """Create a DataFrame with economic data.
 
@@ -182,7 +185,7 @@ class DataFrameFactory:
         return df
 
     @staticmethod
-    def create_pwt_dataframe(years: list[int] = None, num_rows: int = 10) -> pd.DataFrame:
+    def create_pwt_dataframe(years: list[int] | None = None, num_rows: int = 10) -> pd.DataFrame:
         """Create a DataFrame with Penn World Table data."""
         if years is None:
             years = sorted(random.sample(range(1950, 2020), num_rows))
@@ -196,7 +199,7 @@ class DataFrameFactory:
         return pd.DataFrame(data)
 
     @staticmethod
-    def create_imf_tax_dataframe(years: list[int] = None, num_rows: int = 10) -> pd.DataFrame:
+    def create_imf_tax_dataframe(years: list[int] | None = None, num_rows: int = 10) -> pd.DataFrame:
         """Create a DataFrame with IMF tax data."""
         if years is None:
             years = sorted(random.sample(range(1990, 2031), num_rows))
@@ -284,7 +287,7 @@ class TimeSeriesFactory:
 
 
 # Convenience functions for common test scenarios
-def create_minimal_economic_data(years: list[int] = None) -> pd.DataFrame:
+def create_minimal_economic_data(years: list[int] | None = None) -> pd.DataFrame:
     """Create minimal economic data for basic tests."""
     if years is None:
         years = [2020, 2021, 2022]
@@ -292,7 +295,7 @@ def create_minimal_economic_data(years: list[int] = None) -> pd.DataFrame:
     return DataFrameFactory.create_economic_dataframe(years=years)
 
 
-def create_complete_economic_data(years: list[int] = None) -> pd.DataFrame:
+def create_complete_economic_data(years: list[int] | None = None) -> pd.DataFrame:
     """Create complete economic data with all required columns."""
     if years is None:
         years = list(range(2000, 2023))
@@ -300,7 +303,7 @@ def create_complete_economic_data(years: list[int] = None) -> pd.DataFrame:
     return DataFrameFactory.create_economic_dataframe(years=years)
 
 
-def create_data_with_missing_values(years: list[int] = None, missing_probability: float = 0.2) -> pd.DataFrame:
+def create_data_with_missing_values(years: list[int] | None = None, missing_probability: float = 0.2) -> pd.DataFrame:
     """Create economic data with realistic missing values."""
     if years is None:
         years = list(range(1980, 2023))

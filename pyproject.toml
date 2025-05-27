@@ -80,6 +80,7 @@ dev = [
     "radon>=6.0,<7.0",
     "safety>=3.0,<4.0",
     "semgrep>=1.0,<2.0",
+    "detect-secrets>=1.4,<2.0",
     "types-pytz>=2025.2,<2026.0",
     "types-requests>=2.32,<3.0",
 
@@ -145,6 +146,7 @@ dev-dependencies = [
     "radon>=6.0,<7.0",
     "safety>=3.0,<4.0",
     "semgrep>=1.0,<2.0",
+    "detect-secrets>=1.4,<2.0",
     "types-pytz>=2025.2,<2026.0",
     "types-requests>=2.32,<3.0",
 
@@ -354,6 +356,8 @@ python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short --doctest-modules --doctest-glob='*.md'"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+# Asyncio configuration to suppress warnings
+asyncio_default_fixture_loop_scope = "function"
 # Custom markers for test organization
 markers = [
     "benchmark: marks tests as benchmark tests (deselect with '-m \"not benchmark\"')",

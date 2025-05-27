@@ -74,6 +74,9 @@ nav:
       - Architecture: development/architecture.md
       - Testing: development/testing.md
       - Release Process: development/release-process.md
+      - GitHub Actions Guide: development/github-actions-guide.md
+      - GitHub CLI Reference: development/github-cli-reference.md
+      - Pre-commit Practices: development/pre-commit-practices.md
   - ADRs:
       - Overview: adrs/index.md
       - "ADR-001: Python Version Strategy": adrs/001-python-version-strategy.md

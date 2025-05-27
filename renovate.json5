@@ -1,0 +1,134 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "group:monorepos",
+    "group:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":separateMajorReleases",
+    ":combinePatchMinorReleases",
+    ":ignoreUnstable",
+    ":prImmediately",
+    ":updateNotScheduled"
+  ],
+
+  // UV-specific configuration
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["before 6am on monday"]
+  },
+
+  // Package grouping for cleaner PRs
+  "packageRules": [
+    {
+      "groupName": "Python testing packages",
+      "matchPackagePatterns": ["^pytest", "^hypothesis", "^factory-boy", "^syrupy"],
+      "schedule": ["before 6am on monday"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "groupName": "Python linting and formatting",
+      "matchPackagePatterns": ["^black", "^ruff", "^pylint", "^mypy", "^bandit"],
+      "schedule": ["before 6am on monday"],
+      "automerge": true,
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "groupName": "Documentation tools",
+      "matchPackagePatterns": ["^mkdocs"],
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "groupName": "Security scanning tools",
+      "matchPackagePatterns": ["^safety", "^bandit", "^semgrep", "^pip-audit"],
+      "automerge": true,
+      "schedule": ["at any time"]
+    },
+    {
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "groupName": "Docker base images",
+      "matchManagers": ["dockerfile"],
+      "schedule": ["before 6am on monday"]
+    }
+  ],
+
+  // Security-focused settings
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"],
+    "labels": ["security", "vulnerability"],
+    "automerge": true,
+    "assignees": ["fernando-duarte"]
+  },
+
+  // Commit and PR configuration
+  "commitMessagePrefix": "deps:",
+  "commitMessageAction": "update",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+
+  // PR settings
+  "prTitle": "{{commitMessagePrefix}} {{commitMessageAction}} {{commitMessageTopic}} {{commitMessageExtra}}",
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
+
+  // Scheduling
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on monday"],
+
+  // Limits
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+
+  // Assignees and reviewers
+  "assignees": ["fernando-duarte"],
+  "reviewers": ["fernando-duarte"],
+
+  // Labels
+  "labels": ["dependencies", "renovate"],
+
+  // Ignore certain updates
+  "ignoreDeps": [
+    // Ignore patch updates for stable packages
+    "numpy",
+    "pandas"
+  ],
+
+  // Custom rules for major version updates
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+
+  // Enable automerge for security patches
+  "patch": {
+    "automerge": true,
+    "automergeType": "pr",
+    "platformAutomerge": true
+  },
+
+  "minor": {
+    "automerge": false
+  },
+
+  // Config migration and validation
+  "configMigration": true,
+
+  // Pin development dependencies for reproducibility
+  "pinDevDependencies": true,
+
+  // Support for PEP 723 inline script metadata
+  "pep723": {
+    "fileMatch": [
+      "scripts/**/*.py",
+      "examples/**/*.py",
+      "*.py"
+    ]
+  }
+}

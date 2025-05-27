@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
-from hypothesis.stateful import RuleBasedStateMachine, initialize, invariant, rule
+from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, invariant, rule
 
 
 # Strategies for generating test data
@@ -144,12 +144,15 @@ class TestDataProcessingProperties:
 class DataProcessingStateMachine(RuleBasedStateMachine):
     """Stateful testing for data processing pipeline."""
 
+    # Define bundles for managing datasets
+    datasets = Bundle("datasets")
+
     def __init__(self):
         super().__init__()
         self.data_store: dict[str, pd.DataFrame] = {}
         self.processing_history: list[str] = []
 
-    @initialize()
+    @initialize(target=datasets)
     def setup_initial_data(self):
         """Initialize with some basic data."""
         initial_data = pd.DataFrame(
@@ -159,10 +162,13 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
                 "population": [1.411e9, 1.412e9, 1.413e9],
             }
         )
-        self.data_store["base"] = initial_data
+        dataset_name = "base"
+        self.data_store[dataset_name] = initial_data
         self.processing_history.append("initialize")
+        return dataset_name
 
     @rule(
+        target=datasets,
         dataset_name=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))),
         data=dataframe_strategy(),
     )
@@ -173,24 +179,36 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
 
         self.data_store[dataset_name] = data
         self.processing_history.append(f"add_{dataset_name}")
+        return dataset_name
 
-    @rule(dataset_name=st.sampled_from(["base"]), target=st.sampled_from(["base"]))
-    def calculate_gdp_per_capita(self, dataset_name, target):
+    @rule(
+        target=datasets,
+        dataset_name=datasets,
+        new_name=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))),
+    )
+    def calculate_gdp_per_capita(self, dataset_name, new_name):
         """Calculate GDP per capita for a dataset."""
         assume(dataset_name in self.data_store)
+        assume(new_name not in self.data_store)
 
         df = self.data_store[dataset_name].copy()
         assume("gdp_usd" in df.columns and "population" in df.columns)
         assume((df["population"] > 0).all())
 
         df["gdp_per_capita"] = df["gdp_usd"] / df["population"]
-        self.data_store[target] = df
-        self.processing_history.append(f"gdp_per_capita_{dataset_name}_to_{target}")
+        self.data_store[new_name] = df
+        self.processing_history.append(f"gdp_per_capita_{dataset_name}_to_{new_name}")
+        return new_name
 
-    @rule(dataset_name=st.sampled_from(["base"]), target=st.sampled_from(["base"]))
-    def calculate_growth_rates(self, dataset_name, target):
+    @rule(
+        target=datasets,
+        dataset_name=datasets,
+        new_name=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))),
+    )
+    def calculate_growth_rates(self, dataset_name, new_name):
         """Calculate growth rates for a dataset."""
         assume(dataset_name in self.data_store)
+        assume(new_name not in self.data_store)
 
         df = self.data_store[dataset_name].copy()
         assume("gdp_usd" in df.columns)
@@ -198,8 +216,9 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
 
         df = df.sort_values("year")
         df["gdp_growth"] = df["gdp_usd"].pct_change() * 100
-        self.data_store[target] = df
-        self.processing_history.append(f"growth_rates_{dataset_name}_to_{target}")
+        self.data_store[new_name] = df
+        self.processing_history.append(f"growth_rates_{dataset_name}_to_{new_name}")
+        return new_name
 
     @invariant()
     def data_store_consistency(self):

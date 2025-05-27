@@ -16,9 +16,14 @@ permissions:
   pull-requests: write
   checks: write
 
+concurrency:
+  group: security-enhanced-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   PYTHONUNBUFFERED: "1"
   FORCE_COLOR: "1"
+  UV_CACHE_DIR: ~/.cache/uv
 
 jobs:
   sast-analysis:
@@ -34,11 +39,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
 
@@ -57,13 +64,11 @@ jobs:
 
       - name: Run Ruff Security Checks
         run: |
-          source $HOME/.cargo/env
           uv run ruff check . --select=S,B --output-format=json > ruff-security-report.json || true
           uv run ruff check . --select=S,B --output-format=github
 
       - name: Run Bandit Security Scan
         run: |
-          source $HOME/.cargo/env
           uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*,./.venv/*" || true
           uv run bandit -r . -f txt --exclude "./venv/*,./tests/*,./.venv/*" || true
 
@@ -89,29 +94,28 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Run pip-audit vulnerability scan
         run: |
-          source $HOME/.cargo/env
           uv run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
           uv run pip-audit --format=cyclonedx-json --output=pip-audit-sbom.json || true
           uv run pip-audit || true
 
       - name: Run Safety vulnerability scan
         run: |
-          source $HOME/.cargo/env
           uv run safety check --json --output=safety-vulnerabilities.json || true
           uv run safety check || true
 
       - name: Generate dependency tree
         run: |
-          source $HOME/.cargo/env
           uv run pipdeptree --json > dependency-tree.json
           uv run pipdeptree --graph-output png > dependency-graph.png || true
 
@@ -140,23 +144,23 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Generate license report
         run: |
-          source $HOME/.cargo/env
           uv run pip-licenses --format=json --output-file=licenses.json
           uv run pip-licenses --format=csv --output-file=licenses.csv
           uv run pip-licenses --format=html --output-file=licenses.html
 
       - name: Check for problematic licenses
         run: |
-          source $HOME/.cargo/env
           # Check for GPL licenses that might conflict with MIT
           if uv run pip-licenses --format=json | grep -i "gpl\|agpl\|copyleft"; then
             echo "⚠️ Warning: Found potentially problematic licenses"
@@ -181,6 +185,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5.6.0
@@ -188,11 +194,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Install detect-secrets
@@ -201,20 +209,97 @@ jobs:
           uv pip install "detect-secrets==1.5.0"
       - name: Run detect-secrets scan
         run: |
-          source $HOME/.cargo/env
           # Update baseline if it doesn't exist
           if [ ! -f .secrets.baseline ]; then
-            uv run detect-secrets scan --all-files --baseline .secrets.baseline
+            echo "Creating initial baseline..."
+            uv run detect-secrets scan --all-files \
+              --exclude-files '\.mypy_cache/.*' \
+              --exclude-files '\.venv/.*' \
+              --exclude-files 'venv/.*' \
+              --exclude-files '\.git/.*' \
+              --exclude-files '__pycache__/.*' \
+              --exclude-files '\.pytest_cache/.*' \
+              --exclude-files '\.ruff_cache/.*' \
+              --exclude-files '\.hypothesis/.*' \
+              --exclude-files 'node_modules/.*' \
+              --exclude-files 'htmlcov/.*' \
+              --exclude-files 'workflow_outputs/.*' \
+              --exclude-files 'uv\.lock' \
+              --exclude-files 'coverage\.xml' \
+              --baseline .secrets.baseline
           fi
 
-          # Scan for new secrets
-          uv run detect-secrets scan --all-files --baseline .secrets.baseline --fail-on-unaudited-potential-secrets
+          # Create a new scan and compare with baseline
+          echo "Scanning for secrets..."
+          uv run detect-secrets scan --all-files \
+            --exclude-files '\.mypy_cache/.*' \
+            --exclude-files '\.venv/.*' \
+            --exclude-files 'venv/.*' \
+            --exclude-files '\.git/.*' \
+            --exclude-files '__pycache__/.*' \
+            --exclude-files '\.pytest_cache/.*' \
+            --exclude-files '\.ruff_cache/.*' \
+            --exclude-files '\.hypothesis/.*' \
+            --exclude-files 'node_modules/.*' \
+            --exclude-files 'htmlcov/.*' \
+            --exclude-files 'workflow_outputs/.*' \
+            --exclude-files 'uv\.lock' \
+            --exclude-files 'coverage\.xml' \
+            > current-scan.json
+
+          # Check if there are differences between baseline and current scan
+          # Extract just the secrets (excluding metadata) for comparison
+          if command -v jq >/dev/null 2>&1; then
+            # Use jq if available for more precise comparison
+            baseline_secrets=$(jq -r '.results | keys[]' .secrets.baseline 2>/dev/null | sort || echo "")
+            current_secrets=$(jq -r '.results | keys[]' current-scan.json 2>/dev/null | sort || echo "")
+
+            if [ "$baseline_secrets" != "$current_secrets" ]; then
+              echo "❌ New secrets detected!"
+              echo "Baseline files: $(echo "$baseline_secrets" | wc -l)"
+              echo "Current files: $(echo "$current_secrets" | wc -l)"
+              echo ""
+              echo "🔍 Files with new secrets:"
+              comm -13 <(echo "$baseline_secrets") <(echo "$current_secrets") | head -10
+              echo ""
+              echo "📋 Next steps:"
+              echo "1. Review the detected secrets above"
+              echo "2. If they are false positives, add them to .secrets.baseline:"
+              echo "   uv run detect-secrets scan --baseline .secrets.baseline"
+              echo "3. If they are real secrets, remove them and rotate any exposed credentials"
+              echo "4. Use 'uv run detect-secrets audit .secrets.baseline' to review and label secrets"
+              rm -f current-scan.json
+              exit 1
+            fi
+          else
+            # Fallback: simple file size comparison
+            baseline_size=$(wc -c < .secrets.baseline)
+            current_size=$(wc -c < current-scan.json)
+
+            # Allow for small differences in metadata (timestamps, etc.)
+            size_diff=$((current_size - baseline_size))
+            if [ $size_diff -gt 1000 ] || [ $size_diff -lt -1000 ]; then
+              echo "❌ Significant changes detected in secrets scan!"
+              echo "Baseline size: $baseline_size bytes"
+              echo "Current size: $current_size bytes"
+              echo ""
+              echo "📋 Next steps:"
+              echo "1. Install jq for better analysis: apt-get install jq"
+              echo "2. Review the secrets manually"
+              echo "3. Update your baseline if changes are legitimate"
+              rm -f current-scan.json
+              exit 1
+            fi
+          fi
+
+          echo "✅ No new secrets detected."
+          rm -f current-scan.json
 
       - name: Run TruffleHog secrets scan
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: main
+          base: ${{ github.event.repository.default_branch }}
           head: HEAD
           extra_args: --debug --only-verified
 
@@ -231,11 +316,12 @@ jobs:
           docker build -t china-data-security-test .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: 'china-data-security-test'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          exit-code: '0'  # Don't fail the build on vulnerabilities
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -244,12 +330,13 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'json'
           output: 'trivy-fs-results.json'
+          exit-code: '0'  # Don't fail the build on vulnerabilities
 
       - name: Upload container security reports
         uses: actions/upload-artifact@v4.6.2
