@@ -354,6 +354,8 @@ python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short --doctest-modules --doctest-glob='*.md'"
 doctest_optionflags = ["NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
+# Asyncio configuration to suppress warnings
+asyncio_default_fixture_loop_scope = "function"
 # Custom markers for test organization
 markers = [
     "benchmark: marks tests as benchmark tests (deselect with '-m \"not benchmark\"')",

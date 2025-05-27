@@ -71,9 +71,10 @@ class TestFactoryBoyIntegration:
         assert economic_data["GDP_USD_bn"] == economic_data__gdp_usd_bn
 
     @pytest.mark.parametrize("economic_data__year", [2020, 2021, 2022])
-    def test_parametrized_years(self, economic_data: dict[str, Any]) -> None:
+    def test_parametrized_years(self, economic_data: dict[str, Any], economic_data__year: int) -> None:
         """Test parametrizing year values."""
         assert economic_data["year"] in [2020, 2021, 2022]
+        assert economic_data["year"] == economic_data__year
 
     def test_factory_subfactory_relationships(self, economic_data_factory: Any) -> None:
         """Test creating related data using factories."""
