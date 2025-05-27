@@ -1,4 +1,4 @@
-import logging
+from unittest.mock import Mock
 
 import pandas as pd
 import pytest
@@ -65,12 +65,24 @@ def test_retry_on_exception(monkeypatch):
     assert calls["n"] == 2
 
 
-def test_log_execution_time(caplog):
-    caplog.set_level(logging.INFO)
+def test_log_execution_time(monkeypatch):
+    # Mock the logger to capture log calls
+    mock_logger = Mock()
+    monkeypatch.setattr("utils.error_handling.retry_and_timing_decorators.logger", mock_logger)
 
     @decorators.log_execution_time
     def work(x):
         return x * 2
 
     assert work(3) == 6
-    assert any("work took" in rec.message for rec in caplog.records)
+
+    # Verify that logger.info was called
+    mock_logger.info.assert_called_once()
+
+    # Check the call arguments - should be either structured or regular logging format
+    call_args = mock_logger.info.call_args
+    if len(call_args[0]) > 1:  # Regular logging format: logger.info(format_string, *args)
+        assert "took" in call_args[0][0]
+        assert "seconds" in call_args[0][0]
+    else:  # Structured logging format: logger.info(message, **kwargs)
+        assert "Function execution completed" in call_args[0][0]

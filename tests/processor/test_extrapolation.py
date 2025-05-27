@@ -38,13 +38,22 @@ def test_extrapolate_series_to_end_year(monkeypatch):
             df.loc[df.year == year, col] = 1.0
         return df, True, "Linear regression"
 
-    # Apply the mocks
-    import utils.processor_extrapolation as extrapolation_module
+    def mock_extrapolate_with_average_growth_rate(df, col, years, **kwargs):
+        for year in years:
+            df.loc[df.year == year, col] = 1.0
+        return df, True, "Average growth rate"
 
-    monkeypatch.setattr(extrapolation_module, "extrapolate_with_arima", mock_extrapolate_with_arima)
+    # Apply the mocks to the extrapolation_methods module
+    from utils import extrapolation_methods
+
+    monkeypatch.setattr(extrapolation_methods, "extrapolate_with_arima", mock_extrapolate_with_arima)
     monkeypatch.setattr(
-        extrapolation_module, "extrapolate_with_linear_regression", mock_extrapolate_with_linear_regression
+        extrapolation_methods, "extrapolate_with_linear_regression", mock_extrapolate_with_linear_regression
     )
+    monkeypatch.setattr(
+        extrapolation_methods, "extrapolate_with_average_growth_rate", mock_extrapolate_with_average_growth_rate
+    )
+
     out, info = extrapolate_series_to_end_year(df, end_year=2024, raw_data=df)
     assert 2024 in out["year"].to_numpy()
     assert isinstance(info, dict)

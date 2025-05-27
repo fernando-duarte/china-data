@@ -2,6 +2,7 @@
 
 import functools
 import time
+from collections.abc import Callable
 from typing import Any, cast
 
 from .decorators_base import F, logger
@@ -87,4 +88,3 @@ def log_execution_time(func: F) -> F:
         return result
 
     return cast("F", wrapper)
-

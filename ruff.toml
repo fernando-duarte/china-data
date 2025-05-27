@@ -4,7 +4,7 @@
 # Compatible with Ruff v0.11.10 and later
 
 # Python version target (updated for 2025)
-target-version = "py310"
+target-version = "py313"
 
 # Same as Black
 line-length = 120
@@ -114,7 +114,7 @@ select = [
 
     # 2025 additions
     "ASYNC",  # async/await best practices
-    "TRIO",   # Trio async framework patterns
+    "ASYNC1", # Async framework patterns (formerly TRIO)
     "FURB",   # refurb - modernize Python code
     "LOG",    # logging best practices
     "FA",     # flake8-future-annotations
@@ -128,8 +128,6 @@ ignore = [
     "D105",   # Missing docstring in magic method
     "D107",   # Missing docstring in __init__
     # Enable more annotation rules by removing some ignores
-    "ANN101", # Missing type annotation for self
-    "ANN102", # Missing type annotation for cls
     "ANN401", # Dynamically typed expressions (Any) - keep for flexibility
     "S101",   # Use of assert detected
     "T201",   # Print found
@@ -158,7 +156,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
     "ANN",    # Don't require type annotations in tests
     "PD901",  # Generic DataFrame names are fine in tests
     "BLE001", # Blind except is sometimes needed in tests
-    "ASYNC",  # Additional test-specific ignores
+    "ASYNC1", # Async rules relaxed in tests
     "LOG",    # Logging rules relaxed in tests
 ]
 
