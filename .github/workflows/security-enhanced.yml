@@ -207,12 +207,40 @@ jobs:
           # Update baseline if it doesn't exist
           if [ ! -f .secrets.baseline ]; then
             echo "Creating initial baseline..."
-            uv run detect-secrets scan --all-files --baseline .secrets.baseline
+            uv run detect-secrets scan --all-files \
+              --exclude-files '\.mypy_cache/.*' \
+              --exclude-files '\.venv/.*' \
+              --exclude-files 'venv/.*' \
+              --exclude-files '\.git/.*' \
+              --exclude-files '__pycache__/.*' \
+              --exclude-files '\.pytest_cache/.*' \
+              --exclude-files '\.ruff_cache/.*' \
+              --exclude-files '\.hypothesis/.*' \
+              --exclude-files 'node_modules/.*' \
+              --exclude-files 'htmlcov/.*' \
+              --exclude-files 'workflow_outputs/.*' \
+              --exclude-files 'uv\.lock' \
+              --exclude-files 'coverage\.xml' \
+              --baseline .secrets.baseline
           fi
 
           # Create a new scan and compare with baseline
           echo "Scanning for secrets..."
-          uv run detect-secrets scan --all-files > current-scan.json
+          uv run detect-secrets scan --all-files \
+            --exclude-files '\.mypy_cache/.*' \
+            --exclude-files '\.venv/.*' \
+            --exclude-files 'venv/.*' \
+            --exclude-files '\.git/.*' \
+            --exclude-files '__pycache__/.*' \
+            --exclude-files '\.pytest_cache/.*' \
+            --exclude-files '\.ruff_cache/.*' \
+            --exclude-files '\.hypothesis/.*' \
+            --exclude-files 'node_modules/.*' \
+            --exclude-files 'htmlcov/.*' \
+            --exclude-files 'workflow_outputs/.*' \
+            --exclude-files 'uv\.lock' \
+            --exclude-files 'coverage\.xml' \
+            > current-scan.json
 
           # Check if there are differences between baseline and current scan
           # Extract just the secrets (excluding metadata) for comparison
@@ -225,8 +253,16 @@ jobs:
               echo "❌ New secrets detected!"
               echo "Baseline files: $(echo "$baseline_secrets" | wc -l)"
               echo "Current files: $(echo "$current_secrets" | wc -l)"
-              echo "Please review the secrets and update your baseline if they are false positives."
-              echo "Run 'detect-secrets audit .secrets.baseline' to review the secrets."
+              echo ""
+              echo "🔍 Files with new secrets:"
+              comm -13 <(echo "$baseline_secrets") <(echo "$current_secrets") | head -10
+              echo ""
+              echo "📋 Next steps:"
+              echo "1. Review the detected secrets above"
+              echo "2. If they are false positives, add them to .secrets.baseline:"
+              echo "   uv run detect-secrets scan --baseline .secrets.baseline"
+              echo "3. If they are real secrets, remove them and rotate any exposed credentials"
+              echo "4. Use 'uv run detect-secrets audit .secrets.baseline' to review and label secrets"
               rm -f current-scan.json
               exit 1
             fi
@@ -241,8 +277,11 @@ jobs:
               echo "❌ Significant changes detected in secrets scan!"
               echo "Baseline size: $baseline_size bytes"
               echo "Current size: $current_size bytes"
-              echo "Please review the secrets and update your baseline if they are false positives."
-              echo "Run 'detect-secrets audit .secrets.baseline' to review the secrets."
+              echo ""
+              echo "📋 Next steps:"
+              echo "1. Install jq for better analysis: apt-get install jq"
+              echo "2. Review the secrets manually"
+              echo "3. Update your baseline if changes are legitimate"
               rm -f current-scan.json
               exit 1
             fi
