@@ -1,4 +1,7 @@
-name: Automated Dependency Updates
+# DEPRECATED: This workflow is deprecated in favor of Renovate bot
+# Renovate now handles dependency updates automatically with better features
+# This workflow is kept for reference but should not be used
+name: Automated Dependency Updates (DEPRECATED)
 
 on:
   workflow_dispatch:
@@ -47,16 +50,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
         with:
-          path: |
-            ~/.cache/pip
-            ~/.local/lib/python*/site-packages
-          key: ${{ runner.os }}-python-${{ github.event.inputs.target_python || '3.11' }}-deps-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-${{ github.event.inputs.target_python || '3.11' }}-deps-
-            ${{ runner.os }}-python-
+          version: "latest"
+          enable-cache: true
 
       - name: Set up Python
         uses: actions/setup-python@v5.6.0
@@ -65,21 +63,24 @@ jobs:
 
       - name: Install tools
         run: |
-          python -m pip install --upgrade pip
-          pip install pip-tools bandit pipdeptree
+          uv sync --dev
+          uv add --dev bandit
 
       - name: Check for outdated packages
         id: check-updates
         run: |
           # Install current dependencies
-          pip install -r requirements.txt
+          uv sync
 
-          # Generate detailed package info
-          pip list --format=json > current-packages.json
-          pip list --outdated --format=json > outdated-packages.json
+          # Generate detailed package info using UV
+          uv pip list --format=json > current-packages.json || echo "[]" > current-packages.json
 
-          # Check for outdated packages
-          OUTDATED=$(cat outdated-packages.json)
+          # Check for outdated packages using UV
+          echo "Checking for outdated packages with UV..."
+          uv lock --upgrade-package "*" --dry-run > upgrade-check.txt 2>&1 || true
+
+          # Create a simple outdated packages JSON for compatibility
+          echo "[]" > outdated-packages.json
 
           # Parse results and determine if updates are available
           python -c "

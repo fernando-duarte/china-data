@@ -34,21 +34,25 @@ jobs:
           fetch-depth: 0
 
       - name: Validate release branch
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           # For tag-based releases, ensure tag points to main branch
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "$EVENT_NAME" == "push" ]]; then
             # Get the branch that contains this tag
-            BRANCHES=$(git branch -r --contains ${{ github.sha }} | grep -E '(origin/main|origin/master)' || true)
+            BRANCHES=$(git branch -r --contains "$GITHUB_SHA" | grep -E '(origin/main|origin/master)' || true)
             if [[ -z "$BRANCHES" ]]; then
               echo "❌ Error: Release tags must be created from main/master branch"
-              echo "Current commit ${{ github.sha }} is not on main/master branch"
+              echo "Current commit $GITHUB_SHA is not on main/master branch"
               echo "Please checkout main and create the tag from there:"
               echo "  git checkout main"
-              echo "  git tag ${{ github.ref_name }}"
-              echo "  git push origin ${{ github.ref_name }}"
+              echo "  git tag $GITHUB_REF_NAME"
+              echo "  git push origin $GITHUB_REF_NAME"
               exit 1
             else
-              echo "✅ Tag ${{ github.ref_name }} is on main/master branch"
+              echo "✅ Tag $GITHUB_REF_NAME is on main/master branch"
             fi
           fi
 
@@ -69,7 +73,7 @@ jobs:
               exit 1
             fi
           else
-            VERSION=${GITHUB_REF#refs/tags/}
+            VERSION="$GITHUB_REF_NAME"
           fi
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -83,16 +87,11 @@ jobs:
 
           echo "Release version: $VERSION"
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
         with:
-          path: |
-            ~/.cache/pip
-            ~/.local/lib/python*/site-packages
-          key: ${{ runner.os }}-python-3.11-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-3.11-
-            ${{ runner.os }}-python-
+          version: "latest"
+          enable-cache: true
 
       - name: Set up Python
         uses: actions/setup-python@v5.6.0
@@ -101,18 +100,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r dev-requirements.txt
+          uv sync --dev
 
       - name: Run full test suite
         run: |
-          pytest tests/ -v --tb=short --cov=. --cov-report=term
+          uv run pytest tests/ -v --tb=short --cov=. --cov-report=term
 
       - name: Validate code quality
         run: |
-          black --check . --exclude=venv
-          isort --check . --skip venv
-          flake8 . --exclude=venv
+          uv run black --check . --exclude=venv
+          uv run ruff check .
 
   build-release-artifacts:
     name: Build Release Artifacts
@@ -123,16 +120,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
         with:
-          path: |
-            ~/.cache/pip
-            ~/.local/lib/python*/site-packages
-          key: ${{ runner.os }}-python-3.11-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-python-3.11-
-            ${{ runner.os }}-python-
+          version: "latest"
+          enable-cache: true
 
       - name: Set up Python
         uses: actions/setup-python@v5.6.0
@@ -141,17 +133,20 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-          pip install -r dev-requirements.txt
+          uv sync --dev
+          uv add --dev build twine
 
       - name: Create version info file
+        env:
+          VERSION: ${{ needs.validate-release.outputs.version }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           cat > VERSION.txt << EOF
-          Version: ${{ needs.validate-release.outputs.version }}
+          Version: $VERSION
           Build Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          Git Commit: ${{ github.sha }}
-          Branch: ${{ github.ref_name }}
+          Git Commit: $GITHUB_SHA
+          Branch: $GITHUB_REF_NAME
           EOF
 
       - name: Build documentation
@@ -204,6 +199,8 @@ jobs:
           "
 
       - name: Create release archive
+        env:
+          VERSION: ${{ needs.validate-release.outputs.version }}
         run: |
           # Create a clean copy of the project for release
           mkdir -p china-data-release
@@ -212,7 +209,7 @@ jobs:
           cp -r china_data_downloader.py china_data_processor.py config.py china-data-release/
           cp -r utils/ china-data-release/
           cp -r tests/ china-data-release/
-          cp requirements.txt dev-requirements.txt china-data-release/
+          cp uv.lock china-data-release/
           cp pyproject.toml Makefile china-data-release/
           cp .flake8 china-data-release/
           cp VERSION.txt china-data-release/
@@ -247,7 +244,7 @@ jobs:
 
           # Install dependencies
           echo "Installing dependencies..."
-          pip install -r requirements.txt
+          uv sync
 
           # Create necessary directories
           echo "Creating project directories..."
@@ -262,43 +259,46 @@ jobs:
           chmod +x china-data-release/setup.sh
 
           # Create the main release archive
-          tar -czf china-data-${{ needs.validate-release.outputs.version }}.tar.gz china-data-release/
-          zip -r china-data-${{ needs.validate-release.outputs.version }}.zip china-data-release/
+          tar -czf china-data-$VERSION.tar.gz china-data-release/
+          zip -r china-data-$VERSION.zip china-data-release/
 
       - name: Create data-only release
+        env:
+          VERSION: ${{ needs.validate-release.outputs.version }}
+          GITHUB_SHA: ${{ github.sha }}
         run: |
           # Create data-only release directory
-          mkdir -p china-data-only-${{ needs.validate-release.outputs.version }}
+          mkdir -p china-data-only-$VERSION
 
           # Check if output files exist and copy them
           if [ -f "output/china_data_raw.md" ]; then
-            cp output/china_data_raw.md china-data-only-${{ needs.validate-release.outputs.version }}/
+            cp output/china_data_raw.md china-data-only-$VERSION/
             echo "✅ Included china_data_raw.md"
           else
             echo "⚠️ Warning: output/china_data_raw.md not found"
           fi
 
           if [ -f "output/china_data_processed.csv" ]; then
-            cp output/china_data_processed.csv china-data-only-${{ needs.validate-release.outputs.version }}/
+            cp output/china_data_processed.csv china-data-only-$VERSION/
             echo "✅ Included china_data_processed.csv"
           else
             echo "⚠️ Warning: output/china_data_processed.csv not found"
           fi
 
           if [ -f "output/china_data_processed.md" ]; then
-            cp output/china_data_processed.md china-data-only-${{ needs.validate-release.outputs.version }}/
+            cp output/china_data_processed.md china-data-only-$VERSION/
             echo "✅ Included china_data_processed.md"
           else
             echo "⚠️ Warning: output/china_data_processed.md not found"
           fi
 
           # Create a README for the data-only release
-          cat > china-data-only-${{ needs.validate-release.outputs.version }}/README.md << EOF
+          cat > china-data-only-$VERSION/README.md << EOF
           # China Economic Data - Data Only Release
 
-          **Version:** ${{ needs.validate-release.outputs.version }}
+          **Version:** $VERSION
           **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          **Git Commit:** ${{ github.sha }}
+          **Git Commit:** $GITHUB_SHA
 
           ## Contents
 
@@ -355,7 +355,7 @@ jobs:
           ### Need the Source Code?
 
           To reproduce this data or modify the processing pipeline, download the full release archive:
-          \`china-data-${{ needs.validate-release.outputs.version }}.tar.gz\` or \`china-data-${{ needs.validate-release.outputs.version }}.zip\`
+          \`china-data-$VERSION.tar.gz\` or \`china-data-$VERSION.zip\`
 
           ### Citation
 
@@ -363,12 +363,12 @@ jobs:
           - The original data sources (World Bank WDI, Penn World Table, IMF)
           - This processed dataset with version number and date
 
-          Generated by China Data Processing Pipeline v${{ needs.validate-release.outputs.version }}
+          Generated by China Data Processing Pipeline v$VERSION
           EOF
 
           # Create archives for data-only release
-          tar -czf china-data-only-${{ needs.validate-release.outputs.version }}.tar.gz china-data-only-${{ needs.validate-release.outputs.version }}/
-          zip -r china-data-only-${{ needs.validate-release.outputs.version }}.zip china-data-only-${{ needs.validate-release.outputs.version }}/
+          tar -czf china-data-only-$VERSION.tar.gz china-data-only-$VERSION/
+          zip -r china-data-only-$VERSION.zip china-data-only-$VERSION/
 
           echo "📊 Data-only release created successfully"
 

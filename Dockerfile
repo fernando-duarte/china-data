@@ -41,7 +41,7 @@ COPY --from=builder /app/.venv /app/.venv
 # Copy application code
 COPY --chown=app:app . .
 
-# Create required directories and ensure proper ownership
+# Create required directories with proper ownership BEFORE switching to non-root user
 RUN mkdir -p input output && \
     chown -R app:app /app
 

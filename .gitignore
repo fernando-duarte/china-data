@@ -200,3 +200,7 @@ cython_debug/
 # Specifically ignore PDF files in output even if the directory is tracked later
 output/**/*.pdf
 .DS_Store
+
+# Dependency Management (2025)
+# No longer needed with Renovate + UV native support
+requirements.txt
