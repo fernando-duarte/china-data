@@ -48,6 +48,7 @@ jobs:
         run: |
           uv sync --dev
 
+
       - name: Run Semgrep SAST
         uses: semgrep/semgrep-action@v1
         with:
@@ -202,6 +203,10 @@ jobs:
         run: |
           uv sync --dev
 
+      - name: Install detect-secrets
+        run: |
+          source $HOME/.cargo/env
+          uv pip install "detect-secrets==1.5.0"
       - name: Run detect-secrets scan
         run: |
           # Update baseline if it doesn't exist
