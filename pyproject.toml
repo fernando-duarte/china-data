@@ -176,12 +176,36 @@ exclude = '''
   | \.hg
   | \.mypy_cache
   | \.tox
+  | \.nox
   | \.venv
+  | \.env
   | venv
+  | ENV
+  | \.ruff_cache
+  | \.pytest_cache
+  | \.hypothesis
+  | __pycache__
+  | __pypackages__
+  | \.pdm-python
+  | \.uv-cache
+  | \.devcontainer
+  | \.vscode
+  | \.idea
+  | \.ipynb_checkpoints
   | _build
   | buck-out
   | build
   | dist
+  | htmlcov
+  | cover
+  | migrations
+  | static
+  | media
+  | node_modules
+  | workflow_outputs
+  | parameters_info
+  | input
+  | output
 )/
 '''
 
@@ -193,11 +217,97 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
-skip = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
+skip = [
+    "venv",
+    ".venv",
+    ".env",
+    "ENV",
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".nox",
+    ".hypothesis",
+    "__pypackages__",
+    ".pdm-python",
+    ".uv-cache",
+    ".devcontainer",
+    ".vscode",
+    ".idea",
+    ".ipynb_checkpoints",
+    "build",
+    "dist",
+    "htmlcov",
+    "cover",
+    "migrations",
+    "static",
+    "media",
+    "node_modules",
+    "workflow_outputs",
+    "parameters_info",
+    "input",
+    "output",
+]
 
 [tool.pylint.main]
 py-version = "3.10"
-ignore = ["venv", ".venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache"]
+
+# Modern ignore-paths with regex patterns (2024-2025 best practice)
+ignore-paths = [
+    # Traditional cache and build directories
+    "^.*/__pycache__/.*$",
+    "^.*/\\.git/.*$",
+    "^.*/build/.*$",
+    "^.*/dist/.*$",
+
+    # Virtual environments (all variants)
+    "^.*/\\.?venv/.*$",
+    "^.*/\\.?env/.*$",
+    "^.*/ENV/.*$",
+
+    # Modern cache directories (2024-2025)
+    "^.*/\\.ruff_cache/.*$",
+    "^.*/\\.mypy_cache/.*$",
+    "^.*/\\.pytest_cache/.*$",
+    "^.*/\\.tox/.*$",
+    "^.*/\\.nox/.*$",
+    "^.*/\\.hypothesis/.*$",
+
+    # Package managers and build artifacts
+    "^.*\\.egg-info/.*$",
+    "^.*/__pypackages__/.*$",
+    "^.*/\\.pdm-python/.*$",
+    "^.*/\\.uv-cache/.*$",
+
+    # Development tools and IDEs
+    "^.*/\\.ipynb_checkpoints/.*$",
+    "^.*/\\.devcontainer/.*$",
+    "^.*/\\.vscode/.*$",
+    "^.*/\\.idea/.*$",
+
+    # Coverage and testing
+    "^.*/htmlcov/.*$",
+    "^.*/\\.coverage.*$",
+    "^.*/cover/.*$",
+
+    # Framework-specific
+    "^.*/migrations/.*$",
+    "^.*/static/.*$",
+    "^.*/media/.*$",
+    "^.*/node_modules/.*$",
+
+    # Project-specific directories
+    "^.*/workflow_outputs/.*$",
+    "^.*/parameters_info/.*$",
+    "^.*/input/.*$",
+    "^.*/output/.*$",
+]
+
+# Keep traditional ignore patterns for compatibility
+ignore = ["CVS"]
+ignore-patterns = ["^\\.#"]
 
 # Performance optimizations
 jobs = 0  # Use all available CPU cores for parallel processing
@@ -286,7 +396,39 @@ disallow_any_decorated = true
 disallow_any_explicit = false  # Allow explicit Any when needed
 # Still ignore missing imports for external libraries
 ignore_missing_imports = true
-exclude = ["venv"]
+exclude = [
+    "venv",
+    ".venv",
+    ".env",
+    "ENV",
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".nox",
+    ".hypothesis",
+    "__pypackages__",
+    ".pdm-python",
+    ".uv-cache",
+    ".devcontainer",
+    ".vscode",
+    ".idea",
+    ".ipynb_checkpoints",
+    "build",
+    "dist",
+    "htmlcov",
+    "cover",
+    "migrations",
+    "static",
+    "media",
+    "node_modules",
+    "workflow_outputs",
+    "parameters_info",
+    "input",
+    "output",
+]
 # Show error codes for easier debugging
 show_error_codes = true
 # Show column numbers
@@ -334,7 +476,40 @@ ignore-module = true
 ignore-nested-functions = true
 ignore-nested-classes = true
 fail-under = 80
-exclude = ["tests", "venv", ".venv", "build", "dist"]
+exclude = [
+    "tests",
+    "venv",
+    ".venv",
+    ".env",
+    "ENV",
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".nox",
+    ".hypothesis",
+    "__pypackages__",
+    ".pdm-python",
+    ".uv-cache",
+    ".devcontainer",
+    ".vscode",
+    ".idea",
+    ".ipynb_checkpoints",
+    "build",
+    "dist",
+    "htmlcov",
+    "cover",
+    "migrations",
+    "static",
+    "media",
+    "node_modules",
+    "workflow_outputs",
+    "parameters_info",
+    "input",
+    "output",
+]
 verbose = 2
 quiet = false
 whitelist-regex = []
@@ -357,7 +532,41 @@ paths_to_mutate = ["utils/", "china_data_downloader.py", "china_data_processor.p
 backup = false
 runner = "python -m pytest tests/ -x --tb=short --disable-warnings"
 tests_dir = "tests/"
-exclude_patterns = ["*/__pycache__/*", "*/test_*", "*/.git/*", "*/venv/*", "*/.venv/*"]
+exclude_patterns = [
+    "*/__pycache__/*",
+    "*/test_*",
+    "*/.git/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/.env/*",
+    "*/ENV/*",
+    "*/.mypy_cache/*",
+    "*/.pytest_cache/*",
+    "*/.ruff_cache/*",
+    "*/.tox/*",
+    "*/.nox/*",
+    "*/.hypothesis/*",
+    "*/__pypackages__/*",
+    "*/.pdm-python/*",
+    "*/.uv-cache/*",
+    "*/.devcontainer/*",
+    "*/.vscode/*",
+    "*/.idea/*",
+    "*/.ipynb_checkpoints/*",
+    "*/build/*",
+    "*/dist/*",
+    "*/htmlcov/*",
+    "*/.coverage*",
+    "*/cover/*",
+    "*/migrations/*",
+    "*/static/*",
+    "*/media/*",
+    "*/node_modules/*",
+    "*/workflow_outputs/*",
+    "*/parameters_info/*",
+    "*/input/*",
+    "*/output/*",
+]
 # Enable incremental mode for faster re-runs
 use_patch_file = true
 # Enable parallel execution (adjust based on CPU cores)
@@ -366,3 +575,68 @@ processes = 4
 use_coverage = true
 # Coverage file to use
 coverage_file = ".coverage"
+
+[tool.radon]
+# Radon configuration for code complexity analysis (2024-2025 best practices)
+# Exclude patterns aligned with other tools for consistency
+exclude = [
+    # Cache and build directories
+    "*/__pycache__/*",
+    "*/.git/*",
+    "*/build/*",
+    "*/dist/*",
+
+    # Virtual environments
+    "*/.venv/*",
+    "*/venv/*",
+    "*/.env/*",
+    "*/ENV/*",
+
+    # Modern cache directories (2024-2025)
+    "*/.ruff_cache/*",
+    "*/.mypy_cache/*",
+    "*/.pytest_cache/*",
+    "*/.tox/*",
+    "*/.nox/*",
+    "*/.hypothesis/*",
+
+    # Package managers and build artifacts
+    "*.egg-info/*",
+    "*/__pypackages__/*",
+    "*/.pdm-python/*",
+    "*/.uv-cache/*",
+
+    # Development tools and IDEs
+    "*/.ipynb_checkpoints/*",
+    "*/.devcontainer/*",
+    "*/.vscode/*",
+    "*/.idea/*",
+
+    # Coverage and testing
+    "*/htmlcov/*",
+    "*/.coverage*",
+    "*/cover/*",
+
+    # Framework-specific
+    "*/migrations/*",
+    "*/static/*",
+    "*/media/*",
+    "*/node_modules/*",
+
+    # Project-specific directories
+    "*/workflow_outputs/*",
+    "*/parameters_info/*",
+    "*/input/*",
+    "*/output/*",
+
+    # Test files (optional - can be included if you want to analyze test complexity)
+    "*/tests/*",
+    "*test_*.py",
+    "*_test.py",
+]
+
+# Radon command-specific settings
+cc_min = "A"  # Minimum complexity rank to display (A-F)
+cc_max = "F"  # Maximum complexity rank to display
+show_complexity = true  # Show complexity scores
+average = true  # Calculate average complexity

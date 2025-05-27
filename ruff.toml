@@ -38,6 +38,25 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    # Additional 2024-2025 patterns
+    ".env",
+    "ENV",
+    ".hypothesis",
+    ".pdm-python",
+    ".uv-cache",
+    ".devcontainer",
+    ".idea",
+    "htmlcov",
+    ".coverage*",
+    "cover",
+    "migrations",
+    "static",
+    "media",
+    # Project-specific directories
+    "workflow_outputs",
+    "parameters_info",
+    "input",
+    "output",
 ]
 
 [lint]

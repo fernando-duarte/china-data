@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-uv install-dev-uv format lint test test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all clean run-download run-process security-scan
+.PHONY: help install install-dev install-uv install-dev-uv format lint complexity test test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all clean run-download run-process security-scan
 
 # Default target
 help:
@@ -8,7 +8,8 @@ help:
 	@echo "  make install-pip   - Install production dependencies (legacy pip)"
 	@echo "  make install-dev-pip - Install development dependencies (legacy pip)"
 	@echo "  make format        - Format code with black and isort"
-	@echo "  make lint          - Run linting checks"
+	@echo "  make lint          - Run linting checks (Ruff, Pylint, Radon)"
+	@echo "  make complexity    - Run detailed code complexity analysis"
 	@echo "  make test          - Run standard tests"
 	@echo "  make test-property - Run property-based tests with Hypothesis"
 	@echo "  make test-mutation - Run mutation tests with mutmut (enhanced)"
@@ -48,13 +49,24 @@ install-dev-pip:
 
 # Format code
 format:
+	@echo "Formatting code with Ruff, Black, and isort..."
+	ruff check . --fix
+	ruff format .
 	black . --exclude=venv
 	isort . --skip venv
 
 # Run linting
 lint:
-	flake8 . --exclude=venv
-	pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv --jobs=0
+	@echo "Running modern linting with Ruff, Pylint, and Radon..."
+	ruff check . --fix
+	ruff format --check .
+	pylint china_data_processor.py china_data_downloader.py utils/ --jobs=0
+	radon cc . --show --average
+
+# Run detailed code complexity analysis
+complexity:
+	@echo "Running detailed code complexity analysis..."
+	radon cc . --show --average
 
 # Run standard tests
 test:
@@ -109,13 +121,23 @@ security-scan:
 
 # Clean up generated files
 clean:
+	@echo "Cleaning up generated files and caches..."
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name ".coverage" -delete
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".tox" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".nox" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".hypothesis" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "__pypackages__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name ".pdm-python" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".uv-cache" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "cover" -exec rm -rf {} + 2>/dev/null || true
 	rm -f pip-audit-*.json safety-*.json vulnerability-*.json vulnerability-*.md 2>/dev/null || true
+	@echo "Cleanup complete!"
 
 # Run data download
 run-download:
