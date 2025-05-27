@@ -41,6 +41,9 @@ COPY --from=builder /app/.venv /app/.venv
 # Copy application code
 COPY --chown=app:app . .
 
+# Ensure ownership of the application directory
+RUN chown -R app:app /app
+
 # Switch to non-root user
 USER app
 
