@@ -88,9 +88,10 @@ repos:
         name: radon complexity check
         entry: radon
         language: system
-        args: [cc, --min, B, --show-complexity, .]
-        files: \.py$
-        exclude: ^(tests/|venv/|\.venv/)
+        args: [cc, --min, B, --show-complexity]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
+        pass_filenames: true
+        require_serial: false
 
   # Docstring coverage checking
   - repo: local
@@ -99,9 +100,10 @@ repos:
         name: interrogate docstring coverage
         entry: interrogate
         language: system
-        args: [--verbose, --fail-under=80, --exclude=tests, --exclude=venv, .]
-        files: \.py$
-        exclude: ^(tests/|venv/|\.venv/)
+        args: [--verbose, --fail-under=80]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
+        pass_filenames: true
+        require_serial: false
 
   # YAML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
