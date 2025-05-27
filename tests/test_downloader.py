@@ -101,7 +101,7 @@ def test_get_pwt_data_success(monkeypatch, tmp_path):
         }
     )
     monkeypatch.setattr(pwt_downloader.pd, "read_excel", lambda path, sheet_name="Data": expected)
-    df = pwt_downloader.get_pwt_data()
+    df = get_pwt_data()
     assert list(df.columns) == ["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]
     assert df.iloc[0]["year"] == 2017
 
@@ -114,4 +114,4 @@ def test_get_pwt_data_error(monkeypatch):
 
     monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession())
     with pytest.raises(pwt_downloader.requests.exceptions.HTTPError):
-        pwt_downloader.get_pwt_data()
+        get_pwt_data()

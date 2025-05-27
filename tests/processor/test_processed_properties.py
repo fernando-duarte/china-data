@@ -18,11 +18,13 @@ def test_processed_data_properties():
     )
 
     # K increasing over time
-    assert (processed_df["Physical Capital"].diff().dropna() >= 0).all()
+    k_diff = processed_df["Physical Capital"].diff().dropna()
+    assert np.all(k_diff.to_numpy() >= 0)
 
     # L increasing over time (Labor Force)
     lf_data = processed_df.set_index("Year")["Labor Force"].dropna()
-    assert (lf_data.diff().dropna() >= 0).all()
+    lf_diff = lf_data.diff().dropna()
+    assert np.all(lf_diff.to_numpy() >= 0)
 
     # K/Y ratio in 2017 between 1 and 5
     k_y_2017 = (

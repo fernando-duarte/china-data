@@ -26,37 +26,37 @@ class EconomicDataFactory(factory.Factory):
 
     # Consumption as percentage of GDP (typically 35-65% for China)
     @factory.LazyAttribute
-    def C_USD_bn(obj):
+    def C_USD_bn(obj) -> float:
         consumption_ratio = random.uniform(0.35, 0.65)
         return round(obj.GDP_USD_bn * consumption_ratio, 2)
 
     # Government spending as percentage of GDP (typically 10-25%)
     @factory.LazyAttribute
-    def G_USD_bn(obj):
+    def G_USD_bn(obj) -> float:
         gov_ratio = random.uniform(0.10, 0.25)
         return round(obj.GDP_USD_bn * gov_ratio, 2)
 
     # Investment as percentage of GDP (typically 20-50% for China)
     @factory.LazyAttribute
-    def I_USD_bn(obj):
+    def I_USD_bn(obj) -> float:
         investment_ratio = random.uniform(0.20, 0.50)
         return round(obj.GDP_USD_bn * investment_ratio, 2)
 
     # Exports as percentage of GDP (typically 10-35% for China)
     @factory.LazyAttribute
-    def X_USD_bn(obj):
+    def X_USD_bn(obj) -> float:
         export_ratio = random.uniform(0.10, 0.35)
         return round(obj.GDP_USD_bn * export_ratio, 2)
 
     # Imports as percentage of GDP (typically 8-30% for China)
     @factory.LazyAttribute
-    def M_USD_bn(obj):
+    def M_USD_bn(obj) -> float:
         import_ratio = random.uniform(0.08, 0.30)
         return round(obj.GDP_USD_bn * import_ratio, 2)
 
     # Capital stock (typically 2-4 times GDP)
     @factory.LazyAttribute
-    def K_USD_bn(obj):
+    def K_USD_bn(obj) -> float:
         capital_ratio = random.uniform(2.0, 4.0)
         return round(obj.GDP_USD_bn * capital_ratio, 2)
 

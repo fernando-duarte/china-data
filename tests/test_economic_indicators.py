@@ -48,10 +48,11 @@ class TestCalculateTFP:
             }
         )
 
-        result = calculate_tfp(incomplete_data)
+        result = calculate_tfp(incomplete_data, alpha=1 / 3)
 
-        # When required columns are missing the original DataFrame is returned
-        assert "TFP" not in result.columns
+        # When required columns are missing, TFP column is added with NaN values
+        assert "TFP" in result.columns
+        assert result["TFP"].isna().all()
 
     def test_tfp_with_missing_hc(self, sample_data):
         """Test TFP calculation with missing human capital values."""
@@ -59,7 +60,7 @@ class TestCalculateTFP:
         sample_data_with_nan_hc = sample_data.copy()
         sample_data_with_nan_hc.loc[1, "hc"] = np.nan
 
-        result = calculate_tfp(sample_data_with_nan_hc)
+        result = calculate_tfp(sample_data_with_nan_hc, alpha=1 / 3)
 
         # hc column in result should reflect the NaN value
         assert pd.isna(result.loc[1, "hc"])
@@ -84,7 +85,7 @@ class TestCalculateTFP:
 
     def test_tfp_rounding(self, sample_data):
         """Test that TFP values are rounded to 4 decimal places."""
-        result = calculate_tfp(sample_data)
+        result = calculate_tfp(sample_data, alpha=1 / 3)
 
         # Values should all be finite and positive
         assert (result["TFP"] > 0).all()
@@ -95,7 +96,7 @@ class TestCalculateTFP:
             {"year": [2020], "GDP_USD_bn": [0], "K_USD_bn": [3000], "LF_mn": [100], "hc": [2.5]}
         )
 
-        result = calculate_tfp(data_with_zeros)
+        result = calculate_tfp(data_with_zeros, alpha=1 / 3)
 
         # TFP should be 0 when GDP is 0
         assert result.iloc[0]["TFP"] == 0

@@ -29,7 +29,7 @@ def economic_data_strategy(draw):
             )
         ),
         "population": draw(
-            st.lists(st.integers(min_value=1e6, max_value=2e9), min_size=len(years), max_size=len(years))
+            st.lists(st.integers(min_value=int(1e6), max_value=int(2e9)), min_size=len(years), max_size=len(years))
         ),
         "inflation_rates": draw(
             st.lists(

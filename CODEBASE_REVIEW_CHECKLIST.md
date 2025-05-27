@@ -10,16 +10,16 @@
 
 ### File Length Violations (200-line limit)
 
-- [ x] **utils/logging_config.py** - 634 lines (317% over limit) - SEVERE
+- [ ] **utils/logging_config.py** - 634 lines (317% over limit) - SEVERE
 - [ ] **github_actions_log_viewer.py** - 311 lines (156% over limit) - SEVERE
-- [ codex] **utils/data_sources/fallback_utils.py** - 285 lines (143% over limit)
-- [codex ] **utils/processor_hc.py** - 276 lines (138% over limit)
-- [x ] **utils/processor_extrapolation.py** - 255 lines (128% over limit)
-- [codex ] **utils/capital/calculation.py** - 253 lines (127% over limit)
-- [ codex] **utils/validation_utils.py** - 237 lines (119% over limit)
+- [ ] **utils/data_sources/fallback_utils.py** - 285 lines (143% over limit)
+- [ ] **utils/processor_hc.py** - 276 lines (138% over limit)
+- [ ] **utils/processor_extrapolation.py** - 255 lines (128% over limit)
+- [ ] **utils/capital/calculation.py** - 253 lines (127% over limit)
+- [ ] **utils/validation_utils.py** - 237 lines (119% over limit)
 - [ ] **china_data_downloader.py** - 235 lines (118% over limit)
-- [codex ] **utils/capital/projection.py** - 226 lines (113% over limit)
-- [ codex] **utils/error_handling/decorators.py** - 209 lines (105% over limit)
+- [ ] **utils/capital/projection.py** - 226 lines (113% over limit)
+- [ ] **utils/error_handling/decorators.py** - 209 lines (105% over limit)
 
 ### Type Checking Failures (72 errors)
 

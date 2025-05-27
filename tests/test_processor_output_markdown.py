@@ -1,5 +1,6 @@
 """Tests for the create_markdown_table function."""
 
+from typing import Any
 from unittest.mock import mock_open, patch
 
 import pandas as pd
@@ -147,7 +148,7 @@ class TestCreateMarkdownTable:
     @patch("builtins.open", new_callable=mock_open)
     def test_empty_extrapolation_info(self, mock_file, sample_data):
         """Test handling of empty extrapolation info."""
-        empty_info = {}
+        empty_info: dict[str, dict[str, Any]] = {}
 
         create_markdown_table(sample_data, "test.md", empty_info)
 

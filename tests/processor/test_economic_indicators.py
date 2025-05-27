@@ -14,7 +14,7 @@ def test_calculate_tfp_with_missing_hc():
     data = pd.DataFrame(
         {"year": [2017, 2018], "GDP_USD_bn": [2.0, 2.1], "K_USD_bn": [1.0, 1.1], "LF_mn": [1, 1.1], "hc": [1.0, np.nan]}
     )
-    out = calculate_tfp(data)
+    out = calculate_tfp(data, alpha=1 / 3)
     assert "TFP" in out.columns
 
 
