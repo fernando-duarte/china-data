@@ -141,8 +141,8 @@ jobs:
           CHUNK_SIZE=$(( (TOTAL_FILES + 2) / 3 ))
 
           # Get chunk for this job
-          START_IDX=$(( (${{ matrix.chunk }} - 1) * CHUNK_SIZE ))
-          END_IDX=$(( $START_IDX + CHUNK_SIZE ))
+          START_IDX=$(( (${{ matrix.chunk }} - 1) * CHUNK_SIZE + 1 ))
+          END_IDX=$(( $START_IDX + CHUNK_SIZE - 1 ))
 
           # Extract chunk of test files
           CHUNK_FILES=$(echo "$TEST_FILES" | sed -n "${START_IDX},${END_IDX}p" | tr '\n' ' ')
