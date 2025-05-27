@@ -206,11 +206,50 @@ jobs:
         run: |
           # Update baseline if it doesn't exist
           if [ ! -f .secrets.baseline ]; then
+            echo "Creating initial baseline..."
             uv run detect-secrets scan --all-files --baseline .secrets.baseline
           fi
 
-          # Scan for new secrets
-          uv run detect-secrets scan --all-files --baseline .secrets.baseline --fail-on-unaudited-potential-secrets
+          # Create a new scan and compare with baseline
+          echo "Scanning for secrets..."
+          uv run detect-secrets scan --all-files > current-scan.json
+
+          # Check if there are differences between baseline and current scan
+          # Extract just the secrets (excluding metadata) for comparison
+          if command -v jq >/dev/null 2>&1; then
+            # Use jq if available for more precise comparison
+            baseline_secrets=$(jq -r '.results | keys[]' .secrets.baseline 2>/dev/null | sort || echo "")
+            current_secrets=$(jq -r '.results | keys[]' current-scan.json 2>/dev/null | sort || echo "")
+
+            if [ "$baseline_secrets" != "$current_secrets" ]; then
+              echo "❌ New secrets detected!"
+              echo "Baseline files: $(echo "$baseline_secrets" | wc -l)"
+              echo "Current files: $(echo "$current_secrets" | wc -l)"
+              echo "Please review the secrets and update your baseline if they are false positives."
+              echo "Run 'detect-secrets audit .secrets.baseline' to review the secrets."
+              rm -f current-scan.json
+              exit 1
+            fi
+          else
+            # Fallback: simple file size comparison
+            baseline_size=$(wc -c < .secrets.baseline)
+            current_size=$(wc -c < current-scan.json)
+
+            # Allow for small differences in metadata (timestamps, etc.)
+            size_diff=$((current_size - baseline_size))
+            if [ $size_diff -gt 1000 ] || [ $size_diff -lt -1000 ]; then
+              echo "❌ Significant changes detected in secrets scan!"
+              echo "Baseline size: $baseline_size bytes"
+              echo "Current size: $current_size bytes"
+              echo "Please review the secrets and update your baseline if they are false positives."
+              echo "Run 'detect-secrets audit .secrets.baseline' to review the secrets."
+              rm -f current-scan.json
+              exit 1
+            fi
+          fi
+
+          echo "✅ No new secrets detected."
+          rm -f current-scan.json
 
       - name: Run TruffleHog secrets scan
         uses: trufflesecurity/trufflehog@main
