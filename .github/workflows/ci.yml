@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Install UV
         uses: astral-sh/setup-uv@v5
@@ -36,7 +36,7 @@ jobs:
         run: uv python install 3.11
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --frozen --dev
 
       - name: Lint and format check with Ruff
         run: |
@@ -60,11 +60,12 @@ jobs:
           uv run ruff check . --output-format=json > ruff-report.json || true
 
       - name: Upload ruff report
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ruff-report
+          name: ruff-report-${{ github.run_id }}
           path: ruff-report.json
+          retention-days: 7
 
   test:
     name: Test Suite
@@ -113,7 +114,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Install UV
         uses: astral-sh/setup-uv@v5
@@ -123,10 +124,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --frozen --dev
 
       - name: Create output directory
-        run: mkdir -p output
+        run: python -c "import os; os.makedirs('output', exist_ok=True)"
 
       - name: Get test files
         id: test-files
@@ -169,59 +170,21 @@ jobs:
           fi
 
       - name: Upload partial coverage data
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.chunk }}
-          path: .coverage
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.chunk }}-${{ github.run_id }}
+          path: .coverage*
+          retention-days: 1
 
   coverage-merge:
     name: Merge Coverage Reports
     needs: test
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && needs.test.result != 'cancelled'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Install UV
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "latest"
-          enable-cache: true
-
-      - name: Set up Python
-        run: uv python install 3.11
-
-      - name: Install coverage
-        run: uv add --dev coverage
-
-      - name: Download coverage data
-        uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-*
-          merge-multiple: true
-
-      - name: Combine coverage data
-        run: |
-          uv run coverage combine
-          uv run coverage report
-          uv run coverage html
-          uv run coverage xml
-
-      - name: Upload combined coverage report
-        uses: actions/upload-artifact@v4.6.2
-        with:
-          name: coverage-report
-          path: |
-            htmlcov/
-            coverage.xml
-
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Install UV
         uses: astral-sh/setup-uv@v5
@@ -233,7 +196,70 @@ jobs:
         run: uv python install 3.11
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --frozen --dev
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: coverage-*-${{ github.run_id }}
+          merge-multiple: true
+
+      - name: Combine coverage data
+        run: |
+          # Check if any coverage files exist
+          if ls .coverage* 1> /dev/null 2>&1; then
+            echo "Found coverage files, combining..."
+            uv run coverage combine
+            uv run coverage report
+            uv run coverage html
+            uv run coverage xml
+            echo "Coverage combination completed successfully"
+          else
+            echo "No coverage files found, creating empty reports"
+            # Create minimal coverage files for consistency
+            echo '<?xml version="1.0" ?><coverage version="7.0.0"><sources></sources><packages></packages></coverage>' > coverage.xml
+            mkdir -p htmlcov
+            echo '<html><body><h1>No coverage data available</h1></body></html>' > htmlcov/index.html
+          fi
+
+      - name: Upload combined coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.run_id }}
+          path: |
+            htmlcov/
+            coverage.xml
+          retention-days: 30
+
+      - name: Upload coverage to Codecov
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --frozen --dev
 
       - name: Run Ruff security checks
         run: |
@@ -249,13 +275,14 @@ jobs:
           uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*" || true
 
       - name: Upload security reports
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: security-reports
+          name: security-reports-${{ github.run_id }}
           path: |
             ruff-security-report.json
             bandit-report.json
+          retention-days: 30
 
   integration-test:
     name: Integration Tests
@@ -265,7 +292,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Install UV
         uses: astral-sh/setup-uv@v5
@@ -277,11 +304,10 @@ jobs:
         run: uv python install 3.11
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --frozen --dev
 
       - name: Create required directories
-        run: |
-          mkdir -p input output
+        run: python -c "import os; [os.makedirs(d, exist_ok=True) for d in ['input', 'output']]"
 
       - name: Test data pipeline end-to-end
         run: |
@@ -370,7 +396,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: Install UV
         uses: astral-sh/setup-uv@v5
@@ -382,12 +408,12 @@ jobs:
         run: uv python install 3.11
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --frozen --dev
 
       - name: Generate project documentation
         run: |
           # Create documentation directory
-          mkdir -p docs
+          python -c "import os; os.makedirs('docs', exist_ok=True)"
 
           # Generate module documentation
           uv run python -c "
@@ -435,7 +461,8 @@ jobs:
           "
 
       - name: Upload documentation
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
         with:
-          name: documentation
+          name: documentation-${{ github.run_id }}
           path: docs/
+          retention-days: 30
