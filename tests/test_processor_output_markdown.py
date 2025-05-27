@@ -146,7 +146,7 @@ class TestCreateMarkdownTable:
         assert "K_t = (rkna_t / rkna_2017) * K_2017" in written_content
 
     @patch("builtins.open", new_callable=mock_open)
-    def test_empty_extrapolation_info(self, mock_file, sample_data):
+    def test_empty_extrapolation_info(self, mock_file, sample_data) -> None:
         """Test handling of empty extrapolation info."""
         empty_info: dict[str, dict[str, Any]] = {}
 

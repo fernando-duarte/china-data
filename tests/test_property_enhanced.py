@@ -147,7 +147,7 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
     # Define bundles for managing datasets
     datasets = Bundle("datasets")
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.data_store: dict[str, pd.DataFrame] = {}
         self.processing_history: list[str] = []
