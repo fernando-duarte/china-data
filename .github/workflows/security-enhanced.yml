@@ -16,9 +16,14 @@ permissions:
   pull-requests: write
   checks: write
 
+concurrency:
+  group: security-enhanced-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   PYTHONUNBUFFERED: "1"
   FORCE_COLOR: "1"
+  UV_CACHE_DIR: ~/.cache/uv
 
 jobs:
   sast-analysis:
@@ -34,11 +39,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Run Semgrep SAST
@@ -56,13 +63,11 @@ jobs:
 
       - name: Run Ruff Security Checks
         run: |
-          source $HOME/.cargo/env
           uv run ruff check . --select=S,B --output-format=json > ruff-security-report.json || true
           uv run ruff check . --select=S,B --output-format=github
 
       - name: Run Bandit Security Scan
         run: |
-          source $HOME/.cargo/env
           uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*,./.venv/*" || true
           uv run bandit -r . -f txt --exclude "./venv/*,./tests/*,./.venv/*" || true
 
@@ -88,29 +93,28 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Run pip-audit vulnerability scan
         run: |
-          source $HOME/.cargo/env
           uv run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
           uv run pip-audit --format=cyclonedx-json --output=pip-audit-sbom.json || true
           uv run pip-audit || true
 
       - name: Run Safety vulnerability scan
         run: |
-          source $HOME/.cargo/env
           uv run safety check --json --output=safety-vulnerabilities.json || true
           uv run safety check || true
 
       - name: Generate dependency tree
         run: |
-          source $HOME/.cargo/env
           uv run pipdeptree --json > dependency-tree.json
           uv run pipdeptree --graph-output png > dependency-graph.png || true
 
@@ -139,23 +143,23 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Generate license report
         run: |
-          source $HOME/.cargo/env
           uv run pip-licenses --format=json --output-file=licenses.json
           uv run pip-licenses --format=csv --output-file=licenses.csv
           uv run pip-licenses --format=html --output-file=licenses.html
 
       - name: Check for problematic licenses
         run: |
-          source $HOME/.cargo/env
           # Check for GPL licenses that might conflict with MIT
           if uv run pip-licenses --format=json | grep -i "gpl\|agpl\|copyleft"; then
             echo "⚠️ Warning: Found potentially problematic licenses"
@@ -187,16 +191,17 @@ jobs:
           python-version: "3.12"
 
       - name: Install UV
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          source $HOME/.cargo/env
           uv sync --dev
 
       - name: Run detect-secrets scan
         run: |
-          source $HOME/.cargo/env
           # Update baseline if it doesn't exist
           if [ ! -f .secrets.baseline ]; then
             uv run detect-secrets scan --all-files --baseline .secrets.baseline
@@ -206,7 +211,7 @@ jobs:
           uv run detect-secrets scan --all-files --baseline .secrets.baseline --fail-on-unaudited-potential-secrets
 
       - name: Run TruffleHog secrets scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3
         with:
           path: ./
           base: main
@@ -226,7 +231,7 @@ jobs:
           docker build -t china-data-security-test .
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.20.0
         with:
           image-ref: 'china-data-security-test'
           format: 'sarif'
@@ -239,7 +244,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.20.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
