@@ -10,6 +10,7 @@ import sys
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import requests
 
@@ -41,7 +42,7 @@ class GitHubActionsLogViewer:
         conclusion: str | None = None,
         branch: str | None = None,
         per_page: int = 30,
-    ) -> list[dict]:
+    ) -> list[dict[str, Any]]:
         """Get workflow runs for the repository.
 
         Args:
@@ -54,7 +55,7 @@ class GitHubActionsLogViewer:
             List of workflow runs
         """
         url = f"{self.base_url}/repos/{self.owner}/{self.repo}/actions/runs"
-        params = {"per_page": per_page}
+        params: dict[str, str | int] = {"per_page": per_page}
 
         if status:
             params["status"] = status
@@ -66,12 +67,15 @@ class GitHubActionsLogViewer:
         try:
             response = requests.get(url, headers=self.headers, params=params, timeout=30)
             response.raise_for_status()
-            return response.json().get("workflow_runs", [])
         except requests.exceptions.RequestException as e:
             print(f"Error fetching workflow runs: {e}")
             return []
+        else:
+            response_data = response.json()
+            workflow_runs: list[dict[str, Any]] = response_data.get("workflow_runs", [])
+            return workflow_runs
 
-    def get_workflow_run_jobs(self, run_id: int) -> list[dict]:
+    def get_workflow_run_jobs(self, run_id: int) -> list[dict[str, Any]]:
         """Get jobs for a specific workflow run.
 
         Args:
@@ -85,10 +89,13 @@ class GitHubActionsLogViewer:
         try:
             response = requests.get(url, headers=self.headers, timeout=30)
             response.raise_for_status()
-            return response.json().get("jobs", [])
         except requests.exceptions.RequestException as e:
             print(f"Error fetching jobs for run {run_id}: {e}")
             return []
+        else:
+            response_data = response.json()
+            jobs: list[dict[str, Any]] = response_data.get("jobs", [])
+            return jobs
 
     def download_workflow_run_logs(self, run_id: int, output_dir: str | None = None) -> str | None:
         """Download logs for a workflow run.
@@ -156,7 +163,7 @@ class GitHubActionsLogViewer:
         except (zipfile.BadZipFile, OSError) as e:
             print(f"Error extracting logs: {e}")
 
-    def display_workflow_runs(self, runs: list[dict]) -> None:
+    def display_workflow_runs(self, runs: list[dict[str, Any]]) -> None:
         """Display workflow runs in a formatted table."""
         if not runs:
             print("No workflow runs found.")
@@ -183,7 +190,7 @@ class GitHubActionsLogViewer:
 
             print(f"{run_id:<12} {name:<25} {status:<12} {conclusion:<12} {branch:<15} {created:<20}")
 
-    def display_jobs(self, jobs: list[dict]) -> None:
+    def display_jobs(self, jobs: list[dict[str, Any]]) -> None:
         """Display jobs in a formatted table."""
         if not jobs:
             print("No jobs found.")
