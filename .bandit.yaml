@@ -4,6 +4,12 @@ overrides:
   - id: "B101"
     paths:
       - "tests/*"
+  - id: "B603"
+    paths:
+      - "scripts/*"
+  - id: "B404"
+    paths:
+      - "scripts/*"
 
 skips: ["B101", "B404", "B603"]
 

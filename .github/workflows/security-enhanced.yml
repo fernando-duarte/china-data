@@ -78,8 +78,8 @@ jobs:
 
       - name: Run Bandit Security Scan
         run: |
-          uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" || true
-          uv run bandit -r . -f txt --exclude "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" || true
+          uv add --dev bandit==1.7.0 && uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" || true
+          uv add --dev bandit==1.7.0 && uv run bandit -r . -f txt --exclude "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" || true
 
       - name: Upload SAST Reports
         uses: actions/upload-artifact@v4.6.2
