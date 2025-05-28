@@ -13,6 +13,7 @@ exclude_dirs:
   # Test directories (may contain intentional vulnerabilities for testing)
   - "tests"
   - "test"
+  - "examples"
 
   # Virtual environments (all common patterns)
   - ".venv"
@@ -30,6 +31,7 @@ exclude_dirs:
   - ".ruff_cache"
   - ".hypothesis"
   - "__pycache__"
+  - ".git"
 
   # Build and distribution directories (generated artifacts)
   - "build"
@@ -40,14 +42,12 @@ exclude_dirs:
 
   # Documentation build directories
   - "docs/_build"
+  - "docs"
   - "site"
 
   # IDE and editor directories (configuration, not source code)
   - ".vscode"
   - ".idea"
-
-  # Examples (may contain intentional vulnerabilities for testing)
-  - "examples"
 
   # Security reports and outputs (generated files)
   - "security-reports"

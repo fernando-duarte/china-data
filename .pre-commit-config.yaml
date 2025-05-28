@@ -74,11 +74,28 @@ repos:
     hooks:
       - id: bandit
         name: bandit-security-scan
-        args: [-r, ., -f, json, -o, bandit.json]
+        args:
+          [
+            -r,
+            .,
+            -f,
+            json,
+            -o,
+            bandit.json,
+            --exclude,
+            ".venv,venv,env,ENV,__pycache__,.git,.mypy_cache,.pytest_cache,.ruff_cache,.hypothesis,build,dist,htmlcov,node_modules,workflow_outputs,output,tests,examples,docs",
+          ]
         pass_filenames: false
       - id: bandit
         name: bandit-high-severity
-        args: [-r, ., -ll]
+        args:
+          [
+            -r,
+            .,
+            -ll,
+            --exclude,
+            ".venv,venv,env,ENV,__pycache__,.git,.mypy_cache,.pytest_cache,.ruff_cache,.hypothesis,build,dist,htmlcov,node_modules,workflow_outputs,output,tests,examples,docs",
+          ]
         pass_filenames: false
 
   - repo: https://github.com/pylint-dev/pylint
@@ -88,14 +105,16 @@ repos:
         name: pylint
         entry: pylint
         language: system
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
+        exclude: ^(\.venv/|venv/|env/|ENV/)
         args: [--jobs=0] # Use all available CPU cores for parallel processing
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.15.0
     hooks:
       - id: mypy
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
+        exclude: ^(\.venv/|venv/|env/|ENV/)
         args: [--strict, --python-version=3.13]
         additional_dependencies: [types-requests, pandas-stubs, types-pytz]
 
@@ -160,7 +179,8 @@ repos:
         entry: radon
         language: system
         args: [cc, --min, B, --show-complexity]
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
+        exclude: ^(\.venv/|venv/|env/|ENV/)
         pass_filenames: true
         require_serial: false
 
@@ -172,7 +192,8 @@ repos:
         entry: interrogate
         language: system
         args: [--verbose, --fail-under=80]
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
+        exclude: ^(\.venv/|venv/|env/|ENV/)
         pass_filenames: true
         require_serial: false
 
