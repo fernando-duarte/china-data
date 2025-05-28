@@ -85,7 +85,7 @@ repos:
         name: safety vulnerability scan
         entry: safety
         language: system
-        args: [scan]
+        args: [scan, --output, screen]
         files: ^(requirements.*\.txt|pyproject\.toml|uv\.lock)$
         pass_filenames: false
         require_serial: true
