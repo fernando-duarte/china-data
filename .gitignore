@@ -211,6 +211,7 @@ china_data.log*
 
 # Security and compliance reports
 security-results.sarif
+security-reports/
 audit.json
 safety.json
 pip-audit.json

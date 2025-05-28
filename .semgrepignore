@@ -1,0 +1,56 @@
+# Semgrep ignore patterns for China Data Project
+# Exclude directories and files that don't need security scanning
+
+# Virtual environments
+.venv/
+venv/
+
+# Cache directories
+__pycache__/
+.git/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+
+# Dependencies and build artifacts
+node_modules/
+*.egg-info/
+.benchmarks/
+
+# Output and temporary files
+htmlcov/
+workflow_outputs/
+output/
+
+# Documentation and examples (typically don't contain security issues)
+docs/
+examples/
+
+# Test data files (exclude data integrity tests that might have large files)
+tests/data_integrity/
+
+# Log and data files
+*.log
+*.json
+*.xml
+*.lock
+*.sqlite
+*.csv
+*.xlsx
+
+# Configuration files that are already scanned by other tools
+.pre-commit-config.yaml
+pyproject.toml
+ruff.toml
+.bandit.yaml
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

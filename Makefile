@@ -35,17 +35,46 @@ security:
 	uv run safety check
 	uv run semgrep --config=auto
 
+# Generate SARIF reports for local development and IDE integration
+security-sarif:
+	@echo "📊 Generating unified SARIF security reports..."
+	uv run python scripts/generate_sarif_reports.py
+	@echo "✅ SARIF reports generated in security-reports/ directory"
+	@echo "💡 Import security-reports/unified-security-report.sarif into your IDE for integrated security analysis"
+
+# Generate SARIF reports with custom output directory
+security-sarif-custom:
+	@echo "📊 Generating SARIF reports to custom directory..."
+	@read -p "Enter output directory [security-reports]: " dir; \
+	dir=$${dir:-security-reports}; \
+	uv run python scripts/generate_sarif_reports.py --output-dir "$$dir"
+
+# Validate existing SARIF files
+security-sarif-validate:
+	@echo "🔍 Validating existing SARIF files..."
+	@if [ -d "security-reports" ]; then \
+		for file in security-reports/*.sarif; do \
+			if [ -f "$$file" ]; then \
+				echo "Validating $$file..."; \
+				uv run python -c "import json; json.load(open('$$file')); print('✅ Valid JSON')" || echo "❌ Invalid JSON"; \
+			fi; \
+		done; \
+	else \
+		echo "No security-reports directory found. Run 'make security-sarif' first."; \
+	fi
+
 # Clean environment
 clean:
 	@echo "🧹 Cleaning up..."
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	rm -rf .coverage htmlcov/ .pytest_cache/ .mypy_cache/ .ruff_cache/
+	rm -rf security-reports/
 	uv cache clean
 
 # Additional targets from original Makefile
 
-.PHONY: help install install-dev install-uv install-dev-uv format complexity test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all check-versions sync-versions run-download run-process security-scan docs-serve docs-build docs-test docs-deploy
+.PHONY: help install install-dev install-uv install-dev-uv format complexity test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all check-versions sync-versions run-download run-process security-scan security-sarif security-sarif-custom security-sarif-validate docs-serve docs-build docs-test docs-deploy
 
 # Default target
 help:
@@ -55,6 +84,9 @@ help:
 	@echo "  make test          - Run comprehensive test suite"
 	@echo "  make lint          - Run code quality checks"
 	@echo "  make security      - Run security scans"
+	@echo "  make security-sarif - Generate unified SARIF security reports"
+	@echo "  make security-sarif-custom - Generate SARIF reports to custom directory"
+	@echo "  make security-sarif-validate - Validate existing SARIF files"
 	@echo "  make clean         - Clean up generated files"
 	@echo "  make install       - Install production dependencies (UV)"
 	@echo "  make install-dev   - Install development dependencies (UV)"

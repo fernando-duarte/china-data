@@ -1,0 +1,1 @@
+{"version":"1.122.0","results":[],"errors":[],"paths":{"scanned":["utils/data_sources/fallback_extractors.py","utils/data_sources/fallback_parser.py","utils/data_sources/wdi_downloader.py","utils/economic_indicators/__init__.py","utils/error_handling/decorators.py","utils/error_handling/validators.py","utils/validation_core.py","utils/validation_utils.py"]},"skipped_rules":[]}
