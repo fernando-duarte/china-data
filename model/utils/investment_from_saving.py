@@ -24,24 +24,20 @@ def calculate_investment_from_saving(
     net_exports: float | pd.Series,
 ) -> float | pd.Series:
     """Calculate investment using the saving identity equation.
-    
+
     Args:
         gdp: GDP in period t (billions USD)
         saving_rate: Saving rate in period t (fraction, 0-1)
         net_exports: Net exports in period t (billions USD)
-        
+
     Returns:
         Calculated investment (billions USD)
-        
+
     Raises:
         ValueError: If any parameters are invalid
-        
+
     Example:
-        >>> investment = calculate_investment_from_saving(
-        ...     gdp=1000.0,
-        ...     saving_rate=0.3,
-        ...     net_exports=50.0
-        ... )
+        >>> investment = calculate_investment_from_saving(gdp=1000.0, saving_rate=0.3, net_exports=50.0)
         >>> # Result: 0.3 * 1000 - 50 = 250
     """
     # Handle both scalar and series inputs
@@ -111,17 +107,17 @@ def calculate_investment_from_saving_dataframe(
     output_col: str = "I_USD_bn",
 ) -> pd.DataFrame:
     """Calculate investment for a DataFrame with time series data.
-    
+
     Args:
         df: DataFrame containing GDP, saving rate, and net exports data
         gdp_col: Column name for GDP data
         saving_rate_col: Column name for saving rate data
         net_exports_col: Column name for net exports data
         output_col: Column name for calculated investment (default: "I_USD_bn")
-        
+
     Returns:
         DataFrame with investment column added
-        
+
     Raises:
         ValueError: If required columns are missing
     """
@@ -151,18 +147,18 @@ def calculate_required_saving_rate(
     net_exports: float | pd.Series,
 ) -> float | pd.Series:
     """Calculate the saving rate required to achieve a target investment level.
-    
+
     Rearranges the investment equation to solve for saving rate:
     s_t = (I_t + NX_t) / Y_t
-    
+
     Args:
         gdp: GDP in period t (billions USD)
         target_investment: Target investment level (billions USD)
         net_exports: Net exports in period t (billions USD)
-        
+
     Returns:
         Required saving rate (fraction, 0-1)
-        
+
     Raises:
         ValueError: If GDP is zero or negative
     """
@@ -203,13 +199,13 @@ def validate_investment_feasibility(
     min_investment: float | pd.Series = 0,
 ) -> bool | pd.Series:
     """Validate that investment calculation will yield feasible results.
-    
+
     Args:
         gdp: GDP in period t (billions USD)
         saving_rate: Saving rate in period t (fraction, 0-1)
         net_exports: Net exports in period t (billions USD)
         min_investment: Minimum acceptable investment level (default: 0)
-        
+
     Returns:
         Boolean or Series indicating whether investment would be feasible
     """

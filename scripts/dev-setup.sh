@@ -8,29 +8,29 @@ echo "🚀 Setting up China Data Processor development environment..."
 # Check prerequisites
 check_prerequisites() {
     echo "📋 Checking prerequisites..."
-    
+
     # Check if Python 3.10+ is available
     if ! command -v python3 &> /dev/null; then
         echo "❌ Python 3 is required but not found"
         exit 1
     fi
-    
+
     python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
     required_version="3.10"
-    
+
     if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]; then
         echo "❌ Python 3.10 or higher is required. Found: $python_version"
         exit 1
     fi
-    
+
     echo "✅ Python $python_version found"
-    
+
     # Check if Git is available
     if ! command -v git &> /dev/null; then
         echo "❌ Git is required but not found"
         exit 1
     fi
-    
+
     echo "✅ Git found"
 }
 
@@ -49,7 +49,7 @@ install_uv() {
 # Setup virtual environment and dependencies
 setup_environment() {
     echo "🔧 Setting up Python environment..."
-    
+
     # Create virtual environment and install dependencies
     uv sync --all-extras
     echo "✅ Dependencies installed"
@@ -58,7 +58,7 @@ setup_environment() {
 # Setup pre-commit hooks
 setup_pre_commit() {
     echo "🪝 Setting up pre-commit hooks..."
-    
+
     uv run pre-commit install
     uv run pre-commit install --hook-type commit-msg
     echo "✅ Pre-commit hooks installed"
@@ -67,7 +67,7 @@ setup_pre_commit() {
 # Create necessary directories
 setup_directories() {
     echo "📁 Creating necessary directories..."
-    
+
     mkdir -p input output workflow_outputs
     touch input/.gitkeep output/.gitkeep workflow_outputs/.gitkeep
     echo "✅ Directories created"
@@ -76,7 +76,7 @@ setup_directories() {
 # Setup IDE configuration
 setup_ide() {
     echo "🛠️ Setting up IDE configuration..."
-    
+
     # Create .env.example if it doesn't exist
     if [ ! -f .env.example ]; then
         cat > .env.example << 'EOF'
@@ -90,7 +90,7 @@ DB_PASSWORD=development
 EOF
         echo "✅ Created .env.example"
     fi
-    
+
     # Setup local .env if it doesn't exist
     if [ ! -f .env ]; then
         cp .env.example .env
@@ -101,7 +101,7 @@ EOF
 # Run initial tests
 run_initial_tests() {
     echo "🧪 Running initial tests..."
-    
+
     # Run a quick test to verify everything works
     if uv run pytest tests/ -x --tb=short -q; then
         echo "✅ Initial tests passed"
@@ -149,4 +149,4 @@ main() {
 }
 
 # Run main function
-main "$@" 
+main "$@"

@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 6 * * *' # Daily at 6 AM
   push:
-    paths: 
+    paths:
       - 'pyproject.toml'
       - 'uv.lock'
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
   dependency-health:
     name: Dependency Health Analysis
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,7 +48,7 @@ jobs:
       - name: Security vulnerability scan
         run: |
           echo "## Security Vulnerabilities" >> dependency-health.md
-          
+
           # pip-audit scan
           echo "### pip-audit Results" >> dependency-health.md
           uv run pip-audit --format=json --output=audit.json || true
@@ -83,13 +83,13 @@ jobs:
       - name: License compliance check
         run: |
           echo "## License Compliance" >> dependency-health.md
-          
+
           # Install license checker
           uv add --dev pip-licenses
-          
+
           # Generate license report
           uv run pip-licenses --format=json --output-file=licenses.json
-          
+
           # Check for problematic licenses
           uv run python -c "
           import json
@@ -97,16 +97,16 @@ jobs:
 
           # Define problematic licenses
           problematic = {'GPL-3.0', 'GPL-2.0', 'AGPL-3.0', 'LGPL-3.0'}
-          
+
           with open('licenses.json', 'r') as f:
               licenses = json.load(f)
-          
+
           issues = []
           for pkg in licenses:
               license_name = pkg.get('License', '').strip()
               if license_name in problematic:
                   issues.append(f'{pkg[\"Name\"]} ({pkg[\"Version\"]}): {license_name}')
-          
+
           if issues:
               print('⚠️ Potentially problematic licenses:')
               for issue in issues:
@@ -119,13 +119,13 @@ jobs:
       - name: Dependency freshness check
         run: |
           echo "## Dependency Freshness" >> dependency-health.md
-          
+
           # Check for outdated packages
           uv run pip list --outdated --format=json > outdated.json || true
           if [ -f outdated.json ]; then
             outdated_count=$(jq '. | length' outdated.json 2>/dev/null || echo "0")
             echo "- Outdated packages: $outdated_count" >> dependency-health.md
-            
+
             if [ "$outdated_count" -gt 0 ]; then
               echo "" >> dependency-health.md
               echo "### Outdated Packages" >> dependency-health.md
@@ -137,34 +137,34 @@ jobs:
       - name: Dependency tree analysis
         run: |
           echo "## Dependency Analysis" >> dependency-health.md
-          
+
           # Generate dependency tree
           uv run pipdeptree --json-tree > dependency-tree.json
-          
+
           # Analyze for potential issues
           uv run python -c "
           import json
-          
+
           with open('dependency-tree.json', 'r') as f:
               tree = json.load(f)
-          
+
           # Count total dependencies (including transitive)
           def count_deps(node):
               count = 1
               for dep in node.get('dependencies', []):
                   count += count_deps(dep)
               return count
-          
+
           total_deps = sum(count_deps(pkg) for pkg in tree)
           print(f'- Total dependencies (including transitive): {total_deps}')
-          
+
           # Find packages with many dependencies
           heavy_packages = []
           for pkg in tree:
               dep_count = len(pkg.get('dependencies', []))
               if dep_count > 10:
                   heavy_packages.append(f'{pkg[\"package\"][\"package_name\"]} ({dep_count} deps)')
-          
+
           if heavy_packages:
               print('- Heavy packages (>10 dependencies):')
               for pkg in heavy_packages:
@@ -192,7 +192,7 @@ jobs:
         id: check-critical
         run: |
           critical_issues=false
-          
+
           # Check for high-severity vulnerabilities
           if [ -f audit.json ]; then
             high_vulns=$(jq '[.vulnerabilities[] | select(.aliases[]? | contains("HIGH") or contains("CRITICAL"))] | length' audit.json 2>/dev/null || echo "0")
@@ -200,12 +200,12 @@ jobs:
               critical_issues=true
             fi
           fi
-          
+
           # Check for GPL licenses
           if grep -q "GPL-" dependency-health.md; then
             critical_issues=true
           fi
-          
+
           echo "critical=$critical_issues" >> $GITHUB_OUTPUT
 
       - name: Create issue for critical problems
@@ -215,10 +215,10 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('dependency-health.md', 'utf8');
-            
+
             const issueTitle = `🚨 Critical Dependency Issues Detected - ${new Date().toISOString().split('T')[0]}`;
             const issueBody = `${report}\n\n---\n**Action Required**: Please review and address the critical dependency issues above.\n\n*This issue was automatically created by the dependency health workflow.*`;
-            
+
             // Check if a similar critical issue already exists
             const existingIssues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -226,11 +226,11 @@ jobs:
               state: 'open',
               labels: 'critical,dependencies'
             });
-            
+
             const hasExistingCritical = existingIssues.data.some(issue =>
               issue.title.includes('Critical Dependency Issues')
             );
-            
+
             if (!hasExistingCritical) {
               await github.rest.issues.create({
                 owner: context.repo.owner,
@@ -252,4 +252,4 @@ jobs:
             licenses.json
             outdated.json
             dependency-tree.json
-          retention-days: 30 
+          retention-days: 30

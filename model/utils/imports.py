@@ -33,7 +33,7 @@ def calculate_imports(
     mu_m: float = 1.1,
 ) -> float | pd.Series:
     """Calculate imports using the China growth model import equation.
-    
+
     Args:
         exchange_rate: Current exchange rate(s) (CNY per USD)
         domestic_income: Current domestic income (GDP) (billions USD)
@@ -42,22 +42,16 @@ def calculate_imports(
         y_0: Initial domestic income in base period (billions USD)
         epsilon_m: Import exchange rate elasticity (default: -1.2, typically negative)
         mu_m: Import income elasticity (default: 1.1)
-        
+
     Returns:
         Calculated imports (billions USD)
-        
+
     Raises:
         ValueError: If any parameters are invalid
-        
+
     Example:
         >>> imports = calculate_imports(
-        ...     exchange_rate=8.0,
-        ...     domestic_income=500.0,
-        ...     m_0=21.84,
-        ...     e_0=1.5,
-        ...     y_0=300.0,
-        ...     epsilon_m=-1.2,
-        ...     mu_m=1.1
+        ...     exchange_rate=8.0, domestic_income=500.0, m_0=21.84, e_0=1.5, y_0=300.0, epsilon_m=-1.2, mu_m=1.1
         ... )
     """
     # Validate inputs
@@ -102,8 +96,10 @@ def calculate_imports(
 
         imports = m_0 * np.power(exchange_rate_ratio, epsilon_m) * np.power(domestic_income_ratio, mu_m)
 
-        logger.debug(f"Calculated imports with exchange_rate_ratio={exchange_rate_ratio}, "
-                    f"domestic_income_ratio={domestic_income_ratio}")
+        logger.debug(
+            f"Calculated imports with exchange_rate_ratio={exchange_rate_ratio}, "
+            f"domestic_income_ratio={domestic_income_ratio}"
+        )
 
         return imports
 
@@ -127,7 +123,7 @@ def calculate_imports_dataframe(
     output_col: str = "M_USD_bn",
 ) -> pd.DataFrame:
     """Calculate imports for a DataFrame with time series data.
-    
+
     Args:
         df: DataFrame containing exchange rate and domestic income data
         exchange_rate_col: Column name for exchange rate data
@@ -138,10 +134,10 @@ def calculate_imports_dataframe(
         epsilon_m: Import exchange rate elasticity (default: -1.2)
         mu_m: Import income elasticity (default: 1.1)
         output_col: Column name for calculated imports (default: "M_USD_bn")
-        
+
     Returns:
         DataFrame with imports column added
-        
+
     Raises:
         ValueError: If required columns are missing
     """

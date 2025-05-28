@@ -14,7 +14,7 @@ jobs:
   repository-health:
     name: Repository Health Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -79,11 +79,11 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             // Get stale PRs (open for more than 30 days)
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            
+
             const stalePRs = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -91,15 +91,15 @@ jobs:
               sort: 'created',
               direction: 'asc'
             });
-            
-            const oldPRs = stalePRs.data.filter(pr => 
+
+            const oldPRs = stalePRs.data.filter(pr =>
               new Date(pr.created_at) < thirtyDaysAgo
             );
-            
+
             // Get stale issues (open for more than 60 days)
             const sixtyDaysAgo = new Date();
             sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-            
+
             const staleIssues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -107,16 +107,16 @@ jobs:
               sort: 'created',
               direction: 'asc'
             });
-            
-            const oldIssues = staleIssues.data.filter(issue => 
+
+            const oldIssues = staleIssues.data.filter(issue =>
               !issue.pull_request && new Date(issue.created_at) < sixtyDaysAgo
             );
-            
+
             let report = fs.readFileSync('health-report.md', 'utf8');
             report += '\n## Maintenance Items\n';
             report += `- Stale PRs (>30 days): ${oldPRs.length}\n`;
             report += `- Stale Issues (>60 days): ${oldIssues.length}\n\n`;
-            
+
             if (oldPRs.length > 0) {
               report += '### Stale Pull Requests\n';
               oldPRs.forEach(pr => {
@@ -124,7 +124,7 @@ jobs:
               });
               report += '\n';
             }
-            
+
             if (oldIssues.length > 0) {
               report += '### Stale Issues\n';
               oldIssues.forEach(issue => {
@@ -132,24 +132,24 @@ jobs:
               });
               report += '\n';
             }
-            
+
             fs.writeFileSync('health-report.md', report);
 
       - name: Performance metrics
         run: |
           echo "## Performance Metrics" >> health-report.md
-          
+
           # Repository size
           repo_size=$(du -sh . | cut -f1)
           echo "- Repository size: $repo_size" >> health-report.md
-          
+
           # Test execution time
           start_time=$(date +%s)
           uv run pytest tests/ --tb=no -q > /dev/null 2>&1 || true
           end_time=$(date +%s)
           test_duration=$((end_time - start_time))
           echo "- Test suite duration: ${test_duration}s" >> health-report.md
-          
+
           # Build time
           start_time=$(date +%s)
           uv run python -c "import utils; print('Import successful')" > /dev/null 2>&1 || true
@@ -163,16 +163,16 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('health-report.md', 'utf8');
-            
+
             // Check if we need to create an issue
-            const hasIssues = report.includes('⚠️') || 
+            const hasIssues = report.includes('⚠️') ||
                             report.includes('Stale PRs (>30 days): ') && !report.includes('Stale PRs (>30 days): 0') ||
                             report.includes('Stale Issues (>60 days): ') && !report.includes('Stale Issues (>60 days): 0');
-            
+
             if (hasIssues) {
               const issueTitle = `Repository Health Check - ${new Date().toISOString().split('T')[0]}`;
               const issueBody = report + '\n\n---\n*This issue was automatically created by the monitoring workflow.*';
-              
+
               // Check if a similar issue already exists
               const existingIssues = await github.rest.issues.listForRepo({
                 owner: context.repo.owner,
@@ -180,11 +180,11 @@ jobs:
                 state: 'open',
                 labels: 'monitoring'
               });
-              
+
               const hasExistingMonitoring = existingIssues.data.some(issue =>
                 issue.title.includes('Repository Health Check')
               );
-              
+
               if (!hasExistingMonitoring) {
                 await github.rest.issues.create({
                   owner: context.repo.owner,
@@ -201,4 +201,4 @@ jobs:
         with:
           name: repository-health-report
           path: health-report.md
-          retention-days: 30 
+          retention-days: 30

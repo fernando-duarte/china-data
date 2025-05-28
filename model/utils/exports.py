@@ -33,7 +33,7 @@ def calculate_exports(
     mu_x: float = 1.5,
 ) -> float | pd.Series:
     """Calculate exports using the China growth model export equation.
-    
+
     Args:
         exchange_rate: Current exchange rate(s) (CNY per USD)
         foreign_income: Current foreign income index(es)
@@ -42,22 +42,16 @@ def calculate_exports(
         y_star_0: Initial foreign income in base period (index)
         epsilon_x: Export exchange rate elasticity (default: 1.5)
         mu_x: Export income elasticity (default: 1.5)
-        
+
     Returns:
         Calculated exports (billions USD)
-        
+
     Raises:
         ValueError: If any parameters are invalid
-        
+
     Example:
         >>> exports = calculate_exports(
-        ...     exchange_rate=8.0,
-        ...     foreign_income=1200.0,
-        ...     x_0=19.41,
-        ...     e_0=1.5,
-        ...     y_star_0=1000.0,
-        ...     epsilon_x=1.5,
-        ...     mu_x=1.5
+        ...     exchange_rate=8.0, foreign_income=1200.0, x_0=19.41, e_0=1.5, y_star_0=1000.0, epsilon_x=1.5, mu_x=1.5
         ... )
     """
     # Validate inputs
@@ -102,8 +96,10 @@ def calculate_exports(
 
         exports = x_0 * np.power(exchange_rate_ratio, epsilon_x) * np.power(foreign_income_ratio, mu_x)
 
-        logger.debug(f"Calculated exports with exchange_rate_ratio={exchange_rate_ratio}, "
-                    f"foreign_income_ratio={foreign_income_ratio}")
+        logger.debug(
+            f"Calculated exports with exchange_rate_ratio={exchange_rate_ratio}, "
+            f"foreign_income_ratio={foreign_income_ratio}"
+        )
 
         return exports
 
@@ -127,7 +123,7 @@ def calculate_exports_dataframe(
     output_col: str = "X_USD_bn",
 ) -> pd.DataFrame:
     """Calculate exports for a DataFrame with time series data.
-    
+
     Args:
         df: DataFrame containing exchange rate and foreign income data
         exchange_rate_col: Column name for exchange rate data
@@ -138,10 +134,10 @@ def calculate_exports_dataframe(
         epsilon_x: Export exchange rate elasticity (default: 1.5)
         mu_x: Export income elasticity (default: 1.5)
         output_col: Column name for calculated exports (default: "X_USD_bn")
-        
+
     Returns:
         DataFrame with exports column added
-        
+
     Raises:
         ValueError: If required columns are missing
     """

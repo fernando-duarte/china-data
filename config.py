@@ -219,9 +219,11 @@ def configure_logging() -> None:
         processors.append(structlog.processors.JSONRenderer())
     else:
         # Use console format for development
-        processors.extend([
-            structlog.dev.ConsoleRenderer(colors=sys.stderr.isatty()),
-        ])
+        processors.extend(
+            [
+                structlog.dev.ConsoleRenderer(colors=sys.stderr.isatty()),
+            ]
+        )
 
     # Configure structlog
     structlog.configure(

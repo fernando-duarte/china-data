@@ -24,24 +24,20 @@ def calculate_consumption(
     government_spending: float | pd.Series,
 ) -> float | pd.Series:
     """Calculate consumption using the China growth model consumption equation.
-    
+
     Args:
         gdp: GDP in period t (billions USD)
         saving_rate: Saving rate in period t (fraction, 0-1)
         government_spending: Government spending in period t (billions USD)
-        
+
     Returns:
         Calculated consumption (billions USD)
-        
+
     Raises:
         ValueError: If any parameters are invalid
-        
+
     Example:
-        >>> consumption = calculate_consumption(
-        ...     gdp=1000.0,
-        ...     saving_rate=0.3,
-        ...     government_spending=200.0
-        ... )
+        >>> consumption = calculate_consumption(gdp=1000.0, saving_rate=0.3, government_spending=200.0)
         >>> # Result: (1 - 0.3) * 1000 - 200 = 500
     """
     # Handle both scalar and series inputs
@@ -100,7 +96,9 @@ def calculate_consumption(
             logger.warning(f"Calculated consumption {consumption} is negative, clipping to 0")
             consumption = max(consumption, 0)
 
-        logger.debug(f"Calculated consumption with saving_rate={saving_rate}, gdp={gdp}, gov_spending={government_spending}")
+        logger.debug(
+            f"Calculated consumption with saving_rate={saving_rate}, gdp={gdp}, gov_spending={government_spending}"
+        )
 
         return consumption
 
@@ -120,17 +118,17 @@ def calculate_consumption_dataframe(
     output_col: str = "C_USD_bn",
 ) -> pd.DataFrame:
     """Calculate consumption for a DataFrame with time series data.
-    
+
     Args:
         df: DataFrame containing GDP, saving rate, and government spending data
         gdp_col: Column name for GDP data
         saving_rate_col: Column name for saving rate data
         government_spending_col: Column name for government spending data
         output_col: Column name for calculated consumption (default: "C_USD_bn")
-        
+
     Returns:
         DataFrame with consumption column added
-        
+
     Raises:
         ValueError: If required columns are missing
     """
@@ -160,12 +158,12 @@ def validate_consumption_feasibility(
     government_spending: float | pd.Series,
 ) -> bool | pd.Series:
     """Validate that consumption calculation will yield non-negative results.
-    
+
     Args:
         gdp: GDP in period t (billions USD)
         saving_rate: Saving rate in period t (fraction, 0-1)
         government_spending: Government spending in period t (billions USD)
-        
+
     Returns:
         Boolean or Series indicating whether consumption would be non-negative
     """

@@ -31,7 +31,7 @@ def calculate_tfp_growth(
     phi: float = 0.08,
 ) -> float | pd.Series:
     """Calculate next period TFP using the growth equation with spillovers.
-    
+
     Args:
         current_tfp: Current period TFP (A_t)
         openness_ratio: Trade openness ratio ((X+M)/Y)
@@ -39,21 +39,16 @@ def calculate_tfp_growth(
         g: Baseline TFP growth rate (default: 0.02)
         theta: Openness contribution to TFP growth (default: 0.10)
         phi: FDI contribution to TFP growth (default: 0.08)
-        
+
     Returns:
         Next period TFP (A_{t+1})
-        
+
     Raises:
         ValueError: If any parameters are invalid
-        
+
     Example:
         >>> next_tfp = calculate_tfp_growth(
-        ...     current_tfp=1.0,
-        ...     openness_ratio=0.3,
-        ...     fdi_ratio=0.05,
-        ...     g=0.02,
-        ...     theta=0.10,
-        ...     phi=0.08
+        ...     current_tfp=1.0, openness_ratio=0.3, fdi_ratio=0.05, g=0.02, theta=0.10, phi=0.08
         ... )
     """
     # Validate inputs
@@ -122,7 +117,7 @@ def calculate_tfp_growth_dataframe(
     output_col: str = "TFP_next",
 ) -> pd.DataFrame:
     """Calculate next period TFP for a DataFrame with time series data.
-    
+
     Args:
         df: DataFrame containing TFP, openness, and FDI data
         tfp_col: Column name for current TFP data
@@ -132,10 +127,10 @@ def calculate_tfp_growth_dataframe(
         theta: Openness contribution to TFP growth (default: 0.10)
         phi: FDI contribution to TFP growth (default: 0.08)
         output_col: Column name for calculated next period TFP
-        
+
     Returns:
         DataFrame with next period TFP column added
-        
+
     Raises:
         ValueError: If required columns are missing
     """
@@ -172,7 +167,7 @@ def calculate_tfp_sequence(
     phi: float = 0.08,
 ) -> pd.Series:
     """Calculate a sequence of TFP values over multiple periods.
-    
+
     Args:
         initial_tfp: Initial TFP value (A_0)
         openness_sequence: Series of openness ratios over time
@@ -180,10 +175,10 @@ def calculate_tfp_sequence(
         g: Baseline TFP growth rate (default: 0.02)
         theta: Openness contribution to TFP growth (default: 0.10)
         phi: FDI contribution to TFP growth (default: 0.08)
-        
+
     Returns:
         Series of TFP values over time
-        
+
     Raises:
         ValueError: If sequences have different lengths
     """

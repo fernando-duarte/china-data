@@ -7,12 +7,14 @@ This is an economic data processing pipeline for China, designed to download, pr
 ## Architecture Patterns
 
 ### Core Patterns Used
+
 - **Repository Pattern**: `utils/data_sources/` - Encapsulates data access logic
 - **Strategy Pattern**: `utils/extrapolation_methods/` - Different forecasting algorithms
 - **Observer Pattern**: Validation events and error handling
 - **Factory Pattern**: `tests/factories.py` - Test data generation
 
 ### Key Components
+
 1. **Data Sources** (`utils/data_sources/`): Download and cache data
 2. **Processors** (`utils/processor_dataframe/`): Transform and validate
 3. **Economic Indicators** (`utils/economic_indicators/`): Calculate derived metrics
@@ -22,6 +24,7 @@ This is an economic data processing pipeline for China, designed to download, pr
 ## Development Guidelines
 
 ### Code Quality Standards
+
 - **Test Coverage**: Minimum 80% (pytest + hypothesis)
 - **Type Coverage**: Minimum 90% (mypy strict mode)
 - **Complexity**: Maximum C rating (radon)
@@ -29,6 +32,7 @@ This is an economic data processing pipeline for China, designed to download, pr
 - **Documentation**: Minimum 80% docstring coverage
 
 ### Technology Stack
+
 - **Python**: 3.10+ with modern features
 - **Package Manager**: UV for fast dependency resolution
 - **Testing**: pytest with property-based testing (hypothesis)
@@ -38,6 +42,7 @@ This is an economic data processing pipeline for China, designed to download, pr
 - **CI/CD**: GitHub Actions with UV optimization
 
 ### Data Flow Understanding
+
 1. **Download**: Fetch from World Bank WDI API with caching
 2. **Process**: Clean, validate, handle missing data
 3. **Calculate**: Derive TFP, capital stock, productivity metrics
@@ -45,6 +50,7 @@ This is an economic data processing pipeline for China, designed to download, pr
 5. **Export**: Generate CSV files and markdown reports
 
 ### Key Files to Understand
+
 - `china_data_downloader.py`: Main download orchestrator
 - `china_data_processor.py`: Main processing orchestrator
 - `config.py` + `config_schema.py`: Configuration management
@@ -52,6 +58,7 @@ This is an economic data processing pipeline for China, designed to download, pr
 - `utils/economic_indicators/`: Core economic calculations
 
 ### Testing Strategy
+
 - **Unit Tests**: Individual component testing
 - **Property-Based**: Hypothesis for data validation
 - **Integration**: End-to-end pipeline testing
@@ -59,6 +66,7 @@ This is an economic data processing pipeline for China, designed to download, pr
 - **Mutation**: mutmut for test quality assessment
 
 ### Error Handling Philosophy
+
 - **Graceful Degradation**: Continue processing when possible
 - **Comprehensive Logging**: Structured logs with context
 - **Validation Gates**: Early data quality checks
@@ -77,12 +85,14 @@ When working on this codebase:
 7. **Handle Errors**: Consider network failures and data issues
 
 ### Common Tasks
+
 - Adding new data sources: Follow repository pattern in `utils/data_sources/`
 - New economic indicators: Use `utils/economic_indicators/` structure
 - New extrapolation methods: Implement strategy pattern in `utils/extrapolation_methods/`
 - Output formats: Extend `utils/output/` with proper templates
 
 ### Dependencies to Know
+
 - **pandas**: Primary data manipulation
 - **numpy**: Numerical computations
 - **requests**: HTTP API calls with caching
@@ -92,4 +102,4 @@ When working on this codebase:
 - **structlog**: Structured logging
 - **pydantic**: Configuration validation
 
-This context helps AI assistants understand the project's purpose, architecture, and development practices for more effective collaboration. 
+This context helps AI assistants understand the project's purpose, architecture, and development practices for more effective collaboration.

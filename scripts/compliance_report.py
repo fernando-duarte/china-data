@@ -36,7 +36,7 @@ def run_security_checks() -> dict[str, Any]:
     security_results["bandit"] = {
         "exit_code": bandit_result.returncode,
         "passed": bandit_result.returncode == 0,
-        "report_file": "bandit-report.json"
+        "report_file": "bandit-report.json",
     }
 
     # Safety vulnerability check
@@ -45,7 +45,7 @@ def run_security_checks() -> dict[str, Any]:
     security_results["safety"] = {
         "exit_code": safety_result.returncode,
         "passed": safety_result.returncode == 0,
-        "report_file": "safety-report.json"
+        "report_file": "safety-report.json",
     }
 
     # pip-audit
@@ -54,7 +54,7 @@ def run_security_checks() -> dict[str, Any]:
     security_results["pip_audit"] = {
         "exit_code": audit_result.returncode,
         "passed": audit_result.returncode == 0,
-        "report_file": "pip-audit-report.json"
+        "report_file": "pip-audit-report.json",
     }
 
     return security_results
@@ -70,7 +70,7 @@ def run_quality_checks() -> dict[str, Any]:
     quality_results["ruff"] = {
         "exit_code": ruff_result.returncode,
         "passed": ruff_result.returncode == 0,
-        "issues": ruff_result.stdout.count("error") if ruff_result.stdout else 0
+        "issues": ruff_result.stdout.count("error") if ruff_result.stdout else 0,
     }
 
     # MyPy type checking
@@ -79,7 +79,7 @@ def run_quality_checks() -> dict[str, Any]:
     quality_results["mypy"] = {
         "exit_code": mypy_result.returncode,
         "passed": mypy_result.returncode == 0,
-        "issues": mypy_result.stdout.count("error") if mypy_result.stdout else 0
+        "issues": mypy_result.stdout.count("error") if mypy_result.stdout else 0,
     }
 
     # Radon complexity
@@ -88,7 +88,12 @@ def run_quality_checks() -> dict[str, Any]:
     quality_results["radon"] = {
         "exit_code": radon_result.returncode,
         "passed": radon_result.returncode == 0,
-        "complex_functions": radon_result.stdout.count("C ") + radon_result.stdout.count("D ") + radon_result.stdout.count("E ") + radon_result.stdout.count("F ") if radon_result.stdout else 0
+        "complex_functions": radon_result.stdout.count("C ")
+        + radon_result.stdout.count("D ")
+        + radon_result.stdout.count("E ")
+        + radon_result.stdout.count("F ")
+        if radon_result.stdout
+        else 0,
     }
 
     return quality_results
@@ -100,18 +105,11 @@ def run_coverage_analysis() -> dict[str, Any]:
 
     print("Running test coverage analysis...")
     # Run pytest with coverage
-    coverage_result = run_command([
-        "uv", "run", "pytest",
-        "--cov",
-        "--cov-report=json",
-        "--cov-report=term-missing",
-        "tests/"
-    ])
+    coverage_result = run_command(
+        ["uv", "run", "pytest", "--cov", "--cov-report=json", "--cov-report=term-missing", "tests/"]
+    )
 
-    coverage_results["pytest"] = {
-        "exit_code": coverage_result.returncode,
-        "passed": coverage_result.returncode == 0
-    }
+    coverage_results["pytest"] = {"exit_code": coverage_result.returncode, "passed": coverage_result.returncode == 0}
 
     # Parse coverage report if available
     coverage_file = Path("coverage.json")
@@ -172,7 +170,7 @@ def run_doc_coverage() -> dict[str, Any]:
 
     doc_results["interrogate"] = {
         "exit_code": interrogate_result.returncode,
-        "passed": interrogate_result.returncode == 0
+        "passed": interrogate_result.returncode == 0,
     }
 
     # Try to extract coverage percentage from output
@@ -206,8 +204,8 @@ def generate_compliance_report() -> dict[str, Any]:
             "quality": run_quality_checks(),
             "coverage": run_coverage_analysis(),
             "dependencies": run_dependency_audit(),
-            "documentation": run_doc_coverage()
-        }
+            "documentation": run_doc_coverage(),
+        },
     }
 
     # Calculate overall compliance score
@@ -219,13 +217,7 @@ def generate_compliance_report() -> dict[str, Any]:
 
 def calculate_compliance_score(checks: dict[str, Any]) -> dict[str, Any]:
     """Calculate overall compliance score."""
-    scores = {
-        "security": 0,
-        "quality": 0,
-        "coverage": 0,
-        "dependencies": 0,
-        "documentation": 0
-    }
+    scores = {"security": 0, "quality": 0, "coverage": 0, "dependencies": 0, "documentation": 0}
 
     # Security score (40% weight)
     security = checks["security"]
@@ -259,21 +251,11 @@ def calculate_compliance_score(checks: dict[str, Any]) -> dict[str, Any]:
     scores["documentation"] = doc_coverage if isinstance(doc_coverage, (int, float)) else 0
 
     # Calculate weighted overall score
-    weights = {
-        "security": 0.4,
-        "quality": 0.3,
-        "coverage": 0.2,
-        "dependencies": 0.05,
-        "documentation": 0.05
-    }
+    weights = {"security": 0.4, "quality": 0.3, "coverage": 0.2, "dependencies": 0.05, "documentation": 0.05}
 
     overall = sum(scores[key] * weights[key] for key in scores)
 
-    return {
-        "overall": round(overall, 2),
-        "breakdown": scores,
-        "weights": weights
-    }
+    return {"overall": round(overall, 2), "breakdown": scores, "weights": weights}
 
 
 def main():
@@ -286,9 +268,9 @@ def main():
         json.dump(report, indent=2, fp=f)
 
     # Print summary
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("COMPLIANCE REPORT SUMMARY")
-    print("="*50)
+    print("=" * 50)
     print(f"Overall Score: {report['compliance_score']['overall']:.1f}%")
     print("\nBreakdown:")
     for category, score in report["compliance_score"]["breakdown"].items():

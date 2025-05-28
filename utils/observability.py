@@ -20,12 +20,14 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 def configure_observability() -> None:
     """Configure OpenTelemetry tracing and metrics for the application."""
     # Resource attributes for service identification
-    resource = Resource.create({
-        "service.name": "china-data-pipeline",
-        "service.version": os.getenv("CHINA_DATA_VERSION", "0.1.0"),
-        "service.environment": os.getenv("ENVIRONMENT", "development"),
-        "service.instance.id": os.getenv("INSTANCE_ID", "local"),
-    })
+    resource = Resource.create(
+        {
+            "service.name": "china-data-pipeline",
+            "service.version": os.getenv("CHINA_DATA_VERSION", "0.1.0"),
+            "service.environment": os.getenv("ENVIRONMENT", "development"),
+            "service.instance.id": os.getenv("INSTANCE_ID", "local"),
+        }
+    )
 
     # Configure tracing
     _configure_tracing(resource)
@@ -120,7 +122,6 @@ def create_application_metrics() -> dict:
             description="Total number of errors encountered",
             unit="1",
         ),
-
         # Histograms
         "download_duration": meter.create_histogram(
             "download_duration_seconds",
@@ -132,7 +133,6 @@ def create_application_metrics() -> dict:
             description="Duration of data processing operations",
             unit="s",
         ),
-
         # Gauges (via UpDownCounter for simplicity)
         "active_downloads": meter.create_up_down_counter(
             "active_downloads",
@@ -165,9 +165,7 @@ class traced_operation:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.span:
             if exc_type:
-                self.span.set_status(
-                    trace.Status(trace.StatusCode.ERROR, str(exc_val))
-                )
+                self.span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc_val)))
                 self.span.record_exception(exc_val)
             else:
                 self.span.set_status(trace.Status(trace.StatusCode.OK))
@@ -176,12 +174,15 @@ class traced_operation:
 
 def trace_function(operation_name: str = None, tracer_name: str = "china_data"):
     """Decorator to trace function execution."""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             name = operation_name or f"{func.__module__}.{func.__name__}"
             with traced_operation(name, tracer_name):
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
