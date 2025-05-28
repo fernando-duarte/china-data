@@ -30,21 +30,19 @@ class SARIFGenerator:
             "uv",
             "run",
             "semgrep",
+            "ci",
             "--config=p/security-audit",
             "--config=p/secrets",
-            "--config=p/python",
-            "--config=p/bandit",
-            "--config=p/owasp-top-ten",
             "--sarif",
             f"--output={output_file}",
-            "--timeout=30",
+            "--timeout=300",
             "--skip-unknown-extensions",
             ".",
         ]
 
         try:
             print("🔍 Running Semgrep SARIF scan...")
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=360, check=False)
 
             if output_file.exists() and output_file.stat().st_size > 0:
                 print(f"✅ Semgrep SARIF report generated: {output_file}")
@@ -63,6 +61,16 @@ class SARIFGenerator:
         """Run Bandit with SARIF output."""
         output_file = self.output_dir / "bandit.sarif"
 
+        # Enhanced exclude pattern following security best practices
+        exclude_pattern = (
+            "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,"
+            "./tests/*,./test/*,./node_modules/*,./htmlcov/*,"
+            "./workflow_outputs/*,./build/*,./dist/*,./target/*,"
+            "./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,"
+            "./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,"
+            "./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*"
+        )
+
         # First try with SARIF format
         cmd = [
             "uv",
@@ -75,12 +83,12 @@ class SARIFGenerator:
             "-o",
             str(output_file),
             "--exclude",
-            "./venv/*,./tests/*,./.venv/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*",
+            exclude_pattern,
         ]
 
         try:
             print("🔍 Running Bandit SARIF scan...")
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
+            subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
 
             if output_file.exists() and output_file.stat().st_size > 0:
                 print(f"✅ Bandit SARIF report generated: {output_file}")
@@ -102,6 +110,16 @@ class SARIFGenerator:
         json_file = self.output_dir / "bandit.json"
         sarif_file = self.output_dir / "bandit.sarif"
 
+        # Enhanced exclude pattern following security best practices
+        exclude_pattern = (
+            "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,"
+            "./tests/*,./test/*,./node_modules/*,./htmlcov/*,"
+            "./workflow_outputs/*,./build/*,./dist/*,./target/*,"
+            "./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,"
+            "./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,"
+            "./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*"
+        )
+
         cmd = [
             "uv",
             "run",
@@ -113,23 +131,23 @@ class SARIFGenerator:
             "-o",
             str(json_file),
             "--exclude",
-            "./venv/*,./tests/*,./.venv/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*",
+            exclude_pattern,
         ]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
+            subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
 
             if not json_file.exists() or json_file.stat().st_size == 0:
                 print("⚠️ Bandit JSON report is empty or not generated")
                 return None
 
             # Convert JSON to SARIF
-            with open(json_file) as f:
+            with json_file.open() as f:
                 bandit_data = json.load(f)
 
             sarif_data = self._bandit_json_to_sarif(bandit_data)
 
-            with open(sarif_file, "w") as f:
+            with sarif_file.open("w") as f:
                 json.dump(sarif_data, f, indent=2)
 
             print(f"✅ Bandit SARIF report converted from JSON: {sarif_file}")

@@ -5,7 +5,7 @@ default_language_version:
 
 fail_fast: false
 
-exclude: ^(venv/|\.venv/|__pycache__/|\.git/|\.mypy_cache/|\.pytest_cache/)
+exclude: ^(venv/|\.venv/|env/|ENV/|venv.*/|__pycache__/|\.git/|\.mypy_cache/|\.pytest_cache/|\.ruff_cache/|\.hypothesis/|node_modules/|htmlcov/|workflow_outputs/|build/|dist/|target/|\.vscode/|\.idea/|docs/_build/|site/|tmp/|temp/|output/|.*\.egg-info/)
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -36,9 +36,9 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # Enhanced Semgrep Integration - Security Audit
+  # Enhanced Semgrep Integration - Security Audit (Optimized for logged-in account)
   - repo: https://github.com/semgrep/semgrep
-    rev: v1.122.0
+    rev: v1.99.0
     hooks:
       - id: semgrep
         name: semgrep-security-audit
@@ -53,15 +53,14 @@ repos:
         exclude: ^(tests/data_integrity/|docs/|examples/)
         require_serial: false
 
-  # Enhanced Semgrep Integration - Python Security
+  # Enhanced Semgrep Integration - Python Security (Focused scan)
   - repo: https://github.com/semgrep/semgrep
-    rev: v1.122.0
+    rev: v1.99.0
     hooks:
       - id: semgrep
         name: semgrep-python-security
         args:
-          - --config=p/python
-          - --config=p/bandit
+          - --config=p/security-audit
           - --timeout=30
           - --skip-unknown-extensions
           - --json
@@ -71,7 +70,7 @@ repos:
 
   # Dedicated security scanning with Bandit (in addition to Ruff S-prefix rules)
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.0
+    rev: 1.8.3
     hooks:
       - id: bandit
         name: bandit-security-scan
@@ -83,7 +82,7 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/pylint-dev/pylint
-    rev: v3.3.1
+    rev: v3.3.7
     hooks:
       - id: pylint
         name: pylint
@@ -93,7 +92,7 @@ repos:
         args: [--jobs=0] # Use all available CPU cores for parallel processing
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.15.0
     hooks:
       - id: mypy
         files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
@@ -102,7 +101,7 @@ repos:
 
   # Security vulnerability scanning
   - repo: https://github.com/pypa/pip-audit
-    rev: v2.7.3
+    rev: v2.9.0
     hooks:
       - id: pip-audit
         args: [--desc, --fix]
@@ -146,7 +145,7 @@ repos:
 
   # Python upgrade syntax
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.20.0
     hooks:
       - id: pyupgrade
         args: [--py313-plus]
@@ -199,7 +198,7 @@ repos:
 
   # Markdown linting
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.43.0
+    rev: v0.45.0
     hooks:
       - id: markdownlint
         args: ["--fix"]

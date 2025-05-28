@@ -56,7 +56,7 @@ jobs:
 
           # Security analysis summary
           echo "## Security Status" >> health-report.md
-          uv run bandit -r . --format=txt --exclude="./venv/*,./tests/*" > security.txt 2>&1 || true
+          uv run bandit -r . --format=txt --exclude="./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" > security.txt 2>&1 || true
           if grep -q "No issues identified" security.txt; then
             echo "✅ No security issues detected" >> health-report.md
           else

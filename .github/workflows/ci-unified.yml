@@ -102,7 +102,7 @@ jobs:
         run: |
           uv run pip-audit --desc --format=json --output=pip-audit.json
           uv run safety check --json --output=safety.json
-          uv run semgrep --config=auto --json --output=semgrep.json
+          uv run semgrep ci --config=auto --sarif --output=semgrep.sarif --timeout=300 --skip-unknown-extensions
       - name: Upload security artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -111,7 +111,7 @@ jobs:
           path: |
             pip-audit.json
             safety.json
-            semgrep.json
+            semgrep.sarif
 
   # Quality gates
   quality-gates:

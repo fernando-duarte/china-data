@@ -7,13 +7,62 @@ overrides:
 
 skips: ["B101", "B404", "B603"]
 
-# Exclude directories from scanning
+# Exclude directories from scanning following security best practices
+# Note: These are glob patterns, not absolute paths
 exclude_dirs:
-  - "/tests/"
-  - "/.venv/"
-  - "/venv/"
-  - "/.mypy_cache/"
-  - "/.pytest_cache/"
+  # Test directories (may contain intentional vulnerabilities for testing)
+  - "tests"
+  - "test"
 
-# Set confidence level
+  # Virtual environments (all common patterns)
+  - ".venv"
+  - "venv"
+  - "env"
+  - "ENV"
+  - "venv*"
+
+  # Node.js dependencies (if present in hybrid projects)
+  - "node_modules"
+
+  # Cache directories (generated files, not source code)
+  - ".mypy_cache"
+  - ".pytest_cache"
+  - ".ruff_cache"
+  - ".hypothesis"
+  - "__pycache__"
+
+  # Build and distribution directories (generated artifacts)
+  - "build"
+  - "dist"
+  - "target"
+  - "_build"
+  - "htmlcov"
+
+  # Documentation build directories
+  - "docs/_build"
+  - "site"
+
+  # IDE and editor directories (configuration, not source code)
+  - ".vscode"
+  - ".idea"
+
+  # Examples (may contain intentional vulnerabilities for testing)
+  - "examples"
+
+  # Security reports and outputs (generated files)
+  - "security-reports"
+  - "workflow_outputs"
+  - "output"
+
+  # Temporary directories
+  - "tmp"
+  - "temp"
+
+  # Package metadata (generated files)
+  - "*.egg-info"
+
+# Set confidence level (MEDIUM balances false positives vs coverage)
 confidence: MEDIUM
+
+# Set severity level (LOW includes all findings for comprehensive coverage)
+severity: LOW

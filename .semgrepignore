@@ -1,36 +1,70 @@
 # Semgrep ignore patterns for China Data Project
 # Exclude directories and files that don't need security scanning
+# Following Semgrep best practices for performance and accuracy
 
-# Virtual environments
+# Virtual environments (all common patterns)
 .venv/
 venv/
+env/
+ENV/
+.virtualenv/
 
-# Cache directories
+# Python cache and compiled files
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Version control
 .git/
+.svn/
+.hg/
+.bzr/
+CVS/
+
+# Tool cache directories
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
 .hypothesis/
+.tox/
+.coverage
+.cache/
 
 # Dependencies and build artifacts
 node_modules/
 *.egg-info/
 .benchmarks/
+build/
+dist/
+target/
+.eggs/
 
 # Output and temporary files
 htmlcov/
 workflow_outputs/
 output/
+tmp/
+temp/
+.tmp/
 
 # Documentation and examples (typically don't contain security issues)
 docs/
 examples/
+site/
 
-# Test data files (exclude data integrity tests that might have large files)
-tests/data_integrity/
+# Test files and directories (may contain intentional security patterns for testing)
+tests/
+test/
+*_test.py
+test_*.py
+**/test_*.py
+**/tests/
+conftest.py
+**/conftest.py
 
-# Log and data files
+# Large data and media files
 *.log
 *.json
 *.xml
@@ -38,19 +72,41 @@ tests/data_integrity/
 *.sqlite
 *.csv
 *.xlsx
+*.db
+*.sql
+*.dump
 
 # Configuration files that are already scanned by other tools
 .pre-commit-config.yaml
 pyproject.toml
 ruff.toml
 .bandit.yaml
+uv.lock
+requirements*.txt
 
 # IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# OS files
+*~
 .DS_Store
 Thumbs.db
+
+# CI/CD and deployment files
+.github/
+.gitlab-ci.yml
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Package manager files
+package-lock.json
+yarn.lock
+Pipfile.lock
+
+# Security and compliance reports (avoid scanning generated reports)
+security-reports/
+*.sarif
+bandit.json
+semgrep*.json

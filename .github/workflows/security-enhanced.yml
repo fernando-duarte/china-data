@@ -50,17 +50,26 @@ jobs:
 
 
       - name: Run Semgrep SAST
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: >-
-            p/security-audit
-            p/secrets
-            p/python
-            p/bandit
-            p/owasp-top-ten
-            p/cwe-top-25
+        run: |
+          uv run semgrep ci \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/python \
+            --config=p/bandit \
+            --config=p/owasp-top-ten \
+            --config=p/cwe-top-25 \
+            --sarif \
+            --output=semgrep-results.sarif \
+            --timeout=300 \
+            --skip-unknown-extensions
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Upload Semgrep SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep-results.sarif
 
       - name: Run Ruff Security Checks
         run: |
@@ -69,9 +78,8 @@ jobs:
 
       - name: Run Bandit Security Scan
         run: |
-          uv add --dev bandit==1.7.0
-          uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*,./.venv/*" || true
-          uv run bandit -r . -f txt --exclude "./venv/*,./tests/*,./.venv/*" || true
+          uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" || true
+          uv run bandit -r . -f txt --exclude "./venv/*,./.venv/*,./env/*,./ENV/*,./venv*/*,./tests/*,./test/*,./node_modules/*,./htmlcov/*,./workflow_outputs/*,./build/*,./dist/*,./target/*,./.mypy_cache/*,./.pytest_cache/*,./.ruff_cache/*,./.hypothesis/*,./.vscode/*,./.idea/*,./docs/_build/*,./site/*,./tmp/*,./temp/*,./output/*,*.egg-info/*" || true
 
       - name: Upload SAST Reports
         uses: actions/upload-artifact@v4.6.2
