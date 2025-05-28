@@ -1,0 +1,156 @@
+# Augment Agent Ignore File
+# This file defines which files and directories should be ignored by the AI assistant
+# Based on analysis of .gitignore, .cursorignore, .cursorallow, and .cursorindexingignore
+
+# =============================================================================
+# SECURITY-SENSITIVE FILES (NEVER ACCESS)
+# =============================================================================
+# Cryptographic files
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+
+# Sensitive data patterns
+*secret*
+*credential*
+*password*
+*token*
+*key*
+
+# Environment files (except those explicitly allowed)
+.env.production
+.env.staging
+*.env.local
+*.env.secret
+
+# =============================================================================
+# LARGE DATA FILES (AVOID FOR PERFORMANCE)
+# =============================================================================
+# Raw data files (large and not needed for code context)
+input/*.csv
+*.xlsx
+*.parquet
+*.pkl
+*.h5
+*.db
+*.sqlite
+*.sqlite3
+
+# PDF files (can be large)
+*.pdf
+output/**/*.pdf
+parameters_info/*.pdf
+
+# =============================================================================
+# BUILD AND DEPENDENCY DIRECTORIES
+# =============================================================================
+# Python environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.uv-cache/
+
+# Build directories
+dist/
+build/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.dll
+
+# Package dependencies
+node_modules/
+.eggs/
+*.egg-info/
+
+# =============================================================================
+# VERSION CONTROL AND METADATA
+# =============================================================================
+.git/
+.gitattributes
+.DS_Store
+
+# =============================================================================
+# TESTING AND COVERAGE
+# =============================================================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+cover/
+
+# =============================================================================
+# IDE AND EDITOR FILES
+# =============================================================================
+.vscode/
+.idea/
+*.sublime-*
+.spyderproject
+.spyproject
+.ropeproject
+
+# =============================================================================
+# TEMPORARY AND CACHE FILES
+# =============================================================================
+*.tmp
+*.bak
+*.swp
+*~.nib
+*.log
+.cache
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# =============================================================================
+# DOCUMENTATION BUILD FILES
+# =============================================================================
+docs/_build/
+site/
+docs/coverage.svg
+
+# =============================================================================
+# WORKFLOW AND CI/CD OUTPUTS
+# =============================================================================
+workflow_outputs/
+*.json
+dependency-tree.txt
+flake8-report.txt
+outdated-packages.json
+workflow-summary.json
+bandit-report.json
+
+# =============================================================================
+# ALLOWED FILES (EXCEPTIONS TO ABOVE RULES)
+# =============================================================================
+# These files are important for code context and should be accessible:
+# - .env (development environment variables)
+# - .env.development (development-specific settings)
+# - .gitignore (version control configuration)
+# - output/*.csv (processed data outputs)
+# - Configuration files (pyproject.toml, ruff.toml, etc.)
+# - Documentation markdown files
+# - Source code files (.py)
+# - Test files
+
+# =============================================================================
+# NOTES
+# =============================================================================
+# This ignore strategy prioritizes:
+# 1. Security (never access sensitive files)
+# 2. Performance (avoid large data files and build artifacts)
+# 3. Relevance (focus on source code and configuration)
+# 4. Flexibility (allow access to development configs and outputs)

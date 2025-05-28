@@ -37,6 +37,24 @@
                 "env": {
                     "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}"
                 }
+            },
+            "perplexity": {
+                "transport": "stdio",
+                "command": "docker",
+                "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "--env-file",
+                    ".env.development",
+                    "mcp/perplexity-ask"
+                ],
+                "disabled": false,
+                "alwaysAllow": [
+                    "perplexity_ask",
+                    "perplexity_research",
+                    "perplexity_reason"
+                ]
             }
         }
     }
