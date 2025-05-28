@@ -205,7 +205,15 @@ Thumbs.db
 workflow_outputs/
 parameters_info/
 input/
-output/
+# Output directory - ignore non-PDF files but allow PDFs
+output/*.csv
+output/*.md
+output/*.json
+output/*.txt
+output/*.xlsx
+output/*.log
+# Allow PDFs in output directory to be tracked
+# output/*.pdf  # This line is commented to allow PDFs
 china_data.log*
 *.log
 

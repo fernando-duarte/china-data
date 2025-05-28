@@ -1,5 +1,6 @@
 # Allow specific files that would otherwise be blocked by .cursorignore
 output/*.csv
+output/*.pdf
 .env
 .env.development
 *.env*

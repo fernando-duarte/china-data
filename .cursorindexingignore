@@ -24,9 +24,17 @@ input/*.csv
 *.sqlite3
 
 # PDF files (can be large and hinder indexing performance)
-*.pdf
-# Specifically target PDFs in output directory
-output/**/*.pdf
+# *.pdf  # Commented to allow PDFs in output directory
+# Specifically target PDFs in output directory - commented to allow them
+# output/**/*.pdf  # Commented to allow PDFs in output
+
+# Block non-PDF files in output directory from indexing
+output/*.csv
+output/*.md
+output/*.json
+output/*.txt
+output/*.xlsx
+output/*.log
 
 # Cached files
 .pytest_cache/

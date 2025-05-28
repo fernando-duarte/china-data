@@ -39,10 +39,18 @@ input/*.csv
 *.sqlite
 *.sqlite3
 
-# PDF files (can be large)
-*.pdf
-output/**/*.pdf
+# PDF files (can be large) - except in output directory
+# *.pdf  # Commented to allow PDFs in output directory
+# output/**/*.pdf  # Commented to allow PDFs in output
 parameters_info/*.pdf
+
+# Non-PDF files in output directory (block for performance)
+output/*.csv
+output/*.md
+output/*.json
+output/*.txt
+output/*.xlsx
+output/*.log
 
 # =============================================================================
 # BUILD AND DEPENDENCY DIRECTORIES
