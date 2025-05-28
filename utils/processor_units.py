@@ -28,4 +28,9 @@ def convert_units(data: pd.DataFrame) -> pd.DataFrame:
             result[f"{col}_mn"] = result[col] / 1e6
             result = result.drop(col, axis=1)
 
+    # Convert PWT cgdpo (millions USD) to billions USD
+    if "cgdpo" in result.columns:
+        result["cgdpo_bn"] = result["cgdpo"] / 1e3  # cgdpo is in millions, so divide by 1000 to get billions
+        result = result.drop("cgdpo", axis=1)
+
     return result

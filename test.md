@@ -91,4 +91,4 @@ Each series was extrapolated using the following methods:
   (5% depreciation rate) and $I_t$ is investment in year $t$
 
 Data processed with alpha=0.3333333333333333, K/Y= 3.0, source file=china_data_raw.md,
-end year=2025. Generated 2025-05-27.
+end year=2025. Generated 2025-05-28.

@@ -82,4 +82,4 @@ Each series was extrapolated using the following methods:
 - Population (2023-2025)
 
 Data processed with alpha=0.3333333333333333, K/Y= 3.0, source file=test_input.md,
-end year=2025. Generated 2025-05-27.
+end year=2025. Generated 2025-05-28.

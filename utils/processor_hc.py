@@ -112,20 +112,35 @@ def project_human_capital(processed_data: pd.DataFrame, end_year: int = 2025) ->
         # Analyze data and determine projection requirements
         analysis_result = _analyze_hc_data(hc_data, end_year)
         if analysis_result is None:
-            return hc_data
+            return processed_data  # Return full data, not just hc_data
 
         hc_data_not_na, years_to_project = analysis_result
         if not years_to_project:
-            return hc_data
+            return processed_data  # Return full data, not just hc_data
 
         # Check if we have enough data for regression
         if len(hc_data_not_na) < MIN_DATA_POINTS_FOR_REGRESSION:
             logger.warning("Insufficient data for regression (only %s points)", len(hc_data_not_na))
-            return _project_with_fallback_methods(hc_data, years_to_project)
+            projected_hc = _project_with_fallback_methods(hc_data, years_to_project)
+        else:
+            # Execute projection methods
+            projected_hc = _execute_projection_methods(hc_data, years_to_project)
 
-        # Execute projection methods
-        return _execute_projection_methods(hc_data, years_to_project)
+        # Merge the projected human capital back with the original data
+        result_data = processed_data.copy()
+
+        # Update existing hc values and add new projected values
+        for _, row in projected_hc.iterrows():
+            year = row["year"]
+            if year in result_data["year"].to_numpy():
+                result_data.loc[result_data["year"] == year, "hc"] = row["hc"]
+            else:
+                # Add new row for projected year
+                new_row = pd.Series({"year": year, "hc": row["hc"]})
+                result_data = pd.concat([result_data, new_row.to_frame().T], ignore_index=True)
+
+        return result_data.sort_values("year").reset_index(drop=True)
 
     except (KeyError, ValueError, AttributeError):
         logger.exception("Unexpected error projecting human capital")
-        return hc_data
+        return processed_data  # Return full data on error
