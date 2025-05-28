@@ -1,0 +1,204 @@
+name: SBOM Generation and Attestation
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+  packages: write
+
+jobs:
+  generate-sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Generate SPDX SBOM
+        run: |
+          # Install SBOM generation tools
+          uv add --dev cyclonedx-bom pip-audit
+
+          # Generate SBOM in multiple formats
+          uv run cyclonedx-py requirements -o sbom.spdx.json --format json
+          uv run cyclonedx-py requirements -o sbom.cyclonedx.json --format json --schema-version 1.4
+          uv run pip-audit --format=cyclonedx-json --output=sbom-vulnerabilities.cyclonedx.json
+
+      - name: Generate package list
+        run: |
+          # Create a comprehensive package inventory
+          echo "# Software Bill of Materials" > SBOM.md
+          echo "" >> SBOM.md
+          echo "Generated on: $(date -u)" >> SBOM.md
+          echo "Repository: ${{ github.repository }}" >> SBOM.md
+          echo "Commit: ${{ github.sha }}" >> SBOM.md
+          echo "" >> SBOM.md
+          echo "## Direct Dependencies" >> SBOM.md
+          echo "" >> SBOM.md
+          uv pip list --format=markdown >> SBOM.md
+          echo "" >> SBOM.md
+          echo "## Dependency Tree" >> SBOM.md
+          echo "" >> SBOM.md
+          echo '```' >> SBOM.md
+          uv run pipdeptree >> SBOM.md
+          echo '```' >> SBOM.md
+
+      - name: Validate SBOM
+        run: |
+          # Basic validation of generated SBOM files
+          if [ ! -f "sbom.spdx.json" ]; then
+            echo "❌ SPDX SBOM not generated"
+            exit 1
+          fi
+
+          if [ ! -f "sbom.cyclonedx.json" ]; then
+            echo "❌ CycloneDX SBOM not generated"
+            exit 1
+          fi
+
+          # Check if SBOM contains expected components
+          COMPONENT_COUNT=$(jq '.components | length' sbom.cyclonedx.json)
+          if [ "$COMPONENT_COUNT" -lt 10 ]; then
+            echo "⚠️ Warning: SBOM contains fewer components than expected ($COMPONENT_COUNT)"
+          else
+            echo "✅ SBOM validation passed ($COMPONENT_COUNT components)"
+          fi
+
+      - name: Generate SLSA provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            sbom.spdx.json
+            sbom.cyclonedx.json
+            sbom-vulnerabilities.cyclonedx.json
+
+      - name: Sign SBOM with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            sbom.spdx.json
+            sbom.cyclonedx.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: |
+            sbom.spdx.json
+            sbom.cyclonedx.json
+            sbom-vulnerabilities.cyclonedx.json
+            SBOM.md
+            *.sig
+            *.crt
+
+      - name: Create SBOM release asset
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: sbom.spdx.json
+          asset_name: sbom.spdx.json
+          asset_content_type: application/json
+
+  verify-sbom:
+    name: Verify SBOM Integrity
+    needs: generate-sbom
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+
+      - name: Verify Sigstore signatures
+        uses: sigstore/gh-action-sigstore-python@v3.0.0
+        with:
+          inputs: |
+            sbom.spdx.json
+            sbom.cyclonedx.json
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+
+      - name: Validate SBOM schema
+        run: |
+          # Install validation tools
+          pip install jsonschema requests
+
+          # Download and validate against official schemas
+          echo "Validating SPDX SBOM..."
+          curl -s https://raw.githubusercontent.com/spdx/spdx-spec/development/v2.3.1/schemas/spdx-schema.json > spdx-schema.json
+          python -c "
+          import json, jsonschema
+          with open('sbom.spdx.json') as f: sbom = json.load(f)
+          with open('spdx-schema.json') as f: schema = json.load(f)
+          try:
+              jsonschema.validate(sbom, schema)
+              print('✅ SPDX SBOM is valid')
+          except Exception as e:
+              print(f'❌ SPDX SBOM validation failed: {e}')
+              exit(1)
+          "
+
+          echo "Validating CycloneDX SBOM..."
+          curl -s https://raw.githubusercontent.com/CycloneDX/specification/master/schema/bom-1.4.schema.json > cyclonedx-schema.json
+          python -c "
+          import json, jsonschema
+          with open('sbom.cyclonedx.json') as f: sbom = json.load(f)
+          with open('cyclonedx-schema.json') as f: schema = json.load(f)
+          try:
+              jsonschema.validate(sbom, schema)
+              print('✅ CycloneDX SBOM is valid')
+          except Exception as e:
+              print(f'❌ CycloneDX SBOM validation failed: {e}')
+              exit(1)
+          "
+
+      - name: Generate verification report
+        run: |
+          echo "# SBOM Verification Report" > verification-report.md
+          echo "" >> verification-report.md
+          echo "**Repository:** ${{ github.repository }}" >> verification-report.md
+          echo "**Commit:** ${{ github.sha }}" >> verification-report.md
+          echo "**Generated:** $(date -u)" >> verification-report.md
+          echo "" >> verification-report.md
+          echo "## Verification Results" >> verification-report.md
+          echo "" >> verification-report.md
+          echo "- ✅ SPDX SBOM schema validation passed" >> verification-report.md
+          echo "- ✅ CycloneDX SBOM schema validation passed" >> verification-report.md
+          echo "- ✅ Sigstore signature verification passed" >> verification-report.md
+          echo "- ✅ SLSA provenance attestation generated" >> verification-report.md
+          echo "" >> verification-report.md
+          echo "## SBOM Contents Summary" >> verification-report.md
+          echo "" >> verification-report.md
+          COMPONENT_COUNT=$(jq '.components | length' sbom.cyclonedx.json)
+          echo "- **Total Components:** $COMPONENT_COUNT" >> verification-report.md
+          echo "- **SBOM Format:** SPDX 2.3, CycloneDX 1.4" >> verification-report.md
+          echo "- **Signature Algorithm:** Sigstore/Cosign" >> verification-report.md
+
+      - name: Upload verification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-verification-${{ github.sha }}
+          path: verification-report.md

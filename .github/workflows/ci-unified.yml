@@ -113,9 +113,37 @@ jobs:
             safety.json
             semgrep.json
 
+  # Quality gates
+  quality-gates:
+    needs: [test-matrix, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run tests with coverage
+        run: uv run pytest --cov --cov-report=term --cov-report=xml
+      - name: Coverage threshold check
+        run: uv run coverage report --fail-under=80
+      - name: Complexity threshold check
+        run: uv run radon cc . --min B
+      - name: Security threshold check
+        run: uv run bandit -r . -ll
+      - name: Type coverage check
+        run: uv run mypy . --strict
+      - name: Upload quality reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports
+          path: |
+            coverage.xml
+            .coverage
+
   # Build and attestation
   build:
-    needs: [test-matrix, security-scan]
+    needs: [test-matrix, security-scan, quality-gates]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

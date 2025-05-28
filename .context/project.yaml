@@ -1,0 +1,82 @@
+project:
+  name: china-data
+  purpose: Economic data processing for China
+  description: Python package for downloading, processing, and analyzing economic data for China
+
+architecture:
+  style: ETL pipeline
+  patterns:
+    - Repository pattern for data access
+    - Strategy pattern for extrapolation methods
+    - Observer pattern for validation events
+    - Factory pattern for test data generation
+
+  components:
+    data_sources:
+      purpose: Download and cache economic data
+      patterns: [Repository, Adapter]
+      dependencies: [requests, pandas, wdi]
+
+    processors:
+      purpose: Transform and validate data
+      patterns: [Strategy, Template Method]
+      dependencies: [pandas, numpy, sklearn]
+
+    extrapolation:
+      purpose: Project data into the future
+      patterns: [Strategy, Command]
+      dependencies: [statsmodels, sklearn]
+
+    output:
+      purpose: Format and export results
+      patterns: [Builder, Template Method]
+      dependencies: [jinja2, pandas]
+
+technology_stack:
+  language: Python 3.10+
+  package_manager: UV
+  testing: pytest with hypothesis
+  linting: ruff + mypy
+  formatting: ruff format
+  documentation: mkdocs with material theme
+  ci_cd: GitHub Actions
+  containerization: Docker with multi-stage builds
+
+data_flow:
+  - name: Download
+    description: Fetch raw data from World Bank WDI and other sources
+    inputs: [API endpoints, country codes]
+    outputs: [cached raw data]
+
+  - name: Process
+    description: Clean, validate, and transform raw data
+    inputs: [raw data]
+    outputs: [processed economic indicators]
+
+  - name: Calculate
+    description: Compute derived metrics (TFP, capital stock, etc.)
+    inputs: [processed indicators]
+    outputs: [computed metrics]
+
+  - name: Extrapolate
+    description: Project data into future years
+    inputs: [historical data]
+    outputs: [projected time series]
+
+  - name: Export
+    description: Generate output files and reports
+    inputs: [all data]
+    outputs: [CSV files, reports]
+
+quality_standards:
+  test_coverage: ">= 80%"
+  type_coverage: ">= 90%"
+  code_complexity: "<= C (Radon)"
+  security_scan: "Pass all bandit checks"
+  documentation: ">= 80% docstring coverage"
+
+deployment:
+  environments: [development, testing, production]
+  containerized: true
+  monitoring: structured logging with opentelemetry
+  secrets: environment variables with dotenv  # pragma: allowlist secret

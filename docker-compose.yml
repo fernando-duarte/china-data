@@ -20,6 +20,8 @@ services:
 
     command: ["uv", "run", "python", "-m", "china_data_processor", "--dev"]
 
+    user: "1000:1000"
+
     healthcheck:
       test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
       interval: 30s

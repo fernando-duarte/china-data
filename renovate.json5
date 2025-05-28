@@ -14,6 +14,12 @@
     ":updateNotScheduled"
   ],
 
+  // SLSA hostRules for signature verification
+  "hostRules": [{
+    "matchHost": "pypi.org",
+    "artifactAuth": { "type": "sigstore" }
+  }],
+
   // UV-specific configuration
   "lockFileMaintenance": {
     "enabled": true,
@@ -23,6 +29,10 @@
 
   // Package grouping for cleaner PRs
   "packageRules": [
+    {
+      "matchManagers": ["pip_requirements","pip_setup","pipenv","poetry","uv"],
+      "signatureVerification": true
+    },
     {
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch", "minor"],
@@ -74,6 +84,17 @@
     "automerge": true,
     "assignees": ["fernando-duarte"]
   },
+
+  // OSV vulnerability alerts
+  "osvVulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"],
+    "labels": ["security", "osv-vulnerability"],
+    "automerge": true
+  },
+
+  // Transitive dependency remediation
+  "transitiveRemediation": true,
 
   // Commit and PR configuration
   "commitMessagePrefix": "deps:",
