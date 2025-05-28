@@ -1,0 +1,133 @@
+# .github/workflows/ci-unified.yml
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  checks: write
+  id-token: write # OIDC
+  attestations: write
+
+jobs:
+  # Fast feedback job
+  quick-checks:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run-full: ${{ steps.check.outputs.should-run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Parallel linting and type/security checks
+        run: |
+          uv run ruff check . &
+          uv run mypy . &
+          uv run bandit -r . &
+          wait
+      - name: Format check
+        run: uv run ruff format --check
+      - name: Generate SARIF for security scan
+        run: uv run bandit -r . -f sarif -o bandit.sarif
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit.sarif
+      - id: check
+        name: Determine if full matrix needed
+        run: |
+          # Run full matrix only for main branch or if tests/core changed
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]] || \
+             git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E "(tests/|core/|pyproject.toml)"; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Comprehensive testing
+  test-matrix:
+    needs: quick-checks
+    if: needs.quick-checks.outputs.should-run-full == 'true' || github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        exclude:
+          # Optimize matrix for efficiency
+          - os: windows-latest
+            python-version: "3.10"
+          - os: macos-latest
+            python-version: "3.10"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras
+      - name: Run tests
+        run: uv run pytest --cov --cov-report=xml
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
+
+  # Security and compliance
+  security-scan:
+    needs: quick-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Comprehensive security scan
+        run: |
+          uv run pip-audit --desc --format=json --output=pip-audit.json
+          uv run safety check --json --output=safety.json
+          uv run semgrep --config=auto --json --output=semgrep.json
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            pip-audit.json
+            safety.json
+            semgrep.json
+
+  # Build and attestation
+  build:
+    needs: [test-matrix, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Build package
+        run: uv build
+      - name: Generate attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "dist/*"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/ 

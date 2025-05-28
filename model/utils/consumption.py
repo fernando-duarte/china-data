@@ -11,7 +11,6 @@ Where:
 """
 
 import logging
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -20,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_consumption(
-    gdp: Union[float, pd.Series],
-    saving_rate: Union[float, pd.Series],
-    government_spending: Union[float, pd.Series],
-) -> Union[float, pd.Series]:
+    gdp: float | pd.Series,
+    saving_rate: float | pd.Series,
+    government_spending: float | pd.Series,
+) -> float | pd.Series:
     """Calculate consumption using the China growth model consumption equation.
     
     Args:
@@ -53,23 +52,23 @@ def calculate_consumption(
             len(saving_rate) if isinstance(saving_rate, pd.Series) else 1,
             len(government_spending) if isinstance(government_spending, pd.Series) else 1,
         )
-        
+
         if not isinstance(gdp, pd.Series):
             gdp = pd.Series([gdp] * max_len)
         if not isinstance(saving_rate, pd.Series):
             saving_rate = pd.Series([saving_rate] * max_len)
         if not isinstance(government_spending, pd.Series):
             government_spending = pd.Series([government_spending] * max_len)
-            
+
         # Validate inputs
         if (gdp < 0).any():
             logger.warning("Some GDP values are negative")
             gdp = gdp.clip(lower=0)
-            
+
         if (saving_rate < 0).any() or (saving_rate > 1).any():
             logger.warning("Some saving rate values are outside [0,1] range")
             saving_rate = saving_rate.clip(lower=0, upper=1)
-            
+
         if (government_spending < 0).any():
             logger.warning("Some government spending values are negative")
             government_spending = government_spending.clip(lower=0)
@@ -78,40 +77,38 @@ def calculate_consumption(
         if gdp < 0:
             logger.warning(f"GDP {gdp} is negative, clipping to 0")
             gdp = max(gdp, 0)
-            
+
         if saving_rate < 0 or saving_rate > 1:
             logger.warning(f"Saving rate {saving_rate} is outside [0,1] range, clipping")
             saving_rate = max(0, min(saving_rate, 1))
-            
+
         if government_spending < 0:
             logger.warning(f"Government spending {government_spending} is negative, clipping to 0")
             government_spending = max(government_spending, 0)
-    
+
     try:
         # Calculate consumption using the formula:
         # C_t = (1 - s_t) * Y_t - G_t
         consumption = (1 - saving_rate) * gdp - government_spending
-        
+
         # Check for negative consumption
         if isinstance(consumption, pd.Series):
             if (consumption < 0).any():
                 logger.warning("Some calculated consumption values are negative")
                 consumption = consumption.clip(lower=0)
-        else:
-            if consumption < 0:
-                logger.warning(f"Calculated consumption {consumption} is negative, clipping to 0")
-                consumption = max(consumption, 0)
-        
+        elif consumption < 0:
+            logger.warning(f"Calculated consumption {consumption} is negative, clipping to 0")
+            consumption = max(consumption, 0)
+
         logger.debug(f"Calculated consumption with saving_rate={saving_rate}, gdp={gdp}, gov_spending={government_spending}")
-        
+
         return consumption
-        
+
     except (ValueError, OverflowError) as e:
         logger.error(f"Error calculating consumption: {e}")
         if isinstance(gdp, pd.Series):
             return pd.Series([np.nan] * len(gdp))
-        else:
-            return np.nan
+        return np.nan
 
 
 def calculate_consumption_dataframe(
@@ -142,26 +139,26 @@ def calculate_consumption_dataframe(
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
-    
+
     result_df = df.copy()
-    
+
     # Calculate consumption
     result_df[output_col] = calculate_consumption(
         gdp=df[gdp_col],
         saving_rate=df[saving_rate_col],
         government_spending=df[government_spending_col],
     )
-    
+
     logger.info(f"Calculated consumption for {len(result_df)} periods")
-    
+
     return result_df
 
 
 def validate_consumption_feasibility(
-    gdp: Union[float, pd.Series],
-    saving_rate: Union[float, pd.Series],
-    government_spending: Union[float, pd.Series],
-) -> Union[bool, pd.Series]:
+    gdp: float | pd.Series,
+    saving_rate: float | pd.Series,
+    government_spending: float | pd.Series,
+) -> bool | pd.Series:
     """Validate that consumption calculation will yield non-negative results.
     
     Args:
@@ -173,8 +170,7 @@ def validate_consumption_feasibility(
         Boolean or Series indicating whether consumption would be non-negative
     """
     consumption = (1 - saving_rate) * gdp - government_spending
-    
+
     if isinstance(consumption, pd.Series):
         return consumption >= 0
-    else:
-        return consumption >= 0
+    return consumption >= 0

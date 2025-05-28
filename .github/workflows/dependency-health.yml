@@ -1,0 +1,255 @@
+name: Dependency Health Check
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # Daily at 6 AM
+  push:
+    paths: 
+      - 'pyproject.toml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+
+jobs:
+  dependency-health:
+    name: Dependency Health Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies and tools
+        run: |
+          uv sync --dev
+          uv add --dev pip-audit safety pipdeptree
+
+      - name: Generate dependency report
+        run: |
+          echo "# Dependency Health Report" > dependency-health.md
+          echo "Generated on: $(date)" >> dependency-health.md
+          echo "" >> dependency-health.md
+
+          # Basic dependency info
+          echo "## Dependency Overview" >> dependency-health.md
+          echo "- Total dependencies: $(uv pip list | wc -l)" >> dependency-health.md
+          echo "- Direct dependencies: $(grep -c "^[a-zA-Z]" pyproject.toml | head -1)" >> dependency-health.md
+          echo "" >> dependency-health.md
+
+      - name: Security vulnerability scan
+        run: |
+          echo "## Security Vulnerabilities" >> dependency-health.md
+          
+          # pip-audit scan
+          echo "### pip-audit Results" >> dependency-health.md
+          uv run pip-audit --format=json --output=audit.json || true
+          if [ -f audit.json ]; then
+            vulnerabilities=$(jq '.vulnerabilities | length' audit.json 2>/dev/null || echo "0")
+            if [ "$vulnerabilities" -gt 0 ]; then
+              echo "⚠️ Found $vulnerabilities vulnerabilities" >> dependency-health.md
+              uv run pip-audit --format=markdown >> dependency-health.md || true
+            else
+              echo "✅ No vulnerabilities found" >> dependency-health.md
+            fi
+          else
+            echo "❌ pip-audit scan failed" >> dependency-health.md
+          fi
+          echo "" >> dependency-health.md
+
+          # Safety scan
+          echo "### Safety Results" >> dependency-health.md
+          uv run safety check --json --output=safety.json || true
+          if [ -f safety.json ]; then
+            safety_issues=$(jq '. | length' safety.json 2>/dev/null || echo "0")
+            if [ "$safety_issues" -gt 0 ]; then
+              echo "⚠️ Found $safety_issues safety issues" >> dependency-health.md
+              uv run safety check >> dependency-health.md || true
+            else
+              echo "✅ No safety issues found" >> dependency-health.md
+            fi
+          else
+            echo "❌ Safety scan failed" >> dependency-health.md
+          fi
+
+      - name: License compliance check
+        run: |
+          echo "## License Compliance" >> dependency-health.md
+          
+          # Install license checker
+          uv add --dev pip-licenses
+          
+          # Generate license report
+          uv run pip-licenses --format=json --output-file=licenses.json
+          
+          # Check for problematic licenses
+          uv run python -c "
+          import json
+          import sys
+
+          # Define problematic licenses
+          problematic = {'GPL-3.0', 'GPL-2.0', 'AGPL-3.0', 'LGPL-3.0'}
+          
+          with open('licenses.json', 'r') as f:
+              licenses = json.load(f)
+          
+          issues = []
+          for pkg in licenses:
+              license_name = pkg.get('License', '').strip()
+              if license_name in problematic:
+                  issues.append(f'{pkg[\"Name\"]} ({pkg[\"Version\"]}): {license_name}')
+          
+          if issues:
+              print('⚠️ Potentially problematic licenses:')
+              for issue in issues:
+                  print(f'- {issue}')
+              sys.exit(1)
+          else:
+              print('✅ All licenses are compatible')
+          " >> dependency-health.md || echo "❌ License check failed" >> dependency-health.md
+
+      - name: Dependency freshness check
+        run: |
+          echo "## Dependency Freshness" >> dependency-health.md
+          
+          # Check for outdated packages
+          uv run pip list --outdated --format=json > outdated.json || true
+          if [ -f outdated.json ]; then
+            outdated_count=$(jq '. | length' outdated.json 2>/dev/null || echo "0")
+            echo "- Outdated packages: $outdated_count" >> dependency-health.md
+            
+            if [ "$outdated_count" -gt 0 ]; then
+              echo "" >> dependency-health.md
+              echo "### Outdated Packages" >> dependency-health.md
+              uv run pip list --outdated --format=columns >> dependency-health.md || true
+            fi
+          fi
+          echo "" >> dependency-health.md
+
+      - name: Dependency tree analysis
+        run: |
+          echo "## Dependency Analysis" >> dependency-health.md
+          
+          # Generate dependency tree
+          uv run pipdeptree --json-tree > dependency-tree.json
+          
+          # Analyze for potential issues
+          uv run python -c "
+          import json
+          
+          with open('dependency-tree.json', 'r') as f:
+              tree = json.load(f)
+          
+          # Count total dependencies (including transitive)
+          def count_deps(node):
+              count = 1
+              for dep in node.get('dependencies', []):
+                  count += count_deps(dep)
+              return count
+          
+          total_deps = sum(count_deps(pkg) for pkg in tree)
+          print(f'- Total dependencies (including transitive): {total_deps}')
+          
+          # Find packages with many dependencies
+          heavy_packages = []
+          for pkg in tree:
+              dep_count = len(pkg.get('dependencies', []))
+              if dep_count > 10:
+                  heavy_packages.append(f'{pkg[\"package\"][\"package_name\"]} ({dep_count} deps)')
+          
+          if heavy_packages:
+              print('- Heavy packages (>10 dependencies):')
+              for pkg in heavy_packages:
+                  print(f'  - {pkg}')
+          else:
+              print('- No heavy packages detected')
+          " >> dependency-health.md
+
+      - name: Generate SARIF for security issues
+        if: always()
+        run: |
+          # Convert pip-audit results to SARIF if there are vulnerabilities
+          if [ -f audit.json ]; then
+            uv run pip-audit --format=sarif --output=pip-audit.sarif || true
+          fi
+
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: pip-audit.sarif
+        continue-on-error: true
+
+      - name: Check for critical issues
+        id: check-critical
+        run: |
+          critical_issues=false
+          
+          # Check for high-severity vulnerabilities
+          if [ -f audit.json ]; then
+            high_vulns=$(jq '[.vulnerabilities[] | select(.aliases[]? | contains("HIGH") or contains("CRITICAL"))] | length' audit.json 2>/dev/null || echo "0")
+            if [ "$high_vulns" -gt 0 ]; then
+              critical_issues=true
+            fi
+          fi
+          
+          # Check for GPL licenses
+          if grep -q "GPL-" dependency-health.md; then
+            critical_issues=true
+          fi
+          
+          echo "critical=$critical_issues" >> $GITHUB_OUTPUT
+
+      - name: Create issue for critical problems
+        if: steps.check-critical.outputs.critical == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('dependency-health.md', 'utf8');
+            
+            const issueTitle = `🚨 Critical Dependency Issues Detected - ${new Date().toISOString().split('T')[0]}`;
+            const issueBody = `${report}\n\n---\n**Action Required**: Please review and address the critical dependency issues above.\n\n*This issue was automatically created by the dependency health workflow.*`;
+            
+            // Check if a similar critical issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'critical,dependencies'
+            });
+            
+            const hasExistingCritical = existingIssues.data.some(issue =>
+              issue.title.includes('Critical Dependency Issues')
+            );
+            
+            if (!hasExistingCritical) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['critical', 'dependencies', 'security']
+              });
+            }
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-health-reports
+          path: |
+            dependency-health.md
+            audit.json
+            safety.json
+            licenses.json
+            outdated.json
+            dependency-tree.json
+          retention-days: 30 

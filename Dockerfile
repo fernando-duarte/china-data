@@ -1,60 +1,58 @@
-# Multi-stage build for China Data Analysis Pipeline
-# Uses UV package manager for fast dependency installation
+# Dockerfile - Enhanced with all optimizations
+FROM python:3.13-slim AS base
 
-# Build stage
-FROM python:3.13-slim AS builder
+# Build stage with UV optimizations
+FROM base AS builder
 
-# Install UV package manager
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+# Install UV with specific version
+COPY --from=ghcr.io/astral-sh/uv:0.5.4 /uv /bin/uv
 
-# Set working directory
+# Enable UV optimizations
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_CACHE_DIR=/root/.cache/uv
+
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml uv.lock* ./
+# Install system dependencies needed for compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies using UV with cache mount
+# Copy dependency files first for better caching
+COPY pyproject.toml uv.lock README.md ./
+
+# Install dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project --no-dev
 
-# TODO: Add security scanning with trivy or similar tool
-# RUN trivy fs --no-progress /app
-
-# Production stage
-FROM python:3.13-slim
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PATH="/app/.venv/bin:$PATH"
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash app
-
-# Set working directory
-WORKDIR /app
-
-# Copy virtual environment from builder stage
-COPY --from=builder /app/.venv /app/.venv
-
 # Copy application code
-COPY --chown=app:app . .
+COPY . .
 
-# Create required directories with proper ownership BEFORE switching to non-root user
-RUN mkdir -p input output && \
-    chown -R app:app /app
+# Install the project itself
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
-# Switch to non-root user
-USER app
+# Runtime stage
+FROM base AS runtime
+
+# Security: Create non-root user
+RUN useradd -m -u 1000 appuser
+
+# Copy only necessary files from builder
+COPY --from=builder --chown=appuser:appuser /app /app
+
+# Set up environment
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)"
 
-# Default command
-CMD ["python", "china_data_processor.py"]
+# Use exec form for proper signal handling
+ENTRYPOINT ["python", "-m", "china_data_processor"]

@@ -1,18 +1,70 @@
-version: "3.8"
+# docker-compose.yml - Modern v2 syntax
 services:
-  dev:
-    build: .
+  app:
+    build:
+      context: .
+      target: development
+      cache_from:
+        - type=registry,ref=myregistry/china-data:buildcache
+      cache_to:
+        - type=registry,ref=myregistry/china-data:buildcache,mode=max
+
     volumes:
-      - .:/app
-    working_dir: /app
+      - .:/app:cached
+      - uv-cache:/root/.cache/uv
+
     environment:
+      - ENVIRONMENT=development
+      - UV_CACHE_DIR=/root/.cache/uv
       - PYTHONUNBUFFERED=1
-    command: bash
-    security_opt:
-      - no-new-privileges:true
-    user: "1000:1000"
+
+    command: ["uv", "run", "python", "-m", "china_data_processor", "--dev"]
+
     healthcheck:
       test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "1"
+          memory: 1G
+
+    security_opt:
+      - no-new-privileges:true
+
+    networks:
+      - backend
+
+  # Development database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: china_data
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-development}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U developer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+volumes:
+  uv-cache:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge

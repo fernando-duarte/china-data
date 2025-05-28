@@ -11,7 +11,6 @@ Where:
 """
 
 import logging
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -20,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_investment_from_saving(
-    gdp: Union[float, pd.Series],
-    saving_rate: Union[float, pd.Series],
-    net_exports: Union[float, pd.Series],
-) -> Union[float, pd.Series]:
+    gdp: float | pd.Series,
+    saving_rate: float | pd.Series,
+    net_exports: float | pd.Series,
+) -> float | pd.Series:
     """Calculate investment using the saving identity equation.
     
     Args:
@@ -53,19 +52,19 @@ def calculate_investment_from_saving(
             len(saving_rate) if isinstance(saving_rate, pd.Series) else 1,
             len(net_exports) if isinstance(net_exports, pd.Series) else 1,
         )
-        
+
         if not isinstance(gdp, pd.Series):
             gdp = pd.Series([gdp] * max_len)
         if not isinstance(saving_rate, pd.Series):
             saving_rate = pd.Series([saving_rate] * max_len)
         if not isinstance(net_exports, pd.Series):
             net_exports = pd.Series([net_exports] * max_len)
-            
+
         # Validate inputs
         if (gdp < 0).any():
             logger.warning("Some GDP values are negative")
             gdp = gdp.clip(lower=0)
-            
+
         if (saving_rate < 0).any() or (saving_rate > 1).any():
             logger.warning("Some saving rate values are outside [0,1] range")
             saving_rate = saving_rate.clip(lower=0, upper=1)
@@ -74,35 +73,33 @@ def calculate_investment_from_saving(
         if gdp < 0:
             logger.warning(f"GDP {gdp} is negative, clipping to 0")
             gdp = max(gdp, 0)
-            
+
         if saving_rate < 0 or saving_rate > 1:
             logger.warning(f"Saving rate {saving_rate} is outside [0,1] range, clipping")
             saving_rate = max(0, min(saving_rate, 1))
-    
+
     try:
         # Calculate investment using the formula:
         # I_t = s_t * Y_t - NX_t
         investment = saving_rate * gdp - net_exports
-        
+
         # Check for negative investment
         if isinstance(investment, pd.Series):
             if (investment < 0).any():
                 logger.warning("Some calculated investment values are negative")
                 # Note: We don't automatically clip negative investment as it can be economically meaningful
-        else:
-            if investment < 0:
-                logger.warning(f"Calculated investment {investment} is negative")
-        
+        elif investment < 0:
+            logger.warning(f"Calculated investment {investment} is negative")
+
         logger.debug(f"Calculated investment with saving_rate={saving_rate}, gdp={gdp}, net_exports={net_exports}")
-        
+
         return investment
-        
+
     except (ValueError, OverflowError) as e:
         logger.error(f"Error calculating investment: {e}")
         if isinstance(gdp, pd.Series):
             return pd.Series([np.nan] * len(gdp))
-        else:
-            return np.nan
+        return np.nan
 
 
 def calculate_investment_from_saving_dataframe(
@@ -133,26 +130,26 @@ def calculate_investment_from_saving_dataframe(
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
-    
+
     result_df = df.copy()
-    
+
     # Calculate investment
     result_df[output_col] = calculate_investment_from_saving(
         gdp=df[gdp_col],
         saving_rate=df[saving_rate_col],
         net_exports=df[net_exports_col],
     )
-    
+
     logger.info(f"Calculated investment for {len(result_df)} periods")
-    
+
     return result_df
 
 
 def calculate_required_saving_rate(
-    gdp: Union[float, pd.Series],
-    target_investment: Union[float, pd.Series],
-    net_exports: Union[float, pd.Series],
-) -> Union[float, pd.Series]:
+    gdp: float | pd.Series,
+    target_investment: float | pd.Series,
+    net_exports: float | pd.Series,
+) -> float | pd.Series:
     """Calculate the saving rate required to achieve a target investment level.
     
     Rearranges the investment equation to solve for saving rate:
@@ -173,14 +170,13 @@ def calculate_required_saving_rate(
     if isinstance(gdp, pd.Series):
         if (gdp <= 0).any():
             raise ValueError("GDP must be positive for saving rate calculation")
-    else:
-        if gdp <= 0:
-            raise ValueError("GDP must be positive for saving rate calculation")
-    
+    elif gdp <= 0:
+        raise ValueError("GDP must be positive for saving rate calculation")
+
     try:
         # Calculate required saving rate: s_t = (I_t + NX_t) / Y_t
         required_saving_rate = (target_investment + net_exports) / gdp
-        
+
         # Clip to valid range [0, 1]
         if isinstance(required_saving_rate, pd.Series):
             required_saving_rate = required_saving_rate.clip(lower=0, upper=1)
@@ -190,23 +186,22 @@ def calculate_required_saving_rate(
             required_saving_rate = max(0, min(required_saving_rate, 1))
             if required_saving_rate == 1:
                 logger.warning("Required saving rate is at maximum (100%)")
-        
+
         return required_saving_rate
-        
+
     except (ValueError, OverflowError, ZeroDivisionError) as e:
         logger.error(f"Error calculating required saving rate: {e}")
         if isinstance(gdp, pd.Series):
             return pd.Series([np.nan] * len(gdp))
-        else:
-            return np.nan
+        return np.nan
 
 
 def validate_investment_feasibility(
-    gdp: Union[float, pd.Series],
-    saving_rate: Union[float, pd.Series],
-    net_exports: Union[float, pd.Series],
-    min_investment: Union[float, pd.Series] = 0,
-) -> Union[bool, pd.Series]:
+    gdp: float | pd.Series,
+    saving_rate: float | pd.Series,
+    net_exports: float | pd.Series,
+    min_investment: float | pd.Series = 0,
+) -> bool | pd.Series:
     """Validate that investment calculation will yield feasible results.
     
     Args:
@@ -219,8 +214,7 @@ def validate_investment_feasibility(
         Boolean or Series indicating whether investment would be feasible
     """
     investment = saving_rate * gdp - net_exports
-    
+
     if isinstance(investment, pd.Series):
         return investment >= min_investment
-    else:
-        return investment >= min_investment
+    return investment >= min_investment

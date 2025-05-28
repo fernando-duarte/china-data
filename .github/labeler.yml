@@ -2,10 +2,13 @@
 # Automatically adds labels to PRs based on changed files
 
 # Core functionality labels
-"core":
-  - "china_data_processor.py"
-  - "china_data_downloader.py"
-  - "config.py"
+core:
+  - any:
+      - changed-files:
+          - any-glob-to-any-file:
+              - "china_data_processor.py"
+              - "china_data_downloader.py"
+              - "config.py"
 
 # Data sources and utilities
 "data-sources":
@@ -76,3 +79,12 @@
 # Features (based on branch name patterns)
 "enhancement":
   - any: ['**/feature/**/*', '**/feat/**/*', '**/enhancement/**/*']
+
+# Branch-based labels
+feature:
+  - any:
+      - head-branch: ["feature/*", "feat/*"]
+
+hotfix:
+  - any:
+      - head-branch: ["hotfix/*", "fix/*"]

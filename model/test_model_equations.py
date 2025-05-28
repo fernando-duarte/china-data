@@ -4,18 +4,18 @@ This script tests all the implemented equations with sample data
 to verify they work correctly.
 """
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
-import numpy as np
 
+from model.utils.consumption import calculate_consumption
 from model.utils.exports import calculate_exports
 from model.utils.imports import calculate_imports
-from model.utils.tfp_growth import calculate_tfp_growth
-from model.utils.consumption import calculate_consumption
 from model.utils.investment_from_saving import calculate_investment_from_saving
+from model.utils.tfp_growth import calculate_tfp_growth
 
 
 def test_exports():
@@ -115,15 +115,15 @@ def test_with_dataframe():
 
     # Create sample data
     data = {
-        'year': [1980, 1985, 1990],
-        'exchange_rate': [1.5, 3.2, 4.8],
-        'Y_star': [1000.0, 1159.27, 1343.92],
-        'GDP_USD_bn': [300.0, 400.0, 500.0],
-        'saving_rate': [0.25, 0.30, 0.35],
-        'G_USD_bn': [26.28, 43.99, 49.28],
-        'TFP': [1.0, 1.05, 1.10],
-        'Openness_Ratio': [0.15, 0.20, 0.25],
-        'fdi_ratio': [0.0003, 0.0054, 0.0097]
+        "year": [1980, 1985, 1990],
+        "exchange_rate": [1.5, 3.2, 4.8],
+        "Y_star": [1000.0, 1159.27, 1343.92],
+        "GDP_USD_bn": [300.0, 400.0, 500.0],
+        "saving_rate": [0.25, 0.30, 0.35],
+        "G_USD_bn": [26.28, 43.99, 49.28],
+        "TFP": [1.0, 1.05, 1.10],
+        "Openness_Ratio": [0.15, 0.20, 0.25],
+        "fdi_ratio": [0.0003, 0.0054, 0.0097]
     }
 
     df = pd.DataFrame(data)
@@ -132,8 +132,8 @@ def test_with_dataframe():
     from model.utils.exports import calculate_exports_dataframe
     df = calculate_exports_dataframe(
         df,
-        exchange_rate_col='exchange_rate',
-        foreign_income_col='Y_star',
+        exchange_rate_col="exchange_rate",
+        foreign_income_col="Y_star",
         x_0=19.41,
         e_0=1.5,
         y_star_0=1000.0
@@ -143,15 +143,15 @@ def test_with_dataframe():
     from model.utils.imports import calculate_imports_dataframe
     df = calculate_imports_dataframe(
         df,
-        exchange_rate_col='exchange_rate',
-        domestic_income_col='GDP_USD_bn',
+        exchange_rate_col="exchange_rate",
+        domestic_income_col="GDP_USD_bn",
         m_0=21.84,
         e_0=1.5,
         y_0=300.0
     )
 
     # Calculate net exports
-    df['NX_USD_bn'] = df['X_USD_bn'] - df['M_USD_bn']
+    df["NX_USD_bn"] = df["X_USD_bn"] - df["M_USD_bn"]
 
     # Calculate consumption
     from model.utils.consumption import calculate_consumption_dataframe
@@ -165,7 +165,7 @@ def test_with_dataframe():
     from model.utils.tfp_growth import calculate_tfp_growth_dataframe
     df = calculate_tfp_growth_dataframe(df)
 
-    print(df[['year', 'X_USD_bn', 'M_USD_bn', 'NX_USD_bn', 'C_USD_bn', 'I_USD_bn', 'TFP_next']].round(2))
+    print(df[["year", "X_USD_bn", "M_USD_bn", "NX_USD_bn", "C_USD_bn", "I_USD_bn", "TFP_next"]].round(2))
     print()
 
 

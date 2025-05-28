@@ -1,6 +1,10 @@
 name: Dependency Security Check
 
 on:
+  schedule:
+    - cron: "0 2 * * 1" # Weekly Monday 2 AM
+  push:
+    paths: ["requirements*.txt", "pyproject.toml", "uv.lock"]
   workflow_dispatch:
 
 permissions:
@@ -51,6 +55,13 @@ jobs:
       - name: Run bandit security analysis
         run: |
           uv run bandit -r . -f json -o bandit-security.json --exclude "./venv/*,./tests/*" || true
+          uv run bandit -r . -f sarif -o security-results.sarif --exclude "./venv/*,./tests/*" || true
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: security-results.sarif
 
       - name: Generate dependency tree
         run: |

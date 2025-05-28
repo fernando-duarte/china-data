@@ -55,6 +55,12 @@ jobs:
     - name: Install dependencies
       run: uv sync --dev
 
+    - name: Cache documentation build
+      uses: actions/cache@v4
+      with:
+        path: site/
+        key: mkdocs-${{ hashFiles('mkdocs.yml', 'docs/**') }}
+
     - name: Configure Git for mkdocs
       run: |
         git config --global user.name "github-actions[bot]"

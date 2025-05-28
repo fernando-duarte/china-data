@@ -15,7 +15,6 @@ Where:
 """
 
 import logging
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -24,15 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_imports(
-    exchange_rate: Union[float, pd.Series],
-    domestic_income: Union[float, pd.Series],
+    exchange_rate: float | pd.Series,
+    domestic_income: float | pd.Series,
     *,
     m_0: float,
     e_0: float,
     y_0: float,
     epsilon_m: float = -1.2,
     mu_m: float = 1.1,
-) -> Union[float, pd.Series]:
+) -> float | pd.Series:
     """Calculate imports using the China growth model import equation.
     
     Args:
@@ -68,7 +67,7 @@ def calculate_imports(
         raise ValueError(f"Initial exchange rate e_0 must be positive, got {e_0}")
     if y_0 <= 0:
         raise ValueError(f"Initial domestic income y_0 must be positive, got {y_0}")
-    
+
     # Handle both scalar and series inputs
     if isinstance(exchange_rate, pd.Series) or isinstance(domestic_income, pd.Series):
         # Convert to pandas Series for consistent handling
@@ -76,12 +75,12 @@ def calculate_imports(
             exchange_rate = pd.Series([exchange_rate] * len(domestic_income))
         if not isinstance(domestic_income, pd.Series):
             domestic_income = pd.Series([domestic_income] * len(exchange_rate))
-            
+
         # Check for invalid values
         if (exchange_rate <= 0).any():
             logger.warning("Some exchange rate values are non-positive")
             exchange_rate = exchange_rate.clip(lower=1e-6)
-            
+
         if (domestic_income <= 0).any():
             logger.warning("Some domestic income values are non-positive")
             domestic_income = domestic_income.clip(lower=1e-6)
@@ -90,30 +89,29 @@ def calculate_imports(
         if exchange_rate <= 0:
             logger.warning(f"Exchange rate {exchange_rate} is non-positive, clipping to 1e-6")
             exchange_rate = max(exchange_rate, 1e-6)
-            
+
         if domestic_income <= 0:
             logger.warning(f"Domestic income {domestic_income} is non-positive, clipping to 1e-6")
             domestic_income = max(domestic_income, 1e-6)
-    
+
     try:
         # Calculate imports using the formula:
         # M_t = M_0 * (e_t/e_0)^ε_m * (Y_t/Y_0)^μ_m
         exchange_rate_ratio = exchange_rate / e_0
         domestic_income_ratio = domestic_income / y_0
-        
+
         imports = m_0 * np.power(exchange_rate_ratio, epsilon_m) * np.power(domestic_income_ratio, mu_m)
-        
+
         logger.debug(f"Calculated imports with exchange_rate_ratio={exchange_rate_ratio}, "
                     f"domestic_income_ratio={domestic_income_ratio}")
-        
+
         return imports
-        
+
     except (ValueError, OverflowError, ZeroDivisionError) as e:
         logger.error(f"Error calculating imports: {e}")
         if isinstance(exchange_rate, pd.Series):
             return pd.Series([np.nan] * len(exchange_rate))
-        else:
-            return np.nan
+        return np.nan
 
 
 def calculate_imports_dataframe(
@@ -152,9 +150,9 @@ def calculate_imports_dataframe(
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
-    
+
     result_df = df.copy()
-    
+
     # Calculate imports
     result_df[output_col] = calculate_imports(
         exchange_rate=df[exchange_rate_col],
@@ -165,7 +163,7 @@ def calculate_imports_dataframe(
         epsilon_m=epsilon_m,
         mu_m=mu_m,
     )
-    
+
     logger.info(f"Calculated imports for {len(result_df)} periods")
-    
+
     return result_df

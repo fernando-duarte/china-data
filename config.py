@@ -5,9 +5,11 @@ used throughout the China data processing pipeline.
 """
 
 import os
+import sys
 from pathlib import Path
 from typing import ClassVar
 
+import structlog
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists
@@ -195,3 +197,57 @@ class Config:
     def get_raw_data_column_map(cls) -> dict[str, str]:
         """Get the column mapping for raw data display."""
         return cls.RAW_DATA_COLUMN_MAP.copy()
+
+
+def configure_logging() -> None:
+    """Configure structured logging for the application."""
+    # Configure processors based on environment
+    processors = [
+        structlog.stdlib.add_log_level,  # Add log level to event dict
+        structlog.stdlib.add_logger_name,  # Add logger name to event dict
+        structlog.processors.TimeStamper(fmt="iso"),  # Add timestamp
+    ]
+
+    # Add process info if enabled
+    if Config.STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO:
+        processors.append(structlog.processors.add_log_level)
+        processors.append(structlog.processors.StackInfoRenderer())
+
+    # Configure output format
+    if Config.STRUCTURED_LOGGING_JSON_FORMAT or sys.stderr.isatty():
+        # Use JSON format for production or if explicitly enabled
+        processors.append(structlog.processors.JSONRenderer())
+    else:
+        # Use console format for development
+        processors.extend([
+            structlog.dev.ConsoleRenderer(colors=sys.stderr.isatty()),
+        ])
+
+    # Configure structlog
+    structlog.configure(
+        processors=processors,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
+
+    # Configure standard library logging
+    import logging
+
+    # Set log level
+    log_level = getattr(logging, Config.STRUCTURED_LOGGING_LEVEL.upper())
+    logging.basicConfig(
+        level=log_level,
+        format=Config.LOG_FORMAT,
+        datefmt=Config.LOG_DATE_FORMAT,
+        handlers=[
+            logging.FileHandler(Config.STRUCTURED_LOGGING_FILE),
+            logging.StreamHandler(sys.stderr),
+        ],
+    )
+
+    # Reduce noise from external libraries
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)

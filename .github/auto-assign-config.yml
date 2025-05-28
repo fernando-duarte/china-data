@@ -9,7 +9,8 @@ addAssignees: true
 
 # List of reviewers to be added to pull requests (GitHub usernames)
 reviewers:
-  - fernandoduarte  # Add the main maintainer
+  - fernandoduarte
+  - backup-reviewer-1  # Replace with actual backup reviewer username when available
 
 # List of assignees to be added to pull requests and issues
 assignees:
@@ -29,9 +30,10 @@ skipKeywords:
   - wip
   - draft
   - "[skip assign]"
+  - dependabot
 
 # Use review groups for team-based assignment (if using teams)
-useReviewGroups: false
+useReviewGroups: true
 
 # Use assignee groups for team-based assignment (if using teams)
 useAssigneeGroups: false

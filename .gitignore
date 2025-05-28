@@ -212,3 +212,11 @@ Dockerfile.backup
 docker-compose.yml.backup
 renovate.json5.backup
 VERSION.txt
+
+# Security and compliance artifacts (2025)
+.context/
+security-results.sarif
+audit.json
+safety.json
+pip-audit.json
+semgrep.json
