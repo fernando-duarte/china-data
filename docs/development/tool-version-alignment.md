@@ -1,10 +1,14 @@
 # Tool Version Alignment
 
-This document explains the tool version alignment system that ensures consistency between pre-commit hooks and CI workflows.
+This document explains the automated tool version synchronization system used in this project.
 
 ## Overview
 
-To prevent discrepancies between local development and CI environments, this project maintains strict alignment between tool versions used in:
+The project maintains consistency across tool versions using a custom pre-commit hook. This ensures that all tool
+versions are aligned across different configuration files.
+
+To prevent discrepancies between local development and CI environments, this project maintains strict alignment
+between tool versions used in:
 
 - Pre-commit hooks (`.pre-commit-config.yaml`)
 - CI workflows (`.github/workflows/ci.yml`)

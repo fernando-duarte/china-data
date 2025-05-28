@@ -79,4 +79,4 @@ deployment:
   environments: [development, testing, production]
   containerized: true
   monitoring: structured logging with opentelemetry
-  secrets: environment variables with dotenv  # pragma: allowlist secret
+  secrets: environment variables with dotenv # pragma: allowlist secret

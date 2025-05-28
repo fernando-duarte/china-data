@@ -36,6 +36,19 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  # Dedicated security scanning with Bandit (in addition to Ruff S-prefix rules)
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.0
+    hooks:
+      - id: bandit
+        name: bandit-security-scan
+        args: [-r, ., -f, json, -o, bandit.json]
+        pass_filenames: false
+      - id: bandit
+        name: bandit-high-severity
+        args: [-r, ., -ll]
+        pass_filenames: false
+
   - repo: https://github.com/pylint-dev/pylint
     rev: v3.3.1
     hooks:
@@ -51,7 +64,7 @@ repos:
     hooks:
       - id: mypy
         files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)$
-        args: [--ignore-missing-imports, --python-version=3.13]
+        args: [--strict, --python-version=3.13]
         additional_dependencies: [types-requests, pandas-stubs, types-pytz]
 
   # Bandit security scanning is now included in Ruff (S prefix rules)
@@ -64,6 +77,26 @@ repos:
         args: [--desc, --fix]
         # Skip in CI as it requires network access
         # ci: skip
+
+  # Additional security scanning to match CI/CD pipeline
+  - repo: local
+    hooks:
+      - id: safety-check
+        name: safety vulnerability scan
+        entry: safety
+        language: system
+        args: [scan]
+        files: ^(requirements.*\.txt|pyproject\.toml|uv\.lock)$
+        pass_filenames: false
+        require_serial: true
+      - id: semgrep-scan
+        name: semgrep security scan
+        entry: semgrep
+        language: system
+        args: [--config=auto, --json, --output=semgrep.json]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
+        pass_filenames: true
+        require_serial: false
 
   # Secrets detection
   - repo: https://github.com/Yelp/detect-secrets
@@ -157,5 +190,15 @@ ci:
   autoupdate_branch: ""
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
   autoupdate_schedule: weekly
-  skip: [pip-audit, pylint, mypy, radon-complexity, interrogate] # These require system dependencies
+  skip: [
+      pip-audit,
+      pylint,
+      mypy,
+      radon-complexity,
+      interrogate,
+      bandit-security-scan,
+      bandit-high-severity,
+      safety-check,
+      semgrep-scan,
+    ] # These require system dependencies
   submodules: false

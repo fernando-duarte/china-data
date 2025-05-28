@@ -14,7 +14,7 @@ The China Growth Model is an open-economy growth model for China (1980–2025) t
 
 ## Package Structure
 
-```
+```text
 model/
 ├── __init__.py                    # Package initialization
 ├── china_growth_model.md          # Complete model specification
@@ -38,11 +38,13 @@ model/
 ## Implemented Equations
 
 ### 1. Export Equation (`exports.py`)
-```
+
+```text
 X_t = X_0 * (e_t/e_0)^ε_x * (Y*_t/Y*_0)^μ_x
 ```
 
 **Parameters:**
+
 - `X_0`: Initial exports (base period)
 - `e_t`, `e_0`: Current and initial exchange rates (CNY per USD)
 - `Y*_t`, `Y*_0`: Current and initial foreign income
@@ -50,11 +52,13 @@ X_t = X_0 * (e_t/e_0)^ε_x * (Y*_t/Y*_0)^μ_x
 - `μ_x`: Export income elasticity (default: 1.5)
 
 ### 2. Import Equation (`imports.py`)
-```
+
+```text
 M_t = M_0 * (e_t/e_0)^ε_m * (Y_t/Y_0)^μ_m
 ```
 
 **Parameters:**
+
 - `M_0`: Initial imports (base period)
 - `e_t`, `e_0`: Current and initial exchange rates (CNY per USD)
 - `Y_t`, `Y_0`: Current and initial domestic income (GDP)
@@ -62,11 +66,13 @@ M_t = M_0 * (e_t/e_0)^ε_m * (Y_t/Y_0)^μ_m
 - `μ_m`: Import income elasticity (default: 1.1)
 
 ### 3. TFP Growth with Spillovers (`tfp_growth.py`)
-```
+
+```text
 A_{t+1} = A_t * (1 + g + θ * openness_t + φ * fdi_ratio_t)
 ```
 
 **Parameters:**
+
 - `A_t`: Current TFP
 - `g`: Baseline TFP growth rate (default: 0.02)
 - `θ`: Openness contribution to TFP growth (default: 0.10)
@@ -75,21 +81,25 @@ A_{t+1} = A_t * (1 + g + θ * openness_t + φ * fdi_ratio_t)
 - `fdi_ratio_t`: FDI inflows as ratio of GDP
 
 ### 4. Consumption (`consumption.py`)
-```
+
+```text
 C_t = (1 - s_t) * Y_t - G_t
 ```
 
 **Parameters:**
+
 - `s_t`: Saving rate (player controlled, 0-1)
 - `Y_t`: GDP
 - `G_t`: Government spending
 
 ### 5. Investment from Saving (`investment_from_saving.py`)
-```
+
+```text
 I_t = s_t * Y_t - NX_t
 ```
 
 **Parameters:**
+
 - `s_t`: Saving rate (player controlled, 0-1)
 - `Y_t`: GDP
 - `NX_t`: Net exports (X_t - M_t)
@@ -152,17 +162,17 @@ python model/test_model_equations.py
 
 Default parameter values from `china_growth_model.md`:
 
-| Parameter | Description | Default Value |
-|-----------|-------------|---------------|
-| α | Capital share in production | 0.30 |
-| δ | Depreciation rate | 0.10 |
-| g | Baseline TFP growth rate | 0.02 |
-| θ | Openness contribution to TFP growth | 0.10 |
-| φ | FDI contribution to TFP growth | 0.08 |
-| ε_x | Export exchange rate elasticity | 1.5 |
-| ε_m | Import exchange rate elasticity | -1.2 |
-| μ_x | Export income elasticity | 1.5 |
-| μ_m | Import income elasticity | 1.1 |
+| Parameter | Description                         | Default Value |
+| --------- | ----------------------------------- | ------------- |
+| α         | Capital share in production         | 0.30          |
+| δ         | Depreciation rate                   | 0.10          |
+| g         | Baseline TFP growth rate            | 0.02          |
+| θ         | Openness contribution to TFP growth | 0.10          |
+| φ         | FDI contribution to TFP growth      | 0.08          |
+| ε_x       | Export exchange rate elasticity     | 1.5           |
+| ε_m       | Import exchange rate elasticity     | -1.2          |
+| μ_x       | Export income elasticity            | 1.5           |
+| μ_m       | Import income elasticity            | 1.1           |
 
 ## Notes
 

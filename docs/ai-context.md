@@ -2,7 +2,8 @@
 
 ## Project Overview
 
-This is an economic data processing pipeline for China, designed to download, process, and analyze economic indicators from various sources like the World Bank WDI.
+This is an economic data processing pipeline for China, designed to download, process, and analyze economic
+indicators from various sources like the World Bank WDI.
 
 ## Architecture Patterns
 
@@ -59,11 +60,12 @@ This is an economic data processing pipeline for China, designed to download, pr
 
 ### Testing Strategy
 
-- **Unit Tests**: Individual component testing
-- **Property-Based**: Hypothesis for data validation
-- **Integration**: End-to-end pipeline testing
-- **Performance**: Benchmark tests for regression detection
-- **Mutation**: mutmut for test quality assessment
+The project uses pytest for testing with the following structure:
+
+- Unit tests for individual functions and classes
+- Integration tests for data processing workflows
+- Property-based testing with Hypothesis for edge cases
+- Test fixtures for common data scenarios
 
 ### Error Handling Philosophy
 
@@ -102,4 +104,5 @@ When working on this codebase:
 - **structlog**: Structured logging
 - **pydantic**: Configuration validation
 
-This context helps AI assistants understand the project's purpose, architecture, and development practices for more effective collaboration.
+This context helps AI assistants understand the project's purpose, architecture, and development practices for
+more effective collaboration.

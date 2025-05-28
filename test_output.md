@@ -6,9 +6,9 @@
 | 2021 | 17744.64 | 1444.22    |
 | 2022 | 17886.33 | 1448.47    |
 
-# Notes on Computation
+## Notes on Computation
 
-## Data Sources
+### Data Sources
 
 The raw data in `test_input.md` comes from the following sources:
 
@@ -18,26 +18,26 @@ The raw data in `test_input.md` comes from the following sources:
 
 This processed dataset was created by applying the following transformations to the raw data:
 
-## Unit Conversions
+### Unit Conversions
 
 - GDP and its components (Consumption, Government, Investment, Exports, Imports) were converted from USD to billions USD
 - Population and Labor Force were converted from people to millions of people
 
-## Derived Variables
+### Derived Variables
 
-### Net Exports
+#### Net Exports
 
 Calculated as Exports - Imports (in billions USD)
 
-```
+```text
 Net Exports = Exports - Imports
 ```
 
-### Physical Capital
+#### Physical Capital
 
 Calculated using PWT data with the following formula:
 
-```
+```text
 K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)
 ```
 
@@ -51,11 +51,11 @@ Where:
 - $pl\_gdpo_t$ is the price level of GDP in year $t$ (from PWT)
 - $pl\_gdpo_{2017}$ is the price level of GDP in 2017 (from PWT)
 
-### TFP (Total Factor Productivity)
+#### TFP (Total Factor Productivity)
 
 Calculated using the Cobb-Douglas production function:
 
-```
+```text
 TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))
 ```
 
@@ -67,17 +67,17 @@ Where:
 - $H_t$ is Human Capital index in year $t$
 - $\alpha$ = 0.3333333333333333 (capital share parameter)
 
-## Extrapolation to 2025
+### Extrapolation to 2025
 
 Each series was extrapolated using the following methods:
 
-### ARIMA(1,1,1) model
+#### ARIMA(1,1,1) model
 
 - GDP (2023-2025)
 
-### Average growth rate of historical data
+#### Average growth rate of historical data
 
-### Linear regression
+#### Linear regression
 
 - Population (2023-2025)
 

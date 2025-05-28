@@ -21,6 +21,60 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+def _validate_and_clip_tfp(current_tfp: float | pd.Series) -> float | pd.Series:
+    """Validate and clip TFP values."""
+    if isinstance(current_tfp, pd.Series):
+        if (current_tfp <= 0).any():
+            logger.warning("Some current TFP values are non-positive")
+            current_tfp = current_tfp.clip(lower=1e-6)
+    elif current_tfp <= 0:
+        logger.warning("Current TFP %s is non-positive, clipping to 1e-6", current_tfp)
+        current_tfp = max(current_tfp, 1e-6)
+    return current_tfp
+
+
+def _validate_and_clip_scalar_ratios(openness_ratio: float, fdi_ratio: float) -> tuple[float, float]:
+    """Validate and clip scalar ratio inputs."""
+    if openness_ratio < 0:
+        logger.warning("Openness ratio %s is negative, clipping to 0", openness_ratio)
+        openness_ratio = max(openness_ratio, 0)
+
+    if fdi_ratio < 0:
+        logger.warning("FDI ratio %s is negative, clipping to 0", fdi_ratio)
+        fdi_ratio = max(fdi_ratio, 0)
+
+    return openness_ratio, fdi_ratio
+
+
+def _validate_and_clip_series_ratios(openness_ratio: pd.Series, fdi_ratio: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """Validate and clip series ratio inputs."""
+    if (openness_ratio < 0).any():
+        logger.warning("Some openness ratio values are negative")
+        openness_ratio = openness_ratio.clip(lower=0)
+
+    if (fdi_ratio < 0).any():
+        logger.warning("Some FDI ratio values are negative")
+        fdi_ratio = fdi_ratio.clip(lower=0)
+
+    return openness_ratio, fdi_ratio
+
+
+def _convert_to_series_for_tfp(
+    current_tfp: float | pd.Series,
+    openness_ratio: float | pd.Series,
+    fdi_ratio: float | pd.Series,
+) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """Convert inputs to pandas Series for consistent handling."""
+    if not isinstance(openness_ratio, pd.Series):
+        openness_ratio = pd.Series([openness_ratio] * len(fdi_ratio))
+    if not isinstance(fdi_ratio, pd.Series):
+        fdi_ratio = pd.Series([fdi_ratio] * len(openness_ratio))
+    if not isinstance(current_tfp, pd.Series):
+        current_tfp = pd.Series([current_tfp] * len(openness_ratio))
+
+    return current_tfp, openness_ratio, fdi_ratio
+
+
 def calculate_tfp_growth(
     current_tfp: float | pd.Series,
     openness_ratio: float | pd.Series,
@@ -51,42 +105,15 @@ def calculate_tfp_growth(
         ...     current_tfp=1.0, openness_ratio=0.3, fdi_ratio=0.05, g=0.02, theta=0.10, phi=0.08
         ... )
     """
-    # Validate inputs
-    if isinstance(current_tfp, pd.Series):
-        if (current_tfp <= 0).any():
-            logger.warning("Some current TFP values are non-positive")
-            current_tfp = current_tfp.clip(lower=1e-6)
-    elif current_tfp <= 0:
-        logger.warning(f"Current TFP {current_tfp} is non-positive, clipping to 1e-6")
-        current_tfp = max(current_tfp, 1e-6)
+    # Validate TFP inputs
+    current_tfp = _validate_and_clip_tfp(current_tfp)
 
     # Handle both scalar and series inputs
     if isinstance(openness_ratio, pd.Series) or isinstance(fdi_ratio, pd.Series):
-        # Convert to pandas Series for consistent handling
-        if not isinstance(openness_ratio, pd.Series):
-            openness_ratio = pd.Series([openness_ratio] * len(fdi_ratio))
-        if not isinstance(fdi_ratio, pd.Series):
-            fdi_ratio = pd.Series([fdi_ratio] * len(openness_ratio))
-        if not isinstance(current_tfp, pd.Series):
-            current_tfp = pd.Series([current_tfp] * len(openness_ratio))
-
-        # Check for invalid values
-        if (openness_ratio < 0).any():
-            logger.warning("Some openness ratio values are negative")
-            openness_ratio = openness_ratio.clip(lower=0)
-
-        if (fdi_ratio < 0).any():
-            logger.warning("Some FDI ratio values are negative")
-            fdi_ratio = fdi_ratio.clip(lower=0)
+        current_tfp, openness_ratio, fdi_ratio = _convert_to_series_for_tfp(current_tfp, openness_ratio, fdi_ratio)
+        openness_ratio, fdi_ratio = _validate_and_clip_series_ratios(openness_ratio, fdi_ratio)
     else:
-        # Scalar inputs
-        if openness_ratio < 0:
-            logger.warning(f"Openness ratio {openness_ratio} is negative, clipping to 0")
-            openness_ratio = max(openness_ratio, 0)
-
-        if fdi_ratio < 0:
-            logger.warning(f"FDI ratio {fdi_ratio} is negative, clipping to 0")
-            fdi_ratio = max(fdi_ratio, 0)
+        openness_ratio, fdi_ratio = _validate_and_clip_scalar_ratios(openness_ratio, fdi_ratio)
 
     try:
         # Calculate TFP growth using the formula:
@@ -94,15 +121,14 @@ def calculate_tfp_growth(
         growth_rate = g + theta * openness_ratio + phi * fdi_ratio
         next_tfp = current_tfp * (1 + growth_rate)
 
-        logger.debug(f"Calculated TFP growth with growth_rate={growth_rate}")
-
-        return next_tfp
-
-    except (ValueError, OverflowError) as e:
-        logger.error(f"Error calculating TFP growth: {e}")
+        logger.debug("Calculated TFP growth with growth_rate=%s", growth_rate)
+    except (ValueError, OverflowError):
+        logger.exception("Error calculating TFP growth")
         if isinstance(current_tfp, pd.Series):
             return pd.Series([np.nan] * len(current_tfp))
         return np.nan
+    else:
+        return next_tfp
 
 
 def calculate_tfp_growth_dataframe(
@@ -138,7 +164,8 @@ def calculate_tfp_growth_dataframe(
     required_cols = [tfp_col, openness_col, fdi_col]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
-        raise ValueError(f"Missing required columns: {missing_cols}")
+        msg = f"Missing required columns: {missing_cols}"
+        raise ValueError(msg)
 
     result_df = df.copy()
 
@@ -152,7 +179,7 @@ def calculate_tfp_growth_dataframe(
         phi=phi,
     )
 
-    logger.info(f"Calculated TFP growth for {len(result_df)} periods")
+    logger.info("Calculated TFP growth for %d periods", len(result_df))
 
     return result_df
 
@@ -182,8 +209,9 @@ def calculate_tfp_sequence(
     Raises:
         ValueError: If sequences have different lengths
     """
+    length_error_msg = "Openness and FDI sequences must have the same length"
     if len(openness_sequence) != len(fdi_sequence):
-        raise ValueError("Openness and FDI sequences must have the same length")
+        raise ValueError(length_error_msg)
 
     tfp_sequence = pd.Series(index=openness_sequence.index, dtype=float)
     current_tfp = initial_tfp
@@ -201,6 +229,6 @@ def calculate_tfp_sequence(
             phi=phi,
         )
 
-    logger.info(f"Calculated TFP sequence for {len(tfp_sequence)} periods")
+    logger.info("Calculated TFP sequence for %d periods", len(tfp_sequence))
 
     return tfp_sequence

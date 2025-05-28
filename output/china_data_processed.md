@@ -1,4 +1,3 @@
-
 # Processed China Economic Data
 
 | year | FDI_pct_GDP | TAX_pct_GDP | rgdpo | rkna | pl_gdpo | hc | GDP_USD_bn | C_USD_bn | G_USD_bn | I_USD_bn | X_USD_bn | M_USD_bn | POP_mn | LF_mn | cgdpo_bn | K_USD_bn | TFP | T_USD_bn | Openness_Ratio | NX_USD_bn | S_USD_bn | S_pub_USD_bn | S_priv_USD_bn | Saving_Rate |
@@ -15,7 +14,7 @@
 | 2024.0 | 2.1307 | 16.8126 | 29205.6 | 1.082 | 0.4911 | 2.65 | 19855.6787 | 0.0068 | 0.0022 | 0.0044 | 0.0029 | 0.0022 | 1436.8779 | 778.7669 | 19.3494 | 48.4539 | 35.0346 | 3541.0507 | nan | 0.0 | 21061.833 | 3541.0507 | 17523.9447 | 1.0 |
 | 2025.0 | 2.2563 | 17.0228 | 30375.0722 | 1.1037 | 0.502 | 2.7 | 20801.8975 | 0.007 | 0.0022 | 0.0044 | 0.003 | 0.0022 | 1443.6237 | 779.0797 | 20.6432 | 50.521 | 36.8601 | 3882.2616 | nan | 0.0 | 22806.1973 | 3882.2616 | 18930.1183 | 1.0 |
 
-# Notes on Computation
+## Notes on Computation
 
 ## Data Sources
 
@@ -38,7 +37,7 @@ This processed dataset was created by applying the following transformations to 
 
 Calculated as Exports - Imports (in billions USD)
 
-```
+```text
 Net Exports = Exports - Imports
 ```
 
@@ -46,7 +45,7 @@ Net Exports = Exports - Imports
 
 Calculated using PWT data with the following formula:
 
-```
+```text
 K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)
 ```
 
@@ -64,7 +63,7 @@ Where:
 
 Calculated using the Cobb-Douglas production function:
 
-```
+```text
 TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))
 ```
 

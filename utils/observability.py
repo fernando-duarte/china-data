@@ -3,18 +3,24 @@
 This module provides structured logging, metrics, and tracing capabilities
 using OpenTelemetry for comprehensive observability.
 """
+# mypy: disable-error-code=no-any-unimported
 
 import os
 import sys
+import types
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from opentelemetry import metrics, trace
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def configure_observability() -> None:
@@ -77,7 +83,7 @@ def _configure_metrics(resource: Resource) -> None:
     metrics.set_meter_provider(meter_provider)
 
 
-def _get_otlp_headers() -> dict | None:
+def _get_otlp_headers() -> dict[str, str] | None:
     """Get OTLP headers from environment variables."""
     headers_env = os.getenv("OTEL_EXPORTER_OTLP_HEADERS")
     if headers_env:
@@ -101,11 +107,11 @@ def get_meter(name: str) -> metrics.Meter:
 
 
 # Application metrics
-def create_application_metrics() -> dict:
+def create_application_metrics() -> dict[str, Any]:
     """Create standard application metrics."""
     meter = get_meter("china_data")
 
-    metrics_dict = {
+    return {
         # Counters
         "data_downloads_total": meter.create_counter(
             "data_downloads_total",
@@ -146,42 +152,46 @@ def create_application_metrics() -> dict:
         ),
     }
 
-    return metrics_dict
-
 
 # Context managers for tracing
-class traced_operation:
+class TracedOperation:
     """Context manager for tracing operations."""
 
-    def __init__(self, operation_name: str, tracer_name: str = "china_data"):
+    def __init__(self, operation_name: str, tracer_name: str = "china_data") -> None:
         self.operation_name = operation_name
         self.tracer = get_tracer(tracer_name)
-        self.span = None
+        self.span: trace.Span | None = None
 
-    def __enter__(self):
+    def __enter__(self) -> trace.Span:
         self.span = self.tracer.start_span(self.operation_name)
         return self.span
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         if self.span:
             if exc_type:
                 self.span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc_val)))
-                self.span.record_exception(exc_val)
+                if exc_val:
+                    self.span.record_exception(exc_val)
             else:
                 self.span.set_status(trace.Status(trace.StatusCode.OK))
             self.span.end()
 
 
-def trace_function(operation_name: str = None, tracer_name: str = "china_data"):
+def trace_function(operation_name: str | None = None, tracer_name: str = "china_data") -> Callable[[F], F]:
     """Decorator to trace function execution."""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
+    def decorator(func: F) -> F:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             name = operation_name or f"{func.__module__}.{func.__name__}"
-            with traced_operation(name, tracer_name):
+            with TracedOperation(name, tracer_name):
                 return func(*args, **kwargs)
 
-        return wrapper
+        return wrapper  # type: ignore[return-value]
 
     return decorator
 

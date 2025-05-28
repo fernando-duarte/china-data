@@ -1,6 +1,7 @@
 # Step-by-Step Implementation Plan for Codebase Assessment Recommendations
 
-This plan breaks down all recommendations from the comprehensive codebase assessment into small, self-contained steps that can be implemented independently by a junior developer.
+This plan breaks down all recommendations from the comprehensive codebase assessment into small,
+self-contained steps that can be implemented independently by a junior developer.
 
 ## Phase 1: Configuration File Updates
 
@@ -153,7 +154,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 **Step 7.1**: Adopt comprehensive Makefile
 
-- Replace the current content of your `Makefile` with the "Enhanced Makefile" definition found in the "Development Workflow Integration" section of `comprehensive_codebase_assessment_2025.md`. This enhanced Makefile includes better setup, development, testing, linting, security, and cleaning targets.
+- Replace the current content of your `Makefile` with the "Enhanced Makefile" definition found in the
+  "Development Workflow Integration" section of `comprehensive_codebase_assessment_2025.md`. This enhanced
+  Makefile includes better setup, development, testing, linting, security, and cleaning targets.
 
 ### 8. Enhance `mkdocs.yml`
 
@@ -279,7 +282,7 @@ min = 70
 
 **Step 14.1**: Create organization teams structure
 
-```
+```gitignore
 # Replace content in .github/CODEOWNERS
 # Global fallback
 * @myorg/core-team
@@ -387,24 +390,39 @@ permissions:
 **Step 18.1**: Create `ci-unified.yml` with base content
 
 - Create a new file named `.github/workflows/ci-unified.yml`.
-- Populate this file with the comprehensive YAML content provided in the "CI/CD Pipeline Optimization" section of `comprehensive_codebase_assessment_2025.md`. This includes jobs for `quick-checks`, `test-matrix`, `security-scan`, and `build`.
+- Populate this file with the comprehensive YAML content provided in the "CI/CD Pipeline Optimization" section of
+  `comprehensive_codebase_assessment_2025.md`. This includes jobs for `quick-checks`, `test-matrix`, `security-scan`,
+  and `build`.
 
 **Step 18.2**: Integrate Cost Optimization Strategies into `ci-unified.yml`
 
 - **Smart Matrix Strategy**:
-  - Modify the `quick-checks` job (or a similar initial job) in `ci-unified.yml` to determine if the full test matrix needs to run. This logic should be based on factors like changed files (e.g., `git diff --name-only ${{ github.event.before }} ${{ github.sha }}`) or the current branch (e.g., run full matrix for `main` branch pushes).
+  - Modify the `quick-checks` job (or a similar initial job) in `ci-unified.yml` to determine if the full test matrix
+    needs to run. This logic should be based on factors like changed files (e.g.,
+    `git diff --name-only ${{ github.event.before }} ${{ github.sha }}`) or the current branch (e.g., run full matrix
+    for `main` branch pushes).
   - This job should output a variable (e.g., `outputs.should-run-full: 'true'/'false'`).
-  - Update the `test-matrix` job in `ci-unified.yml` to use this output. Adapt its `strategy.matrix.include` section or add conditional job execution (`if: needs.quick-checks.outputs.should-run-full == 'true'`) for less critical matrix combinations to reduce unnecessary runs, as demonstrated in the "Smart Matrix Strategy" under the "CI/CD Cost Optimization Strategies" section of the assessment.
+  - Update the `test-matrix` job in `ci-unified.yml` to use this output. Adapt its `strategy.matrix.include` section
+    or add conditional job execution (`if: needs.quick-checks.outputs.should-run-full == 'true'`) for less critical
+    matrix combinations to reduce unnecessary runs, as demonstrated in the "Smart Matrix Strategy" under the "CI/CD
+    Cost Optimization Strategies" section of the assessment.
 - **Job Consolidation**:
-  - Review the `quick-checks` job in `ci-unified.yml`. If there are multiple small, related check steps (e.g., separate linting, formatting, type checking steps that could be combined), consolidate them into fewer steps within the job to reduce overhead. Run them sequentially within the same `run` block, failing the job if any sub-step fails, as shown in the `quality-checks` example in the assessment's "CI/CD Cost Optimization Strategies" section.
+  - Review the `quick-checks` job in `ci-unified.yml`. If there are multiple small, related check steps (e.g.,
+    separate linting, formatting, type checking steps that could be combined), consolidate them into fewer steps
+    within the job to reduce overhead. Run them sequentially within the same `run` block, failing the job if any
+    sub-step fails, as shown in the `quality-checks` example in the assessment's "CI/CD Cost Optimization Strategies"
+    section.
 - **Intelligent Caching**:
-  - Ensure robust caching is implemented within `ci-unified.yml`. Leverage `astral-sh/setup-uv@v5` with `enable-cache: true` and appropriate `cache-dependency-glob` settings.
-  - Implement caching for test results and other build artifacts where beneficial, as shown in the "Intelligent Caching" examples in the assessment.
+  - Ensure robust caching is implemented within `ci-unified.yml`. Leverage `astral-sh/setup-uv@v5` with
+    `enable-cache: true` and appropriate `cache-dependency-glob` settings.
+  - Implement caching for test results and other build artifacts where beneficial, as shown in the "Intelligent
+    Caching" examples in the assessment.
 
 **Step 18.3**: Final Review and Testing
 
 - Thoroughly review the complete `ci-unified.yml` to ensure all parts are integrated correctly and logically.
-- Test the workflow with various scenarios (e.g., PR to a feature branch with minor changes, PR to main, push to main) to verify the smart matrix and caching strategies are working as expected.
+- Test the workflow with various scenarios (e.g., PR to a feature branch with minor changes, PR to main, push to
+  main) to verify the smart matrix and caching strategies are working as expected.
 
 **Step 18.4**: Delete old CI workflow files
 
@@ -645,8 +663,10 @@ chmod +x scripts/dev-setup.sh
 
 **Step 32.1**: Add Quality Gate steps to `ci-unified.yml`
 
-- In your primary CI workflow file (`.github/workflows/ci-unified.yml`), integrate the "Automated Quality Gates" as defined in the `comprehensive_codebase_assessment_2025.md`.
-- This typically involves adding a new job, or steps to an existing job (e.g., after tests and builds), that runs commands for:
+- In your primary CI workflow file (`.github/workflows/ci-unified.yml`), integrate the "Automated Quality Gates" as
+  defined in the `comprehensive_codebase_assessment_2025.md`.
+- This typically involves adding a new job, or steps to an existing job (e.g., after tests and builds), that runs
+  commands for:
   - Coverage threshold check (e.g., `uv run coverage report --fail-under=80`)
   - Complexity threshold check (e.g., `uv run radon cc . --min B`)
   - Security threshold check (e.g., `uv run bandit -r . -ll`)
@@ -695,7 +715,8 @@ cp renovate.json5 renovate.json5.backup
 
 ```json5
 # Replace renovate.json5 content with enhanced version from assessment's "Dependency Management Unification" section.
-# This includes settings for lockFileMaintenance, packageRules, vulnerabilityAlerts, osvVulnerabilityAlerts, and transitiveRemediation.
+# This includes settings for lockFileMaintenance, packageRules, vulnerabilityAlerts, osvVulnerabilityAlerts, and
+# transitiveRemediation.
 ```
 
 **Step 34.3**: Add SLSA hostRules and signature verification
@@ -717,7 +738,8 @@ cp renovate.json5 renovate.json5.backup
 **Step 35.1**: Create security.yml
 
 ```yaml
-# Create .github/workflows/security.yml with SBOM content from assessment's "Supply Chain Security - SLSA Level 3 Compliance" section.
+# Create .github/workflows/security.yml with SBOM content from assessment's "Supply Chain Security - SLSA Level 3
+# Compliance" section.
 # This workflow should handle SBOM generation and attestation.
 ```
 
@@ -836,7 +858,9 @@ Use this checklist to track progress:
 - [x] Phase 1: Configuration File Updates (Steps 1-13) # All steps complete
 - [x] Phase 2: GitHub Configuration Updates (Steps 14-16) # All steps complete
 - [x] Phase 3: GitHub Actions Updates (Steps 17-21) # All steps complete
-- [x] Phase 4: Enhanced Features Implementation (Steps 22-38) # All steps complete (Step 23 skipped due to .vscode being blocked)
-- [x] Phase 5: Final Cleanup and Validation (Steps 39-42) # Step 39 complete; 40, 41, 42 are manual user actions
+- [x] Phase 4: Enhanced Features Implementation (Steps 22-38) # All steps complete (Step 23 skipped due to .vscode
+      being blocked)
+- [x] Phase 5: Final Cleanup and Validation (Steps 39-42) # All steps complete
 
-Each step is designed to be completed independently. You can implement them in any order, though the phase grouping provides a logical progression.
+Each step is designed to be completed independently. You can implement them in any order, though the phase grouping
+provides a logical progression.

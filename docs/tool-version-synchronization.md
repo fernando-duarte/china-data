@@ -1,10 +1,15 @@
 # Tool Version Synchronization
 
-This document explains how tool versions are synchronized across the China Data project's development environment, CI/CD pipelines, and pre-commit hooks.
+This document describes the automated tool version synchronization system that ensures consistency between pre-commit
+hooks, CI workflows, and other configuration files.
 
 ## Overview
 
-To ensure consistency between local development and CI environments, all development tools use pinned versions that are synchronized across:
+Tool version mismatches between local development and CI environments can lead to unexpected failures. This system
+addresses that by maintaining strict version alignment across all configuration files.
+
+To ensure consistency between local development and CI environments, all development tools use pinned versions that
+are synchronized across:
 
 - `.pre-commit-config.yaml` - Pre-commit hooks for local development
 - `.github/workflows/*.yml` - CI/CD workflows
