@@ -3,9 +3,11 @@
 import functools
 import time
 from collections.abc import Callable
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
-from .decorators_base import F, logger
+from .decorators_base import logger
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def retry_on_exception(

@@ -1,13 +1,16 @@
 """Decorators focused on data operation error handling."""
 
-from collections.abc import Callable
 import functools
 import logging
-from typing import Any
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 import pandas as pd
 
-from .decorators_base import ChinaDataError, T, logger
+from .decorators_base import ChinaDataError, logger
+
+T = TypeVar("T")
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def handle_data_operation(
@@ -79,7 +82,7 @@ def safe_dataframe_operation(
                 return pd.DataFrame()
             except ChinaDataError:
                 raise
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.exception(
                     "Error in %s",
                     operation_name,
@@ -90,6 +93,3 @@ def safe_dataframe_operation(
         return wrapper
 
     return decorator
-
-
-

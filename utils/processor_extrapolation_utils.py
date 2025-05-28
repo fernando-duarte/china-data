@@ -1,6 +1,5 @@
 """Helper functions for series extrapolation."""
 
-
 import pandas as pd
 
 from config import Config

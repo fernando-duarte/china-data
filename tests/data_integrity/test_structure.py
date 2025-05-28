@@ -9,7 +9,7 @@ meets expected structural requirements:
 - No NaN values in the markdown output
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from utils.path_constants import get_absolute_output_path
@@ -47,7 +47,7 @@ def test_year_min_value(raw_df):
 
 
 def test_year_max_value_current(raw_df):
-    current_year = datetime.now(timezone.utc).year
+    current_year = datetime.now(UTC).year
     max_year = int(raw_df["year"].max())
     assert max_year in {current_year, current_year - 1, current_year - 2}
 

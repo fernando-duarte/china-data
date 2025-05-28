@@ -6,7 +6,7 @@
 | 2021 | 17744.64 | 1444.22    |
 | 2022 | 17886.33 | 1448.47    |
 
-# Notes on Computation
+## Notes on Computation
 
 ## Data Sources
 
@@ -29,7 +29,7 @@ This processed dataset was created by applying the following transformations to 
 
 Calculated as Exports - Imports (in billions USD)
 
-```
+```text
 Net Exports = Exports - Imports
 ```
 
@@ -37,7 +37,7 @@ Net Exports = Exports - Imports
 
 Calculated using PWT data with the following formula:
 
-```
+```text
 K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)
 ```
 
@@ -55,7 +55,7 @@ Where:
 
 Calculated using the Cobb-Douglas production function:
 
-```
+```text
 TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))
 ```
 

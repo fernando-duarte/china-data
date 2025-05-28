@@ -1,6 +1,7 @@
 """Helper functions for human capital projection."""
 
 import logging
+
 import numpy as np
 import pandas as pd
 
@@ -22,7 +23,6 @@ class HumanCapitalError(Exception):
     """Custom exception for human capital processing errors."""
 
 
-
 def _validate_input_data(processed_data: pd.DataFrame) -> None:
     """Validate input data for human capital projection."""
     if not isinstance(processed_data, pd.DataFrame):
@@ -40,9 +40,7 @@ def _log_data_quality_info(hc_data: pd.DataFrame) -> None:
     """Log information about data quality and characteristics."""
     total_rows = hc_data.shape[0]
     non_na_rows = hc_data.dropna(subset=["hc"]).shape[0]
-    na_percentage = (
-        (total_rows - non_na_rows) / total_rows * 100 if total_rows > 0 else 0
-    )
+    na_percentage = (total_rows - non_na_rows) / total_rows * 100 if total_rows > 0 else 0
 
     logger.info(
         "Human capital data: %s total rows, %s non-NA rows (%.1f%% missing)",
@@ -60,9 +58,7 @@ def _log_data_quality_info(hc_data: pd.DataFrame) -> None:
             logger.warning("Found negative human capital values (min=%s)", min_hc)
 
         if max_hc > MAX_REASONABLE_HC_VALUE:
-            logger.warning(
-                "Unusually high human capital values detected (max=%s)", max_hc
-            )
+            logger.warning("Unusually high human capital values detected (max=%s)", max_hc)
 
         # Sample data for debugging
         sample = hc_data.dropna(subset=["hc"]).head(3)
@@ -77,9 +73,7 @@ def _create_placeholder_dataframe(end_year: int) -> pd.DataFrame:
 
 def _check_for_alternative_columns(processed_data: pd.DataFrame) -> None:
     """Check for alternative human capital columns and log findings."""
-    pwt_cols = [
-        col for col in processed_data.columns if col.startswith("PWT") or col.lower().startswith("pwt")
-    ]
+    pwt_cols = [col for col in processed_data.columns if col.startswith("PWT") or col.lower().startswith("pwt")]
     if pwt_cols:
         logger.info("Found potential human capital columns: %s", pwt_cols)
 
@@ -95,9 +89,7 @@ def _ensure_years_exist(hc_data: pd.DataFrame, years_to_project: list[int]) -> p
     return hc_data
 
 
-def _try_linear_regression_projection(
-    hc_data: pd.DataFrame, years_to_project: list[int]
-) -> tuple[pd.DataFrame, bool]:
+def _try_linear_regression_projection(hc_data: pd.DataFrame, years_to_project: list[int]) -> tuple[pd.DataFrame, bool]:
     """Try to project human capital using linear regression."""
     updated_df, success, method = extrapolate_with_linear_regression(
         hc_data,
@@ -114,9 +106,7 @@ def _try_linear_regression_projection(
     return hc_data, False
 
 
-def _try_growth_rate_projection(
-    hc_data: pd.DataFrame, years_to_project: list[int]
-) -> tuple[pd.DataFrame, bool]:
+def _try_growth_rate_projection(hc_data: pd.DataFrame, years_to_project: list[int]) -> tuple[pd.DataFrame, bool]:
     """Try to project human capital using average growth rate."""
     updated_df, success, method = extrapolate_with_average_growth_rate(
         hc_data,
@@ -134,9 +124,7 @@ def _try_growth_rate_projection(
     return hc_data, False
 
 
-def _try_last_value_projection(
-    hc_data: pd.DataFrame, years_to_project: list[int]
-) -> tuple[pd.DataFrame, bool]:
+def _try_last_value_projection(hc_data: pd.DataFrame, years_to_project: list[int]) -> tuple[pd.DataFrame, bool]:
     """Try to project human capital using last value carry-forward."""
     updated_df, success, method = extrapolate_with_average_growth_rate(
         hc_data,
@@ -154,14 +142,10 @@ def _try_last_value_projection(
     return hc_data, False
 
 
-def _project_with_fallback_methods(
-    hc_data: pd.DataFrame, years_to_project: list[int]
-) -> pd.DataFrame:
+def _project_with_fallback_methods(hc_data: pd.DataFrame, years_to_project: list[int]) -> pd.DataFrame:
     """Project human capital using fallback methods when insufficient data for regression."""
     if len(hc_data.dropna(subset=["hc"])) > 0:
-        logger.info(
-            "Falling back to last value carry-forward due to insufficient data points"
-        )
+        logger.info("Falling back to last value carry-forward due to insufficient data points")
 
         # Ensure all years exist in the dataframe
         hc_data = _ensure_years_exist(hc_data, years_to_project)
@@ -172,4 +156,3 @@ def _project_with_fallback_methods(
             return updated_df
 
     return hc_data
-

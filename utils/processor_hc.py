@@ -1,23 +1,23 @@
 """Human capital projection module.
 
 This module provides functions for projecting human capital values to future years
-using various statistical methods."""
+using various statistical methods.
+"""
 
-import logging
 import pandas as pd
 
 from .processor_hc_helpers import (
-    logger,
-    HumanCapitalError,
     MIN_DATA_POINTS_FOR_REGRESSION,
-    _validate_input_data,
-    _log_data_quality_info,
-    _create_placeholder_dataframe,
+    HumanCapitalError,
     _check_for_alternative_columns,
+    _create_placeholder_dataframe,
+    _log_data_quality_info,
     _project_with_fallback_methods,
-    _try_linear_regression_projection,
     _try_growth_rate_projection,
     _try_last_value_projection,
+    _try_linear_regression_projection,
+    _validate_input_data,
+    logger,
 )
 
 

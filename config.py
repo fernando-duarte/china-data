@@ -4,8 +4,14 @@ This module centralizes all configuration settings, constants, and parameters
 used throughout the China data processing pipeline.
 """
 
+import os
 from pathlib import Path
 from typing import ClassVar
+
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
 
 
 class Config:
@@ -147,15 +153,21 @@ class Config:
     }
 
     # Logging configuration
+    LOG_FILE: ClassVar[str] = os.getenv("CHINA_DATA_LOG_FILE", "china_data.log")
+    LOG_LEVEL: ClassVar[str] = os.getenv("CHINA_DATA_LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
     # Structured logging configuration
-    STRUCTURED_LOGGING_ENABLED = True
-    STRUCTURED_LOGGING_LEVEL = "INFO"
-    STRUCTURED_LOGGING_JSON_FORMAT = False  # Set to True for production/log aggregation
-    STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO = True
-    STRUCTURED_LOGGING_FILE = "china_data.log"
+    STRUCTURED_LOGGING_ENABLED = bool(os.getenv("CHINA_DATA_STRUCTURED_LOGGING_ENABLED", "True").lower() == "true")
+    STRUCTURED_LOGGING_LEVEL = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_LEVEL", "INFO")
+    STRUCTURED_LOGGING_JSON_FORMAT = bool(
+        os.getenv("CHINA_DATA_STRUCTURED_LOGGING_JSON_FORMAT", "False").lower() == "true"
+    )
+    STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO = bool(
+        os.getenv("CHINA_DATA_STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO", "True").lower() == "true"
+    )
+    STRUCTURED_LOGGING_FILE = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_FILE", "china_data.log")
 
     # Caching configuration
     CACHE_NAME = "china_data_cache"

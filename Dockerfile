@@ -2,7 +2,7 @@
 # Uses UV package manager for fast dependency installation
 
 # Build stage
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Install UV package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
@@ -13,11 +13,15 @@ WORKDIR /app
 # Copy dependency files
 COPY pyproject.toml uv.lock* ./
 
-# Install dependencies using UV
-RUN uv sync --frozen --no-dev
+# Install dependencies using UV with cache mount
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
+
+# TODO: Add security scanning with trivy or similar tool
+# RUN trivy fs --no-progress /app
 
 # Production stage
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1

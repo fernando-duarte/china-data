@@ -12,9 +12,9 @@ import structlog
 
 from .logging_helpers import _add_correlation_id, _add_performance_metrics
 from .logging_tracing import (
+    OPENTELEMETRY_AVAILABLE,
     _add_trace_context,
     _configure_tracing,
-    OPENTELEMETRY_AVAILABLE,
 )
 
 

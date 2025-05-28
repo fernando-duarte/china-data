@@ -30,7 +30,7 @@ repos:
 
   # Ruff - The modern Python linter and formatter (replaces Black, isort, Flake8, and more)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.10
+    rev: v0.11.11
     hooks:
       - id: ruff
         args: [--fix]
@@ -119,6 +119,18 @@ repos:
         files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
         pass_filenames: true
         require_serial: false
+
+  # Tool version alignment check
+  - repo: local
+    hooks:
+      - id: check-tool-versions
+        name: check tool version alignment
+        entry: python
+        language: system
+        args: [scripts/sync_tool_versions.py, --check-only]
+        files: ^(\.pre-commit-config\.yaml|\.github/workflows/.*\.yml|pyproject\.toml)$
+        pass_filenames: false
+        require_serial: true
 
   # YAML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier

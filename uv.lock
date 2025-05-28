@@ -479,6 +479,8 @@ dependencies = [
     { name = "openpyxl" },
     { name = "pandas" },
     { name = "pandas-datareader" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "requests" },
     { name = "requests-cache" },
     { name = "scikit-learn" },
@@ -529,6 +531,7 @@ dev = [
     { name = "pytest-mock" },
     { name = "pytest-sugar" },
     { name = "pytest-xdist" },
+    { name = "pyupgrade" },
     { name = "radon" },
     { name = "rich" },
     { name = "ruff" },
@@ -583,6 +586,7 @@ dev = [
     { name = "pytest-mock" },
     { name = "pytest-sugar" },
     { name = "pytest-xdist" },
+    { name = "pyupgrade" },
     { name = "radon" },
     { name = "rich" },
     { name = "ruff" },
@@ -596,13 +600,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7,<2.0" },
+    { name = "bandit", marker = "extra == 'dev'", specifier = ">=1.7.0,<2.0" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=25.1,<26.0" },
-    { name = "detect-secrets", marker = "extra == 'dev'", specifier = ">=1.4,<2.0" },
+    { name = "detect-secrets", marker = "extra == 'dev'", specifier = ">=1.5.0,<2.0" },
     { name = "factory-boy", marker = "extra == 'dev'", specifier = ">=3.3,<4.0" },
     { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.115,<1.0" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.100,<7.0" },
-    { name = "interrogate", marker = "extra == 'dev'", specifier = ">=1.7,<2.0" },
+    { name = "interrogate", marker = "extra == 'dev'", specifier = ">=1.7.0,<2.0" },
     { name = "ipython", marker = "extra == 'dev'", specifier = ">=8.29,<9.0" },
     { name = "jinja2", specifier = ">=3.1.6,<4.0" },
     { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.1,<2.0" },
@@ -615,7 +619,7 @@ requires-dist = [
     { name = "mkdocs-mermaid2-plugin", marker = "extra == 'dev'", specifier = ">=1.1,<2.0" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'", specifier = ">=0.26,<1.0" },
     { name = "mutmut", marker = "extra == 'dev'", specifier = ">=2.4,<3.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.15,<2.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13.0,<2.0" },
     { name = "numpy", specifier = ">=1.26.4,<2.0" },
     { name = "openpyxl", specifier = ">=3.1.2,<4.0" },
     { name = "opentelemetry-api", marker = "extra == 'monitoring'", specifier = ">=1.28,<2.0" },
@@ -623,15 +627,16 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3,<3.0" },
     { name = "pandas-datareader", specifier = ">=0.10.0,<1.0" },
     { name = "pandas-stubs", marker = "extra == 'dev'", specifier = ">=2.2,<3.0" },
-    { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.7,<3.0" },
+    { name = "pip-audit", marker = "extra == 'dev'", specifier = ">=2.7.3,<3.0" },
     { name = "pip-licenses", marker = "extra == 'dev'", specifier = ">=5.0,<6.0" },
     { name = "pipdeptree", marker = "extra == 'dev'", specifier = ">=2.23,<3.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0,<4.0" },
     { name = "prometheus-client", marker = "extra == 'monitoring'", specifier = ">=0.21,<1.0" },
     { name = "psutil", marker = "extra == 'dev'", specifier = ">=6.1,<7.0" },
     { name = "py-spy", marker = "extra == 'dev'", specifier = ">=0.3,<1.0" },
+    { name = "pydantic", specifier = ">=2.11.5" },
     { name = "pydantic", marker = "extra == 'api'", specifier = ">=2.10,<3.0" },
-    { name = "pylint", marker = "extra == 'dev'", specifier = ">=3.3,<4.0" },
+    { name = "pylint", marker = "extra == 'dev'", specifier = ">=3.3.1,<4.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2,<9.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.24,<1.0" },
     { name = "pytest-benchmark", marker = "extra == 'dev'", specifier = ">=4.0,<5.0" },
@@ -642,11 +647,13 @@ requires-dist = [
     { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.14,<4.0" },
     { name = "pytest-sugar", marker = "extra == 'dev'", specifier = ">=1.0,<2.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.6,<4.0" },
-    { name = "radon", marker = "extra == 'dev'", specifier = ">=6.0,<7.0" },
+    { name = "python-dotenv", specifier = ">=1.1.0" },
+    { name = "pyupgrade", marker = "extra == 'dev'", specifier = ">=3.19.0,<4.0" },
+    { name = "radon", marker = "extra == 'dev'", specifier = ">=6.0.0,<7.0" },
     { name = "requests", specifier = ">=2.31.0,<3.0" },
     { name = "requests-cache", specifier = ">=1.0.0,<2.0" },
     { name = "rich", marker = "extra == 'dev'", specifier = ">=13.0,<14.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8,<1.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.11,<1.0" },
     { name = "safety", marker = "extra == 'dev'", specifier = ">=3.0,<4.0" },
     { name = "scikit-learn", specifier = ">=1.3.2,<2.0" },
     { name = "semgrep", marker = "extra == 'dev'", specifier = ">=1.0,<2.0" },
@@ -662,12 +669,12 @@ provides-extras = ["dev", "api", "monitoring"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "bandit", specifier = ">=1.7,<2.0" },
+    { name = "bandit", specifier = ">=1.7.0,<2.0" },
     { name = "black", specifier = ">=25.1,<26.0" },
-    { name = "detect-secrets", specifier = ">=1.4,<2.0" },
+    { name = "detect-secrets", specifier = ">=1.5.0,<2.0" },
     { name = "factory-boy", specifier = ">=3.3,<4.0" },
     { name = "hypothesis", specifier = ">=6.100,<7.0" },
-    { name = "interrogate", specifier = ">=1.7,<2.0" },
+    { name = "interrogate", specifier = ">=1.7.0,<2.0" },
     { name = "ipython", specifier = ">=8.29,<9.0" },
     { name = "jupyter", specifier = ">=1.1,<2.0" },
     { name = "memory-profiler", specifier = ">=0.61,<1.0" },
@@ -679,15 +686,15 @@ dev = [
     { name = "mkdocs-mermaid2-plugin", specifier = ">=1.1,<2.0" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.26,<1.0" },
     { name = "mutmut", specifier = ">=2.4,<3.0" },
-    { name = "mypy", specifier = ">=1.15,<2.0" },
+    { name = "mypy", specifier = ">=1.13.0,<2.0" },
     { name = "pandas-stubs", specifier = ">=2.2,<3.0" },
-    { name = "pip-audit", specifier = ">=2.7,<3.0" },
+    { name = "pip-audit", specifier = ">=2.7.3,<3.0" },
     { name = "pip-licenses", specifier = ">=5.0,<6.0" },
     { name = "pipdeptree", specifier = ">=2.23,<3.0" },
     { name = "pre-commit", specifier = ">=3.0,<4.0" },
     { name = "psutil", specifier = ">=6.1,<7.0" },
     { name = "py-spy", specifier = ">=0.3,<1.0" },
-    { name = "pylint", specifier = ">=3.3,<4.0" },
+    { name = "pylint", specifier = ">=3.3.1,<4.0" },
     { name = "pytest", specifier = ">=8.2,<9.0" },
     { name = "pytest-asyncio", specifier = ">=0.24,<1.0" },
     { name = "pytest-benchmark", specifier = ">=4.0,<5.0" },
@@ -698,9 +705,10 @@ dev = [
     { name = "pytest-mock", specifier = ">=3.14,<4.0" },
     { name = "pytest-sugar", specifier = ">=1.0,<2.0" },
     { name = "pytest-xdist", specifier = ">=3.6,<4.0" },
-    { name = "radon", specifier = ">=6.0,<7.0" },
+    { name = "pyupgrade", specifier = ">=3.19.0,<4.0" },
+    { name = "radon", specifier = ">=6.0.0,<7.0" },
     { name = "rich", specifier = ">=13.0,<14.0" },
-    { name = "ruff", specifier = ">=0.8,<1.0" },
+    { name = "ruff", specifier = ">=0.11.11,<1.0" },
     { name = "safety", specifier = ">=3.0,<4.0" },
     { name = "semgrep", specifier = ">=1.0,<2.0" },
     { name = "syrupy", specifier = ">=4.0,<5.0" },
@@ -3192,6 +3200,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-dotenv"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/2c/7bb1416c5620485aa793f2de31d3df393d3686aa8a8506d11e10e13c5baf/python_dotenv-1.1.0.tar.gz", hash = "sha256:41f90bc6f5f177fb41f53e87666db362025010eb28f60a01c9143bfa33a2b2d5", size = 39920, upload-time = "2025-03-25T10:14:56.835Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1e/18/98a99ad95133c6a6e2005fe89faedf294a748bd5dc803008059409ac9b1e/python_dotenv-1.1.0-py3-none-any.whl", hash = "sha256:d7c01d9e2293916c18baf562d95698754b0dbbb5e74d457c45d4f6561fb9d55d", size = 20256, upload-time = "2025-03-25T10:14:55.034Z" },
+]
+
+[[package]]
 name = "python-json-logger"
 version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3207,6 +3224,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
+]
+
+[[package]]
+name = "pyupgrade"
+version = "3.20.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tokenize-rt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c0/75/3df66861bca41394f05c5b818943fd0535bc02d5c5c512f9d859dec921f3/pyupgrade-3.20.0.tar.gz", hash = "sha256:dd6a16c13fc1a7db45796008689a9a35420bd364d681430f640c5e54a3d351ea", size = 45007, upload-time = "2025-05-23T18:55:43.239Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/63/1c/8412744f89cbd251f159f790980492b38468530117f614108196665d3b1a/pyupgrade-3.20.0-py2.py3-none-any.whl", hash = "sha256:cd5bf842b863f50adad324a01c30aef60b9f698a9814848094818659c92cd1f4", size = 62452, upload-time = "2025-05-23T18:55:41.62Z" },
 ]
 
 [[package]]
@@ -4037,6 +4066,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7", size = 87085, upload-time = "2024-10-24T14:58:29.895Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289", size = 26610, upload-time = "2024-10-24T14:58:28.029Z" },
+]
+
+[[package]]
+name = "tokenize-rt"
+version = "6.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/ed/8f07e893132d5051d86a553e749d5c89b2a4776eb3a579b72ed61f8559ca/tokenize_rt-6.2.0.tar.gz", hash = "sha256:8439c042b330c553fdbe1758e4a05c0ed460dbbbb24a606f11f0dee75da4cad6", size = 5476, upload-time = "2025-05-23T23:48:00.035Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/f0/3fe8c6e69135a845f4106f2ff8b6805638d4e85c264e70114e8126689587/tokenize_rt-6.2.0-py2.py3-none-any.whl", hash = "sha256:a152bf4f249c847a66497a4a95f63376ed68ac6abf092a2f7cfb29d044ecff44", size = 6004, upload-time = "2025-05-23T23:47:58.812Z" },
 ]
 
 [[package]]

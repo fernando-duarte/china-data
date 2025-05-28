@@ -3,7 +3,7 @@
 paths_to_mutate = utils/,china_data_downloader.py,china_data_processor.py
 
 # Test runner command with optimizations
-runner = python -m pytest tests/ -x --tb=short --disable-warnings
+runner = pytest --use-coverage -x
 
 # Test directory
 tests_dir = tests/
@@ -41,3 +41,5 @@ use_coverage = true
 
 # Coverage file to use
 coverage_file = .coverage
+
+# For CI environments, add: --rerun-all

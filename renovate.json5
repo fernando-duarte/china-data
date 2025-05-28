@@ -1,3 +1,4 @@
+// TODO: Create custom preset at .github/renovate-presets/default.json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
@@ -22,6 +23,11 @@
 
   // Package grouping for cleaner PRs
   "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
     {
       "groupName": "Python testing packages",
       "matchPackagePatterns": ["^pytest", "^hypothesis", "^factory-boy", "^syrupy"],

@@ -1,6 +1,7 @@
 """Core logic for projecting capital stock."""
 
 import logging
+
 import pandas as pd
 
 from .validation import _get_last_capital_value, _validate_inputs
@@ -44,16 +45,12 @@ def _project_years(
     return proj
 
 
-def _merge_projections(
-    capital_data: pd.DataFrame, proj_df: pd.DataFrame, end_year: int
-) -> pd.DataFrame:
+def _merge_projections(capital_data: pd.DataFrame, proj_df: pd.DataFrame, end_year: int) -> pd.DataFrame:
     """Merge projected values with original data."""
     result = capital_data
     for year in range(int(capital_data["year"].min()), end_year + 1):
         if year not in result["year"].to_numpy():
-            result = pd.concat(
-                [result, pd.DataFrame({"year": [year]})], ignore_index=True
-            )
+            result = pd.concat([result, pd.DataFrame({"year": [year]})], ignore_index=True)
     for _, row in proj_df.iterrows():
         year_mask = result["year"] == row["year"]
         if year_mask.any():
@@ -64,9 +61,7 @@ def _merge_projections(
     return result.sort_values("year").reset_index(drop=True)
 
 
-def project_capital_stock(
-    processed_data: pd.DataFrame, end_year: int, delta: float = 0.05
-) -> pd.DataFrame:
+def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: float = 0.05) -> pd.DataFrame:
     """Project capital stock into the future using a perpetual inventory method."""
     logger.info("Projecting capital stock to year %d with delta=%f", end_year, delta)
     is_valid, error_msg = _validate_inputs(processed_data)
@@ -95,13 +90,9 @@ def project_capital_stock(
     if not years_to_project:
         logger.info("No years to project - returning original data")
         return capital_data
-    logger.info(
-        "Years to project: %d to %d", min(years_to_project), max(years_to_project)
-    )
+    logger.info("Years to project: %d to %d", min(years_to_project), max(years_to_project))
     try:
-        proj = _project_years(
-            capital_data, years_to_project, last_k, last_year_with_data, delta
-        )
+        proj = _project_years(capital_data, years_to_project, last_k, last_year_with_data, delta)
         logger.info("Successfully projected capital stock for %d years", len(proj) - 1)
         proj_df = pd.DataFrame(list(proj.items()), columns=["year", "K_USD_bn"])
         result = _merge_projections(capital_data, proj_df, end_year)

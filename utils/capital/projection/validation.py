@@ -1,6 +1,7 @@
 """Validation utilities for capital stock projection."""
 
 import logging
+
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -27,15 +28,10 @@ def _get_last_capital_value(capital_data: pd.DataFrame) -> tuple[float, int]:
     """Get the last valid capital stock value and year."""
     k_data_not_na = capital_data.dropna(subset=["K_USD_bn"])
     last_year_with_data = k_data_not_na["year"].max()
-    last_k = (
-        k_data_not_na.loc[k_data_not_na.year == last_year_with_data, "K_USD_bn"]
-        .iloc[0]
-    )
+    last_k = k_data_not_na.loc[k_data_not_na.year == last_year_with_data, "K_USD_bn"].iloc[0]
 
     if pd.isna(last_k) or last_k <= 0:
-        error_msg = (
-            f"Invalid capital stock value for year {last_year_with_data}: {last_k}"
-        )
+        error_msg = f"Invalid capital stock value for year {last_year_with_data}: {last_k}"
         raise ValueError(error_msg)
 
     return float(last_k), int(last_year_with_data)

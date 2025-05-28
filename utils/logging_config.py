@@ -1,58 +1,54 @@
 """Structured logging configuration with OpenTelemetry integration.
 
 This module re-exports functionality from smaller helper modules to keep files
-under 200 lines while preserving the original public API."""
+under 200 lines while preserving the original public API.
+"""
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any, TypeVar
+
 from .logging_core import (
-    setup_structured_logging,
-    configure_logging,
+    auto_configure,
     configure_for_development,
     configure_for_production,
     configure_for_testing,
-    auto_configure,
+    configure_logging,
+    setup_structured_logging,
 )
 from .logging_helpers import (
-    _add_correlation_id,
-    _add_performance_metrics,
-    get_logger,
     LoggerMixin,
+    get_logger,
     log_performance,
-)
-from .logging_tracing import (
-    _add_trace_context,
-    _configure_tracing,
-    _get_sampler,
-    _get_otlp_headers,
-    _log_hook,
-    OPENTELEMETRY_AVAILABLE,
 )
 from .logging_operations import (
     LoggedOperation,
+    log_data_quality_issue,
+    log_operation_error,
     log_operation_start,
     log_operation_success,
-    log_operation_error,
-    log_data_quality_issue,
     log_performance_metric,
 )
 
+F = TypeVar("F", bound=Callable[..., Any])
+
 __all__ = [
-    "setup_structured_logging",
-    "configure_logging",
+    "LoggedOperation",
+    "LoggerMixin",
+    "auto_configure",
     "configure_for_development",
     "configure_for_production",
     "configure_for_testing",
-    "auto_configure",
+    "configure_logging",
     "get_logger",
-    "LoggerMixin",
-    "log_performance",
-    "LoggedOperation",
+    "log_data_quality_issue",
+    "log_operation_error",
     "log_operation_start",
     "log_operation_success",
-    "log_operation_error",
-    "log_data_quality_issue",
+    "log_performance",
     "log_performance_metric",
+    "setup_structured_logging",
 ]
 
 

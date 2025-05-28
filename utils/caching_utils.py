@@ -5,7 +5,7 @@ import requests_cache
 from config import Config
 
 
-def get_cached_session() -> requests_cache.CachedSession:  # type: ignore[no-any-unimported]
+def get_cached_session() -> requests_cache.CachedSession:
     """Creates and returns a cached requests session."""
     return requests_cache.CachedSession(
         Config.CACHE_NAME,

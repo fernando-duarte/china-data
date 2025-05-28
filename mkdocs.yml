@@ -52,6 +52,11 @@ theme:
     repo: fontawesome/brands/github
     edit: material/pencil
     view: material/eye
+  social:
+    cards: true
+    cards_color:
+      fill: "#1e1e1e"
+      text: "#ffffff"
 
 nav:
   - Home: index.md
@@ -122,6 +127,8 @@ plugins:
   - mkdocs-gallery # Code example gallery
   - mkdocs-git-revision-date-localized: # Git-based dates
       type: date
+  - linkchecker:
+      fail_on_error: false
 
 markdown_extensions:
   - abbr

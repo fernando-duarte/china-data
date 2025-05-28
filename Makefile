@@ -1,16 +1,67 @@
-.PHONY: help install install-dev install-uv install-dev-uv format lint complexity test test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all clean run-download run-process security-scan
+# Makefile (enhanced for 2025)
+.PHONY: setup dev test lint security clean
+
+# One-command setup
+setup:
+	@echo "🚀 Setting up development environment..."
+	@command -v uv >/dev/null 2>&1 || { echo "Installing UV..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
+	uv sync --all-extras
+	uv run pre-commit install
+	@echo "✅ Development environment ready!"
+
+# Development workflow
+dev: setup
+	@echo "🔧 Starting development mode..."
+	uv run python china_data_processor.py
+
+# Comprehensive testing
+test:
+	@echo "🧪 Running comprehensive test suite..."
+	uv run pytest --cov --cov-report=html --cov-report=term
+	uv run pytest --doctest-modules
+	uv run pytest tests/test_property_based.py --hypothesis-show-statistics
+
+# Security and quality checks
+lint:
+	@echo "🔍 Running code quality checks..."
+	uv run ruff check --fix
+	uv run ruff format
+	uv run mypy .
+	uv run bandit -r . -f json -o bandit-report.json
+
+security:
+	@echo "🔒 Running security scans..."
+	uv run pip-audit --desc
+	uv run safety check
+	uv run semgrep --config=auto
+
+# Clean environment
+clean:
+	@echo "🧹 Cleaning up..."
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+	rm -rf .coverage htmlcov/ .pytest_cache/ .mypy_cache/ .ruff_cache/
+	uv cache clean
+
+# Additional targets from original Makefile
+
+.PHONY: help install install-dev install-uv install-dev-uv format complexity test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all check-versions sync-versions run-download run-process security-scan docs-serve docs-build docs-test docs-deploy
 
 # Default target
 help:
 	@echo "Available commands:"
+	@echo "  make setup         - One-command development environment setup (UV)"
+	@echo "  make dev           - Start development mode"
+	@echo "  make test          - Run comprehensive test suite"
+	@echo "  make lint          - Run code quality checks"
+	@echo "  make security      - Run security scans"
+	@echo "  make clean         - Clean up generated files"
 	@echo "  make install       - Install production dependencies (UV)"
 	@echo "  make install-dev   - Install development dependencies (UV)"
 	@echo "  make install-pip   - Install production dependencies (legacy pip)"
 	@echo "  make install-dev-pip - Install development dependencies (legacy pip)"
 	@echo "  make format        - Format code with black and isort"
-	@echo "  make lint          - Run linting checks (Ruff, Pylint, Radon)"
 	@echo "  make complexity    - Run detailed code complexity analysis"
-	@echo "  make test          - Run standard tests"
 	@echo "  make test-property - Run property-based tests with Hypothesis"
 	@echo "  make test-mutation - Run mutation tests with mutmut (enhanced)"
 	@echo "  make test-factories - Run factory demonstration tests"
@@ -19,7 +70,8 @@ help:
 	@echo "  make test-integration - Run integration tests with factory fixtures"
 	@echo "  make test-all      - Run all types of tests"
 	@echo "  make security-scan - Run dependency vulnerability scan"
-	@echo "  make clean         - Clean up generated files"
+	@echo "  make sync-versions - Synchronize tool versions between pre-commit and CI"
+	@echo "  make check-versions - Check tool version alignment"
 	@echo "  make run-download  - Download raw data"
 	@echo "  make run-process   - Process downloaded data"
 	@echo "  make docs-serve    - Start documentation development server"
@@ -55,21 +107,13 @@ format:
 	black . --exclude=venv
 	isort . --skip venv
 
-# Run linting
-lint:
-	@echo "Running modern linting with Ruff, Pylint, and Radon..."
-	ruff check . --fix
-	ruff format --check .
-	pylint china_data_processor.py china_data_downloader.py utils/ --jobs=0
-	radon cc . --show --average
-
 # Run detailed code complexity analysis
 complexity:
 	@echo "Running detailed code complexity analysis..."
 	radon cc . --show --average
 
 # Run standard tests
-test:
+test-standard:
 	pytest tests/ -v --ignore=tests/test_property_based.py --ignore=tests/test_factories_demo.py
 
 # Run property-based tests with Hypothesis
@@ -119,61 +163,41 @@ security-scan:
 	safety check --json --output=safety-vulnerabilities.json || true
 	@echo "Vulnerability scan complete. Check pip-audit-vulnerabilities.json and safety-vulnerabilities.json"
 
-# Clean up generated files
-clean:
-	@echo "Cleaning up generated files and caches..."
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete
-	find . -type f -name ".coverage" -delete
-	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".tox" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".nox" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".hypothesis" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name "__pypackages__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".pdm-python" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".uv-cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name "cover" -exec rm -rf {} + 2>/dev/null || true
-	rm -f pip-audit-*.json safety-*.json vulnerability-*.json vulnerability-*.md 2>/dev/null || true
-	@echo "Cleanup complete!"
-
-# Run data download
+# Download raw data
 run-download:
 	python china_data_downloader.py
 
-# Run data processing
+# Process downloaded data
 run-process:
 	python china_data_processor.py
 
-# Documentation
+# Documentation commands
 docs-serve:
-	@echo "Starting documentation server..."
-	mkdocs serve
+	mkdocs serve --dev-addr localhost:8000
 
 docs-build:
-	@echo "Building documentation..."
-	mkdocs build
-
-docs-deploy:
-	@echo "Deploying documentation to GitHub Pages..."
-	mkdocs gh-deploy --force
+	mkdocs build --clean
 
 docs-test:
-	@echo "Testing documentation..."
-	pytest --doctest-modules --doctest-glob='*.md' docs/
 	mkdocs build --strict
 
-docs-clean:
-	@echo "Cleaning documentation build..."
-	rm -rf site/
+docs-deploy:
+	mkdocs gh-deploy --force
 
-# Sphinx documentation (alternative)
-sphinx-build:
-	@echo "Building Sphinx documentation..."
-	sphinx-build -b html docs/ docs/_build/html
+# Check tool version alignment
+check-versions:
+	@echo "🔍 Checking tool version alignment across all configuration files..."
+	python scripts/sync_tool_versions.py --check-only
 
-sphinx-clean:
-	@echo "Cleaning Sphinx build..."
-	rm -rf docs/_build/
+# Synchronize tool versions
+sync-versions:
+	@echo "🔄 Synchronizing tool versions across pre-commit, CI, and pyproject.toml..."
+	python scripts/sync_tool_versions.py
+	@echo "📦 Updating lock file..."
+	uv lock
+	@echo "✅ Version synchronization complete!"
+	@echo ""
+	@echo "📋 Next steps:"
+	@echo "1. Run 'make check-versions' to verify synchronization"
+	@echo "2. Run 'pre-commit run --all-files' to test locally"
+	@echo "3. Commit and push changes to test CI"

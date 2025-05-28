@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest import mock
 from unittest.mock import patch
 
@@ -39,7 +39,7 @@ class TestWDIDownloader:
             symbols="NY.GDP.MKTP.CD",
             countries="CN",
             start=1960,  # Default start year from Config
-            end=datetime.now(timezone.utc).year,  # Default end year
+            end=datetime.now(UTC).year,  # Default end year
             session=mock.ANY,  # Check that a session object was passed
         )
         mock_reader_instance.read.assert_called_once()

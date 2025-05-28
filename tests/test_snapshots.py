@@ -5,11 +5,16 @@ This module demonstrates snapshot testing to ensure data processing
 output remains consistent across changes.
 """
 
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 import pytest
-from syrupy import SnapshotAssertion
+
+try:
+    from syrupy import SnapshotAssertion
+except ImportError:
+    # Fallback for when syrupy is not available
+    SnapshotAssertion = Any  # type: ignore[misc,assignment]
 
 
 # Mock data processing functions for testing
@@ -69,15 +74,12 @@ class TestDataProcessingSnapshots:
         }
 
         # Transform data (calculate GDP per capita)
-        gdp_nominal = raw_data["gdp_nominal"]  # type: ignore[assignment]
-        population = raw_data["population"]  # type: ignore[assignment]
+        gdp_nominal = cast("list[float]", raw_data["gdp_nominal"])
+        population = cast("list[float]", raw_data["population"])
         transformed = {
             "year": raw_data["years"],
-            "gdp_per_capita": [
-                gdp / pop
-                for gdp, pop in zip(gdp_nominal, population, strict=False)  # type: ignore[call-overload]
-            ],
-            "gdp_nominal_trillions": [gdp / 1e12 for gdp in gdp_nominal],  # type: ignore[attr-defined]
+            "gdp_per_capita": [gdp / pop for gdp, pop in zip(gdp_nominal, population, strict=False)],
+            "gdp_nominal_trillions": [gdp / 1e12 for gdp in gdp_nominal],
             "transformation_metadata": {"method": "gdp_per_capita_calculation", "currency": "USD", "base_year": 2020},
         }
 
@@ -142,7 +144,7 @@ class TestDataValidationSnapshots:
 
         result = {
             "outlier_analysis": outliers,
-            "total_outliers": sum(info["outlier_count"] for info in outliers.values()),  # type: ignore[misc]
+            "total_outliers": sum(info["outlier_count"] for info in outliers.values()),
         }
 
         assert result == snapshot

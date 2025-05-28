@@ -125,4 +125,3 @@ def _log_hook(span: Any, record: Any) -> None:
     if span and span.is_recording():
         record.span_id = format(span.get_span_context().span_id, "016x")
         record.trace_id = format(span.get_span_context().trace_id, "032x")
-

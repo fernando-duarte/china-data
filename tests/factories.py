@@ -5,6 +5,7 @@ the structure and constraints of real economic data used in the China data pipel
 """
 
 import random
+from typing import Any
 
 import factory
 import numpy as np
@@ -12,7 +13,7 @@ import pandas as pd
 from factory import fuzzy
 
 
-class EconomicDataFactory(factory.Factory):
+class EconomicDataFactory(factory.Factory):  # type: ignore[misc]
     """Factory for generating economic data rows."""
 
     class Meta:
@@ -25,38 +26,38 @@ class EconomicDataFactory(factory.Factory):
     GDP_USD_bn = fuzzy.FuzzyFloat(50.0, 20000.0)
 
     # Consumption as percentage of GDP (typically 35-65% for China)
-    @factory.LazyAttribute
-    def C_USD_bn(obj) -> float:
+    @factory.LazyAttribute  # type: ignore[misc]
+    def C_USD_bn(obj: Any) -> Any:
         consumption_ratio = random.uniform(0.35, 0.65)
         return round(obj.GDP_USD_bn * consumption_ratio, 2)
 
     # Government spending as percentage of GDP (typically 10-25%)
-    @factory.LazyAttribute
-    def G_USD_bn(obj) -> float:
+    @factory.LazyAttribute  # type: ignore[misc]
+    def G_USD_bn(obj: Any) -> Any:
         gov_ratio = random.uniform(0.10, 0.25)
         return round(obj.GDP_USD_bn * gov_ratio, 2)
 
     # Investment as percentage of GDP (typically 20-50% for China)
-    @factory.LazyAttribute
-    def I_USD_bn(obj) -> float:
+    @factory.LazyAttribute  # type: ignore[misc]
+    def I_USD_bn(obj: Any) -> Any:
         investment_ratio = random.uniform(0.20, 0.50)
         return round(obj.GDP_USD_bn * investment_ratio, 2)
 
     # Exports as percentage of GDP (typically 10-35% for China)
-    @factory.LazyAttribute
-    def X_USD_bn(obj) -> float:
+    @factory.LazyAttribute  # type: ignore[misc]
+    def X_USD_bn(obj: Any) -> Any:
         export_ratio = random.uniform(0.10, 0.35)
         return round(obj.GDP_USD_bn * export_ratio, 2)
 
     # Imports as percentage of GDP (typically 8-30% for China)
-    @factory.LazyAttribute
-    def M_USD_bn(obj) -> float:
+    @factory.LazyAttribute  # type: ignore[misc]
+    def M_USD_bn(obj: Any) -> Any:
         import_ratio = random.uniform(0.08, 0.30)
         return round(obj.GDP_USD_bn * import_ratio, 2)
 
     # Capital stock (typically 2-4 times GDP)
-    @factory.LazyAttribute
-    def K_USD_bn(obj) -> float:
+    @factory.LazyAttribute  # type: ignore[misc]
+    def K_USD_bn(obj: Any) -> Any:
         capital_ratio = random.uniform(2.0, 4.0)
         return round(obj.GDP_USD_bn * capital_ratio, 2)
 
@@ -76,7 +77,7 @@ class EconomicDataFactory(factory.Factory):
     FDI_pct_GDP = fuzzy.FuzzyFloat(0.0, 6.0)
 
 
-class PWTDataFactory(factory.Factory):
+class PWTDataFactory(factory.Factory):  # type: ignore[misc]
     """Factory for Penn World Table data."""
 
     class Meta:
@@ -100,7 +101,7 @@ class PWTDataFactory(factory.Factory):
     hc = fuzzy.FuzzyFloat(1.0, 4.0)
 
 
-class IMFTaxDataFactory(factory.Factory):
+class IMFTaxDataFactory(factory.Factory):  # type: ignore[misc]
     """Factory for IMF tax revenue data."""
 
     class Meta:
@@ -110,7 +111,7 @@ class IMFTaxDataFactory(factory.Factory):
     TAX_pct_GDP = fuzzy.FuzzyFloat(8.0, 30.0)
 
 
-class EconomicIndicatorsFactory(factory.Factory):
+class EconomicIndicatorsFactory(factory.Factory):  # type: ignore[misc]
     """Factory for calculated economic indicators."""
 
     class Meta:

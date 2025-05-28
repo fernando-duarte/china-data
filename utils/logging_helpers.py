@@ -7,17 +7,17 @@ import functools
 import os
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, TypeVar, cast
 
 import structlog
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def _add_correlation_id(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add correlation ID for request tracing."""
     correlation_id = (
-        os.getenv("CORRELATION_ID")
-        or getattr(_logger, "_correlation_id", None)
-        or event_dict.get("correlation_id")
+        os.getenv("CORRELATION_ID") or getattr(_logger, "_correlation_id", None) or event_dict.get("correlation_id")
     )
 
     if correlation_id:
@@ -68,7 +68,7 @@ class LoggerMixin:
         return self._logger
 
 
-def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ignore[misc]
+def log_performance(func: F) -> F:
     """Decorator to log function performance metrics."""
 
     @functools.wraps(func)
@@ -78,7 +78,7 @@ def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ig
 
         try:
             result = func(*args, **kwargs)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             duration = time.time() - start_time
             perf_logger.exception(
                 "Function failed",
@@ -98,4 +98,4 @@ def log_performance(func: Callable[..., Any]) -> Callable[..., Any]:  # type: ig
         )
         return result
 
-    return wrapper
+    return cast("F", wrapper)

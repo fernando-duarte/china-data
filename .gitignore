@@ -205,3 +205,10 @@ output/**/*.pdf
 # Dependency Management (2025)
 # No longer needed with Renovate + UV native support
 requirements.txt
+
+sbom.spdx.json
+.env
+Dockerfile.backup
+docker-compose.yml.backup
+renovate.json5.backup
+VERSION.txt

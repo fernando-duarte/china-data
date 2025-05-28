@@ -62,62 +62,88 @@ exclude = [
 [lint]
 # Enable a comprehensive set of rules
 select = [
-    # Existing rules...
+    # Core style and error checking
     "E",      # pycodestyle errors
     "W",      # pycodestyle warnings
     "F",      # Pyflakes
+
+    # Code modernization
     "UP",     # pyupgrade
+    "FURB",   # refurb - modernize Python code
+
+    # Bug and code smell detection
     "B",      # flake8-bugbear
     "SIM",    # flake8-simplify
+
+    # Import management
     "I",      # isort
+    "TID",    # flake8-tidy-imports
+    "TCH",    # flake8-type-checking
+
+    # Naming conventions
     "N",      # pep8-naming
+
+    # Documentation
     "D",      # pydocstyle
+
+    # Complexity
     "C90",    # mccabe complexity
+
+    # Type annotations
     "ANN",    # flake8-annotations
+    "FA",     # flake8-future-annotations
+
+    # Security rules
     "S",      # flake8-bandit (security)
+
+    # Error handling
     "BLE",    # flake8-blind-except
+    "TRY",    # tryceratops
+    "EM",     # flake8-errmsg
+    "RSE",    # flake8-raise
+
+    # Best practices
     "FBT",    # flake8-boolean-trap
     "A",      # flake8-builtins
     "COM",    # flake8-commas
     "C4",     # flake8-comprehensions
     "DTZ",    # flake8-datetimez
     "T10",    # flake8-debugger
-    "EM",     # flake8-errmsg
     "EXE",    # flake8-executable
     "ISC",    # flake8-implicit-str-concat
     "ICN",    # flake8-import-conventions
     "G",      # flake8-logging-format
+    "LOG",    # flake8-logging - logging best practices
     "INP",    # flake8-no-pep420
     "PIE",    # flake8-pie
     "T20",    # flake8-print
     "PYI",    # flake8-pyi
     "PT",     # flake8-pytest-style
     "Q",      # flake8-quotes
-    "RSE",    # flake8-raise
     "RET",    # flake8-return
     "SLF",    # flake8-self
     "SLOT",   # flake8-slots
-    "TID",    # flake8-tidy-imports
-    "TCH",    # flake8-type-checking
     "ARG",    # flake8-unused-arguments
     "PTH",    # flake8-use-pathlib
     "ERA",    # eradicate
+
+    # Framework-specific
     "PD",     # pandas-vet
-    "PGH",    # pygrep-hooks
-    "PL",     # Pylint
-    "TRY",    # tryceratops
-    "FLY",    # flynt
     "NPY",    # NumPy-specific rules
     "AIR",    # Airflow
-    "PERF",   # Perflint
-    "RUF",    # Ruff-specific rules
 
-    # 2025 additions
+    # Async programming
     "ASYNC",  # async/await best practices
     "ASYNC1", # Async framework patterns (formerly TRIO)
-    "FURB",   # refurb - modernize Python code
-    "LOG",    # logging best practices
-    "FA",     # flake8-future-annotations
+
+    # Performance
+    "PERF",   # Perflint - performance linting
+
+    # Meta-linters
+    "PGH",    # pygrep-hooks
+    "PL",     # Pylint
+    "FLY",    # flynt
+    "RUF",    # Ruff-specific rules
 ]
 
 # Ignore specific rules
@@ -136,6 +162,7 @@ ignore = [
     "FBT002", # Boolean default value in function definition
     "COM812", # Missing trailing comma (conflicts with formatter)
     "ISC001", # Single line implicit string concatenation (conflicts with formatter)
+    "UP017",  # Use datetime.UTC alias (Python 3.11+ only, maintain 3.10 compatibility)
 ]
 
 # Allow autofix for all enabled rules

@@ -69,6 +69,7 @@ jobs:
 
       - name: Run Bandit Security Scan
         run: |
+          uv add --dev bandit==1.7.0
           uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*,./.venv/*" || true
           uv run bandit -r . -f txt --exclude "./venv/*,./tests/*,./.venv/*" || true
 
@@ -105,6 +106,7 @@ jobs:
 
       - name: Run pip-audit vulnerability scan
         run: |
+          uv add --dev pip-audit==2.7.3
           uv run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
           uv run pip-audit --format=cyclonedx-json --output=pip-audit-sbom.json || true
           uv run pip-audit || true

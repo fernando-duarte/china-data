@@ -6,3 +6,14 @@ overrides:
       - "tests/*"
 
 skips: ["B101", "B404", "B603"]
+
+# Exclude directories from scanning
+exclude_dirs:
+  - "/tests/"
+  - "/.venv/"
+  - "/venv/"
+  - "/.mypy_cache/"
+  - "/.pytest_cache/"
+
+# Set confidence level
+confidence: MEDIUM

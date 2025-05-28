@@ -2,17 +2,24 @@
 
 from __future__ import annotations
 
+import logging
 import time
-import types
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import types
+
+# Remove the cyclic import - this module should not import from logging_config
+# since logging_config imports from this module
+module_logger = logging.getLogger(__name__)
 
 
 class LoggedOperation:
     """Context manager for logging operation start, success, and failure."""
 
-    def __init__(self, logger: Any, operation_name: str, **context: Any) -> None:
+    def __init__(self, operation_logger: Any, operation_name: str, **context: Any) -> None:
         """Initialize the logged operation."""
-        self.logger = logger
+        self.logger = operation_logger
         self.operation_name = operation_name
         self.context = context
         self.start_time = 0.0
@@ -50,15 +57,15 @@ class LoggedOperation:
             )
 
 
-def log_operation_start(logger: Any, operation_name: str, **context: Any) -> Any:
+def log_operation_start(operation_logger: Any, operation_name: str, **context: Any) -> Any:
     """Log the start of an operation."""
-    bound_logger = logger.bind(operation=operation_name, **context)
+    bound_logger = operation_logger.bind(operation=operation_name, **context)
     bound_logger.info("Operation started")
     return bound_logger
 
 
 def log_operation_success(
-    logger: Any,
+    operation_logger: Any,
     operation_name: str,
     duration_seconds: float | None = None,
     **context: Any,
@@ -68,11 +75,11 @@ def log_operation_success(
     if duration_seconds is not None:
         log_data["duration_seconds"] = duration_seconds
 
-    logger.info("Operation completed successfully", **log_data)
+    operation_logger.info("Operation completed successfully", **log_data)
 
 
 def log_operation_error(
-    logger: Any,
+    operation_logger: Any,
     operation_name: str,
     error: Exception,
     duration_seconds: float | None = None,
@@ -88,11 +95,11 @@ def log_operation_error(
     if duration_seconds is not None:
         log_data["duration_seconds"] = duration_seconds
 
-    logger.error("Operation failed", **log_data)
+    operation_logger.error("Operation failed", **log_data)
 
 
 def log_data_quality_issue(
-    logger: Any,
+    operation_logger: Any,
     issue_type: str,
     description: str,
     *,
@@ -115,11 +122,11 @@ def log_data_quality_issue(
     if column:
         log_data["column"] = column
 
-    logger.warning("Data quality issue detected", **log_data)
+    operation_logger.warning("Data quality issue detected", **log_data)
 
 
 def log_performance_metric(
-    logger: Any,
+    operation_logger: Any,
     metric_name: str,
     value: float,
     unit: str,
@@ -137,4 +144,4 @@ def log_performance_metric(
     if operation:
         log_data["operation"] = operation
 
-    logger.info("Performance metric", **log_data)
+    operation_logger.info("Performance metric", **log_data)

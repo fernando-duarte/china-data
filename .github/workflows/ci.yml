@@ -33,24 +33,55 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.13
 
       - name: Install dependencies
         run: uv sync --frozen --dev
 
       - name: Lint and format check with Ruff
         run: |
+          # Use exact ruff version from pre-commit (v0.11.11)
+          uv add --dev ruff==0.11.11
           # Ruff check (replaces flake8, isort, and many other linters)
           uv run ruff check . --output-format=github
           # Ruff format check (replaces black)
           uv run ruff format --check .
 
+      - name: Run pyupgrade syntax modernization
+        run: |
+          uv add --dev pyupgrade==3.19.0
+          uv run pyupgrade --py313-plus china_data_processor.py china_data_downloader.py utils/**/*.py || true
+
+      - name: Format YAML and Markdown with prettier
+        run: |
+          npm install -g prettier@4.0.0-alpha.8
+          prettier --check "**/*.{yml,yaml,md}" --ignore-path .gitignore || true
+
+      - name: Lint Markdown files
+        run: |
+          npm install -g markdownlint-cli@0.43.0
+          markdownlint "**/*.md" --ignore node_modules --ignore .github || true
+
+      - name: Check code complexity with radon
+        run: |
+          uv add --dev radon==6.0.0
+          uv run radon cc china_data_processor.py china_data_downloader.py utils/ --min B --show-complexity || true
+
+      - name: Check docstring coverage with interrogate
+        run: |
+          uv add --dev interrogate==1.7.0
+          uv run interrogate china_data_processor.py china_data_downloader.py utils/ --verbose --fail-under=80 || true
+
       - name: Lint with pylint
         run: |
+          # Use exact pylint version from pre-commit (v3.3.1)
+          uv add --dev pylint==3.3.1
           uv run pylint china_data_processor.py china_data_downloader.py utils/ --ignore=venv --jobs=0 || true
 
       - name: Type check with mypy
         run: |
+          # Use exact mypy version from pre-commit (v1.13.0)
+          uv add --dev mypy==1.13.0
           uv run mypy china_data_processor.py china_data_downloader.py || true
 
       - name: Generate ruff report
@@ -80,7 +111,7 @@ jobs:
         include:
           # Full matrix for main Python version
           - os: ubuntu-latest
-            python-version: "3.11"
+            python-version: "3.13"
             chunk: 1
             full-test: true
           # Reduced matrix for other versions (core tests only)
@@ -89,7 +120,7 @@ jobs:
             chunk: 1
             core-only: true
           - os: ubuntu-latest
-            python-version: "3.13"
+            python-version: "3.11"
             chunk: 1
             core-only: true
         exclude:
@@ -193,7 +224,7 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.13
 
       - name: Install dependencies
         run: uv sync --frozen --dev
@@ -256,7 +287,7 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.13
 
       - name: Install dependencies
         run: uv sync --frozen --dev
@@ -271,7 +302,7 @@ jobs:
       - name: Run standalone Bandit for additional coverage
         run: |
           # Install and run bandit for additional security scanning
-          uv add --dev bandit
+          uv add --dev bandit==1.7.0
           uv run bandit -r . -f json -o bandit-report.json --exclude "./venv/*,./tests/*" || true
 
       - name: Upload security reports
@@ -301,7 +332,7 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.13
 
       - name: Install dependencies
         run: uv sync --frozen --dev
@@ -405,7 +436,7 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.13
 
       - name: Install dependencies
         run: uv sync --frozen --dev
