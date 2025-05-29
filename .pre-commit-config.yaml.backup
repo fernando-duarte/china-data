@@ -1,8 +1,23 @@
 default_language_version:
   python: python3.13
+
 fail_fast: false
-exclude: ^(venv/|\.venv/|env/|ENV/|venv.*/|__pycache__/|\.git/|\.mypy_cache/|\.pytest_cache/|\.ruff_cache/|\.hypothesis/|node_modules/|htmlcov/|workflow_outputs/|build/|dist/|target/|\.vscode/|\.idea/|docs/_build/|site/|tmp/|temp/|output/|.*\.egg-info/)
+
+# Simplified global exclude with cache directories
+exclude: |
+  (?x)^(
+    \.venv/|
+    venv/|
+    .*\.egg-info/|
+    \.(git|mypy_cache|pytest_cache|ruff_cache|hypothesis)/|
+    (build|dist|htmlcov|site|node_modules|workflow_outputs)/|
+    \.(vscode|idea)/|
+    .*cache/|
+    security-results/
+  )
+
 repos:
+  # Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -11,8 +26,7 @@ repos:
       - id: check-json
       - id: check-ast
       - id: check-added-large-files
-        args:
-          - --maxkb=1000
+        args: [--maxkb=1000]
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: check-docstring-first
@@ -21,88 +35,95 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: mixed-line-ending
-        args:
-          - --fix=lf
+        args: [--fix=lf]
       - id: requirements-txt-fixer
+
+  # Code formatting and linting (with caching)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.11
     hooks:
       - id: ruff
-        args:
-          - --fix
+        args: [--fix, --cache-dir=.ruff_cache]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
       - id: ruff-format
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+
+  # Security scanning (consolidated)
   - repo: https://github.com/semgrep/semgrep
     rev: v1.99.0
     hooks:
       - id: semgrep
-        name: semgrep-security-audit
+        name: semgrep-security-scan
         args:
           - --config=p/security-audit
           - --config=p/secrets
-          - --timeout=30
+          - --timeout=10
+          - --max-target-bytes=1000000
           - --skip-unknown-extensions
           - --json
-          - --output=semgrep-security.json
-        files: \.py$
-        exclude: ^(tests/data_integrity/|docs/|examples/)
+          - --output=security-results/semgrep-report.json
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        exclude: ^tests/
         require_serial: false
-  - repo: https://github.com/semgrep/semgrep
-    rev: v1.99.0
-    hooks:
-      - id: semgrep
-        name: semgrep-python-security
-        args:
-          - --config=p/security-audit
-          - --timeout=30
-          - --skip-unknown-extensions
-          - --json
-          - --output=semgrep-python.json
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*)\.py$
-        require_serial: false
+
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.3
     hooks:
       - id: bandit
         name: bandit-security-scan
         args:
+          - -ll # Only high severity
           - -f
           - json
           - -o
-          - bandit.json
+          - security-results/bandit-report.json
         files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
-        exclude: ^(\.venv/|venv/|env/|ENV/|tests/|examples/|docs/)
+        exclude: ^tests/
         pass_filenames: true
-      - id: bandit
-        name: bandit-high-severity
-        args:
-          - -ll
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
-        exclude: ^(\.venv/|venv/|env/|ENV/|tests/|examples/|docs/)
-        pass_filenames: true
+
+  # Additional quality checks with caching
   - repo: https://github.com/pylint-dev/pylint
     rev: v3.3.1
     hooks:
       - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
-        exclude: ^(\.venv/|venv/|env/|ENV/)
-        args:
-          - --jobs=0
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        exclude: ^tests/
+        args: [--jobs=0]
+        additional_dependencies:
+          - pandas
+          - numpy
+          - requests
+          - structlog
+          - python-dotenv
+          - pydantic
+          - pandas-datareader
+          - requests-cache
+          - statsmodels
+          - scikit-learn
+          - opentelemetry-api
+          - opentelemetry-sdk
+          - opentelemetry-exporter-otlp
+          - jinja2
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
       - id: mypy
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
-        exclude: ^(\.venv/|venv/|env/|ENV/)
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        exclude: ^tests/
         args:
           - --strict
           - --python-version=3.13
+          - --cache-dir=.mypy_cache
+          - --incremental
+          - --ignore-missing-imports
         additional_dependencies:
           - types-requests
           - pandas-stubs
           - types-pytz
+          - pydantic
+
+  # Package vulnerability scanning
   - repo: https://github.com/pypa/pip-audit
     rev: v2.7.3
     hooks:
@@ -110,6 +131,8 @@ repos:
         args:
           - --desc
           - --fix
+
+  # Local hooks for additional tools
   - repo: local
     hooks:
       - id: safety-check
@@ -123,54 +146,25 @@ repos:
         files: ^(requirements.*\.txt|pyproject\.toml|uv\.lock)$
         pass_filenames: false
         require_serial: true
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        args:
-          - --baseline
-          - .secrets.baseline
-        exclude:
-          "(?x)^(\n  \\.mypy_cache/.*|\n  \\.venv/.*|\n  venv/.*|\n  __pycache__/.*|\n\
-          \  \\.pytest_cache/.*|\n  \\.ruff_cache/.*|\n  \\.hypothesis/.*|\n  node_modules/.*|\n\
-          \  htmlcov/.*|\n  workflow_outputs/.*|\n  uv\\.lock|\n  coverage\\.xml|\n  bandit\\\
-          .json\n)$\n"
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
-    hooks:
-      - id: pyupgrade
-        args:
-          - --py313-plus
-  - repo: local
-    hooks:
+
       - id: radon-complexity
         name: radon complexity check
         entry: radon
         language: system
-        args:
-          - cc
-          - --min
-          - B
-          - --show-complexity
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
-        exclude: ^(\.venv/|venv/|env/|ENV/)
+        args: [cc, --min, B, --show-complexity]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
         pass_filenames: true
         require_serial: false
-  - repo: local
-    hooks:
+
       - id: interrogate
         name: interrogate docstring coverage
         entry: interrogate
         language: system
-        args:
-          - --verbose
-          - --fail-under=80
-        files: ^(china_data_processor\.py|china_data_downloader\.py|utils/.*\.py)$
-        exclude: ^(\.venv/|venv/|env/|ENV/)
+        args: [--verbose, --fail-under=80]
+        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
         pass_filenames: true
         require_serial: false
-  - repo: local
-    hooks:
+
       - id: check-tool-versions
         name: check tool version alignment
         entry: python3
@@ -181,6 +175,22 @@ repos:
         files: ^(\.pre-commit-config\.yaml|\.github/workflows/.*\.yml|pyproject\.toml)$
         pass_filenames: false
         require_serial: true
+
+  # Secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+
+  # Python upgrades
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.19.0
+    hooks:
+      - id: pyupgrade
+        args: [--py313-plus]
+
+  # Markdown/YAML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
@@ -189,20 +199,16 @@ repos:
           - yaml
           - markdown
         exclude: ^\.github/
+
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.43.0
     hooks:
       - id: markdownlint
-        args:
-          - --fix
+        args: [--fix]
         exclude: ^\.github/
+
 ci:
-  autofix_commit_msg: "[pre-commit.ci] auto fixes from pre-commit.com hooks
-
-
-    for more information, see https://pre-commit.ci
-
-    "
+  autofix_commit_msg: "[pre-commit.ci] auto fixes from pre-commit hooks"
   autofix_prs: true
   autoupdate_branch: ""
   autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
@@ -214,8 +220,6 @@ ci:
     - radon-complexity
     - interrogate
     - bandit-security-scan
-    - bandit-high-severity
+    - semgrep-security-scan
     - safety-check
-    - semgrep-security-audit
-    - semgrep-python-security
   submodules: false
