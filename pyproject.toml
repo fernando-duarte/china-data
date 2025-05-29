@@ -645,62 +645,17 @@ coverage_file = ".coverage"
 
 [tool.radon]
 # Radon configuration for code complexity analysis (2024-2025 best practices)
-# Exclude patterns aligned with other tools for consistency
-exclude = [
-    # Cache and build directories
-    "*/__pycache__/*",
-    "*/.git/*",
-    "*/build/*",
-    "*/dist/*",
-
-    # Virtual environments
-    "*/.venv/*",
-    "*/venv/*",
-    "*/.env/*",
-    "*/ENV/*",
-
-    # Modern cache directories (2024-2025)
-    "*/.ruff_cache/*",
-    "*/.mypy_cache/*",
-    "*/.pytest_cache/*",
-    "*/.tox/*",
-    "*/.nox/*",
-    "*/.hypothesis/*",
-
-    # Package managers and build artifacts
-    "*.egg-info/*",
-    "*/__pypackages__/*",
-    "*/.pdm-python/*",
-    "*/.uv-cache/*",
-
-    # Development tools and IDEs
-    "*/.ipynb_checkpoints/*",
-    "*/.devcontainer/*",
-    "*/.vscode/*",
-    "*/.idea/*",
-
-    # Coverage and testing
-    "*/htmlcov/*",
-    "*/.coverage*",
-    "*/cover/*",
-
-    # Framework-specific
-    "*/migrations/*",
-    "*/static/*",
-    "*/media/*",
-    "*/node_modules/*",
-
-    # Project-specific directories
-    "*/workflow_outputs/*",
-    "*/parameters_info/*",
-    "*/input/*",
-    "*/output/*",
-
-    # Test files (optional - can be included if you want to analyze test complexity)
-    "*/tests/*",
-    "*test_*.py",
-    "*_test.py",
-]
+#
+# NOTE: For performance reasons, we use a targeted approach in the Makefile
+# that only analyzes specific directories rather than relying on exclusions.
+# This ensures fast execution by avoiding the need to scan large directories.
+#
+# Analyzed paths (specified in Makefile):
+# - utils/                    (main utility modules)
+# - config.py                 (configuration module)
+# - config_schema.py          (configuration schema)
+# - china_data_downloader.py  (main downloader script)
+# - china_data_processor.py   (main processor script)
 
 # Radon command-specific settings
 cc_min = "A"  # Minimum complexity rank to display (A-F)
