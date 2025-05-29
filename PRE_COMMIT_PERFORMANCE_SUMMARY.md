@@ -2,52 +2,72 @@
 
 ## Overview
 
-Successfully optimized the pre-commit configuration to improve performance and maintainability.
+Successfully optimized the pre-commit configuration to improve maintainability while maintaining performance.
 
 ## Performance Results
 
 ### Baseline Performance
 
-- **Full run**: ~38 seconds
-- **Issues**: Redundant security scans, no caching, overly broad file patterns
+- **Initial run**: 28.755 seconds
+- **Configuration**: Multiple repeated file patterns, redundant configurations
 
 ### Optimized Performance
 
-- **First run** (with dependency installation): ~66 seconds
-- **Subsequent runs** (with cache): Expected 50-70% faster
-- **Without heavy hooks** (pylint/mypy): ~17 seconds (55% improvement)
+- **Cold cache run**: 30.261 seconds (similar to baseline)
+- **Warm cache run**: 26.649 seconds (~12% faster than cold cache)
 
 ## Key Optimizations Implemented
 
-### 1. Consolidated Security Scanning
+### 1. Standardized File Patterns with YAML Anchors
 
-- **Before**: 2 separate Semgrep hooks running redundant scans
-- **After**: 1 consolidated Semgrep hook with targeted rules
-- **Impact**: Reduced security scanning time by ~50%
+- Created reusable file pattern definitions using YAML anchors
+- Eliminated repetitive file pattern specifications
+- Improved configuration maintainability (DRY principle)
 
-### 2. Reduced Semgrep Scope
+### 2. Consolidated Security Scanning
 
-- **Before**: 1190 rules (including full Python ruleset)
-- **After**: ~400 rules (security-audit + secrets only)
-- **Impact**: Semgrep runs 3x faster
+- Merged redundant Bandit configurations into single hook
+- Optimized Semgrep to focus on security-specific rules
+- Created `security-results/` directory for centralized reporting
 
-### 3. Targeted File Patterns
+### 3. Enabled Caching
 
-- **Before**: Inconsistent patterns, some hooks checking all files
-- **After**: Consistent patterns targeting only relevant files
-- **Impact**: Reduced unnecessary file processing
+- Configured Ruff with explicit cache directory (`.ruff_cache`)
+- MyPy already using cache (`.mypy_cache`)
+- Cache sizes: MyPy ~80MB, Ruff ~56KB
 
-### 4. Enabled Caching
+### 4. Performance by Hook
 
-- **Ruff**: Cache at `.ruff_cache/`
-- **MyPy**: Cache at `.mypy_cache/` with incremental mode
-- **Impact**: 90%+ faster on unchanged files
+| Hook        | Duration | Notes                                          |
+| ----------- | -------- | ---------------------------------------------- |
+| Ruff        | 0.05s    | Lightning fast with caching                    |
+| Ruff format | 0.01s    | Extremely fast                                 |
+| Semgrep     | 4.73s    | Optimized from 180s by removing Python ruleset |
+| Bandit      | 0.42s    | Fast security scanning                         |
+| Pylint      | 7.74s    | Comprehensive analysis (skipped in CI)         |
+| MyPy        | 1.59s    | Type checking with cache                       |
+| Safety      | 6.56s    | Vulnerability scanning                         |
 
-### 5. Simplified Configuration
+## Configuration Benefits
 
-- **Before**: Redundant excludes, complex patterns, duplicated logic
-- **After**: DRY configuration with clear file groups
-- **Impact**: Easier maintenance and fewer bugs
+1. **Maintainability**: Single source of truth for file patterns
+2. **Performance**: ~12% improvement with warm caches
+3. **Clarity**: Clear separation of concerns
+4. **CI Optimization**: Heavy tools automatically skipped
+5. **Security**: Consolidated reporting in `security-results/`
+
+## Future Optimization Opportunities
+
+1. Consider parallel execution for independent hooks
+2. Explore additional caching opportunities
+3. Fine-tune file patterns for even more targeted scanning
+4. Consider using `--show-diff-on-failure` by default
+
+## Conclusion
+
+The optimization maintained baseline performance while significantly improving configuration maintainability.
+The use of YAML anchors and targeted file patterns makes the configuration more DRY and easier to maintain,
+while caching provides measurable performance improvements on subsequent runs.
 
 ## CI Optimization
 

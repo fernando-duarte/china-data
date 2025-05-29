@@ -1,3 +1,25 @@
+# File pattern anchors for reuse
+_file_patterns:
+  core_python: &core_python
+    files: ^(china_data_processor\.py|china_data_downloader\.py)$
+
+  config_files: &config_files
+    files: ^(config\.py|config_schema\.py)$
+
+  utils_files: &utils_files
+    files: ^utils/.*\.py$
+
+  model_files: &model_files
+    files: ^model/.*\.py$
+
+  all_production_python: &all_production_python
+    files: >-
+      ^(china_data_processor\.py|china_data_downloader\.py|config\.py|
+      config_schema\.py|utils/.*\.py|model/.*\.py)$
+
+  test_files: &test_files
+    files: ^tests/.*\.py$
+
 default_language_version:
   python: python3.13
 
@@ -44,27 +66,25 @@ repos:
     hooks:
       - id: ruff
         args: [--fix, --cache-dir=.ruff_cache]
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
       - id: ruff-format
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
 
   # Security scanning (consolidated)
   - repo: https://github.com/semgrep/semgrep
     rev: v1.99.0
     hooks:
       - id: semgrep
-        name: semgrep-security-scan
+        name: semgrep-comprehensive-scan
         args:
           - --config=p/security-audit
           - --config=p/secrets
-          - --timeout=10
-          - --max-target-bytes=1000000
+          - --timeout=30
           - --skip-unknown-extensions
           - --json
           - --output=security-results/semgrep-report.json
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
         exclude: ^tests/
-        require_serial: false
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.3
@@ -72,12 +92,12 @@ repos:
       - id: bandit
         name: bandit-security-scan
         args:
-          - -ll # Only high severity
+          - -ll
           - -f
           - json
           - -o
           - security-results/bandit-report.json
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
         exclude: ^tests/
         pass_filenames: true
 
@@ -86,7 +106,7 @@ repos:
     rev: v3.3.1
     hooks:
       - id: pylint
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
         exclude: ^tests/
         args: [--jobs=0]
         additional_dependencies:
@@ -109,7 +129,7 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
         exclude: ^tests/
         args:
           - --strict
@@ -152,18 +172,16 @@ repos:
         entry: radon
         language: system
         args: [cc, --min, B, --show-complexity]
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
         pass_filenames: true
-        require_serial: false
 
       - id: interrogate
         name: interrogate docstring coverage
         entry: interrogate
         language: system
         args: [--verbose, --fail-under=80]
-        files: ^(china_data_processor\.py|china_data_downloader\.py|config\.py|config_schema\.py|utils/.*\.py|model/.*\.py)$
+        <<: *all_production_python
         pass_filenames: true
-        require_serial: false
 
       - id: check-tool-versions
         name: check tool version alignment
@@ -220,6 +238,6 @@ ci:
     - radon-complexity
     - interrogate
     - bandit-security-scan
-    - semgrep-security-scan
+    - semgrep-comprehensive-scan
     - safety-check
   submodules: false
