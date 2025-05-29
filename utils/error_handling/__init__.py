@@ -6,6 +6,7 @@ and utilities for error context preservation.
 
 import logging
 import sys
+from pathlib import Path
 from typing import Any, NoReturn
 
 import structlog
@@ -26,10 +27,14 @@ def setup_error_handling() -> None:
     This function is deprecated. Use utils.logging_config.setup_structured_logging() instead.
     """
     # For backward compatibility, set up basic logging
+    # Ensure logs directory exists
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(levelname)s %(name)s:%(filename)s:%(lineno)d %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler("error.log")],
+        handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler(log_dir / "error.log")],
     )
 
 

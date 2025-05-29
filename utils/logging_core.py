@@ -61,7 +61,11 @@ def setup_structured_logging(
     )
 
     if log_file:
-        file_handler = logging.FileHandler(Path(log_file))
+        # Ensure the directory exists
+        log_path = Path(log_file)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+
+        file_handler = logging.FileHandler(log_path)
         file_handler.setLevel(getattr(logging, log_level.upper()))
         file_formatter = logging.Formatter("%(message)s")
         file_handler.setFormatter(file_formatter)

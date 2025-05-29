@@ -155,7 +155,7 @@ class Config:
     }
 
     # Logging configuration
-    LOG_FILE: ClassVar[str] = os.getenv("CHINA_DATA_LOG_FILE", "china_data.log")
+    LOG_FILE: ClassVar[str] = os.getenv("CHINA_DATA_LOG_FILE", "logs/china_data.log")
     LOG_LEVEL: ClassVar[str] = os.getenv("CHINA_DATA_LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -169,7 +169,7 @@ class Config:
     STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO = bool(
         os.getenv("CHINA_DATA_STRUCTURED_LOGGING_INCLUDE_PROCESS_INFO", "True").lower() == "true"
     )
-    STRUCTURED_LOGGING_FILE = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_FILE", "china_data.log")
+    STRUCTURED_LOGGING_FILE = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_FILE", "logs/china_data.log")
 
     # Caching configuration
     CACHE_NAME = "china_data_cache"
@@ -237,6 +237,10 @@ def configure_logging() -> None:
     # Configure standard library logging
     import logging
 
+    # Ensure logs directory exists
+    log_file_path = Path(Config.STRUCTURED_LOGGING_FILE)
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
+
     # Set log level
     log_level = getattr(logging, Config.STRUCTURED_LOGGING_LEVEL.upper())
     logging.basicConfig(
@@ -244,7 +248,7 @@ def configure_logging() -> None:
         format=Config.LOG_FORMAT,
         datefmt=Config.LOG_DATE_FORMAT,
         handlers=[
-            logging.FileHandler(Config.STRUCTURED_LOGGING_FILE),
+            logging.FileHandler(log_file_path),
             logging.StreamHandler(sys.stderr),
         ],
     )

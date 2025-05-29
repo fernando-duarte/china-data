@@ -216,6 +216,7 @@ output/*.log
 # output/*.pdf  # This line is commented to allow PDFs
 china_data.log*
 *.log
+logs/
 
 # Test artifacts
 test.md
