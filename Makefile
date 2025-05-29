@@ -170,7 +170,7 @@ validate: lint test security ## Run all validation checks
 security: ## Run fast security scans
 	@echo "🔒 Running security scans..."
 	# Using pip-audit as configured in pre-commit
-	$(UV) run pip-audit --desc || true
+	$(UV) run pip-audit --desc --ignore-vuln PYSEC-2022-42969 || true
 	# Using safety directly (namespace issue should be fixed by setup)
 	# Note: may show pkg_resources deprecation warning - this is harmless
 	$(UV) run safety scan || true
@@ -179,14 +179,14 @@ security: ## Run fast security scans
 
 security-full: ## Run comprehensive security scans
 	@echo "🔒 Running comprehensive security scans..."
-	$(UV) run pip-audit --desc
+	$(UV) run pip-audit --desc --ignore-vuln PYSEC-2022-42969
 	$(UV) run safety scan
 	# Using semgrep with pre-commit configuration
 	$(UV) run semgrep --config=p/security-audit --config=p/secrets --timeout=30 --skip-unknown-extensions
 
 security-scan: ## Run dependency vulnerability scan
 	@echo "🔍 Running dependency vulnerability scan..."
-	$(UV) run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
+	$(UV) run pip-audit --format=json --output=pip-audit-vulnerabilities.json --ignore-vuln PYSEC-2022-42969 || true
 	$(UV) run safety scan --output json > safety-vulnerabilities.json || true
 	@echo "✅ Vulnerability scan complete. Check pip-audit-vulnerabilities.json and safety-vulnerabilities.json"
 

@@ -32,7 +32,7 @@ class TestCreateMarkdownTable:
             "hc": {"method": "Linear regression", "years": []},  # Empty years
         }
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_basic_markdown_creation(self, mock_file, sample_data, extrapolation_info):
         """Test basic markdown table creation."""
         output_path = "test_output.md"
@@ -48,7 +48,7 @@ class TestCreateMarkdownTable:
         )
 
         # Check that file was opened for writing
-        mock_file.assert_called_once_with(output_path, "w", encoding="utf-8")
+        mock_file.assert_called_once_with("w", encoding="utf-8")
 
         # Get what was written
         handle = mock_file()
@@ -62,7 +62,7 @@ class TestCreateMarkdownTable:
         assert "## Derived Variables" in written_content
         assert "## Extrapolation to 2025" in written_content
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_table_formatting(self, mock_file, sample_data, extrapolation_info):
         """Test that the table is properly formatted."""
         create_markdown_table(sample_data, "test.md", extrapolation_info)
@@ -77,7 +77,7 @@ class TestCreateMarkdownTable:
         assert "| 2020 | 14722.73 | 1439.32 |" in written_content
         assert "| 2021 | 17744.64 | 1444.22 |" in written_content
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_extrapolation_notes(self, mock_file, sample_data, extrapolation_info):
         """Test that extrapolation methods are properly documented."""
         create_markdown_table(sample_data, "test.md", extrapolation_info)
@@ -93,7 +93,7 @@ class TestCreateMarkdownTable:
         # Variables with empty years should not appear
         assert "Human Capital" not in written_content or "hc" not in written_content
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_parameter_documentation(self, mock_file, sample_data, extrapolation_info):
         """Test that parameters are documented correctly."""
         alpha = 0.35
@@ -120,11 +120,11 @@ class TestCreateMarkdownTable:
         assert f"source file={input_file}" in written_content
         assert f"end year={end_year}" in written_content
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     @patch("utils.output.markdown_generator.datetime")
     def test_date_generation(self, mock_datetime, mock_file, sample_data, extrapolation_info):
         """Test that current date is included."""
-        mock_datetime.today.return_value.strftime.return_value = "2024-01-15"
+        mock_datetime.now.return_value.strftime.return_value = "2024-01-15"
 
         create_markdown_table(sample_data, "test.md", extrapolation_info)
 
@@ -132,7 +132,7 @@ class TestCreateMarkdownTable:
 
         assert "Generated 2024-01-15" in written_content
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_formula_documentation(self, mock_file, sample_data, extrapolation_info):
         """Test that formulas are properly documented."""
         create_markdown_table(sample_data, "test.md", extrapolation_info)
@@ -141,11 +141,11 @@ class TestCreateMarkdownTable:
 
         # Check for formula sections
         assert "Net Exports = Exports - Imports" in written_content
-        assert "TFP_t = Y_t / (K_t^alpha * (L_t * H_t)^(1-alpha))" in written_content
-        # The K_t formula uses * instead of special characters
-        assert "K_t = (rkna_t / rkna_2017) * K_2017" in written_content
+        assert "TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))" in written_content
+        # The K_t formula uses x instead of * and includes pl_gdpo terms
+        assert "K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)" in written_content
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_empty_extrapolation_info(self, mock_file, sample_data) -> None:
         """Test handling of empty extrapolation info."""
         empty_info: dict[str, dict[str, Any]] = {}
@@ -155,7 +155,7 @@ class TestCreateMarkdownTable:
         # Should not raise exception
         mock_file.assert_called_once()
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pathlib.Path.open", new_callable=mock_open)
     def test_column_mapping(self, mock_file, sample_data):
         """Test that column names are properly mapped in notes."""
         extrapolation_info = {

@@ -222,7 +222,10 @@ def main() -> None:
 
     # Pass download dates to the markdown renderer
     markdown_output = render_markdown_table(
-        merged_data, wdi_date=download_dates["wdi"], pwt_date=download_dates["pwt"], imf_date=imf_download_date
+        merged_data,
+        wdi_date=download_dates["wdi"],
+        pwt_date=download_dates["pwt"],
+        imf_date=imf_download_date,
     )
 
     output_file = Path(output_dir) / "china_data_raw.md"

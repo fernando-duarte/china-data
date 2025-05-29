@@ -7,6 +7,7 @@ import functools
 import os
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, TypeVar, cast
 
 import structlog
@@ -99,3 +100,45 @@ def log_performance(func: F) -> F:
         return result
 
     return cast("F", wrapper)
+
+
+def _add_module_info(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """Add module, function, and line information to log events."""
+    import inspect
+
+    # Get the stack, skipping logging-related frames
+    frame = None
+    for frame_info in inspect.stack()[1:]:  # Skip the current frame
+        filename = frame_info.filename
+        function_name = frame_info.function
+
+        # Skip logging infrastructure, structlog frames, and test infrastructure
+        # Look for the first user code frame
+        skip_patterns = [
+            "structlog",
+            "logging",
+            "logging_",
+            "pytest",
+            "_pytest",
+            "pluggy",
+            "python3",
+            "python.app",
+            "__pypackages__",
+            "site-packages",
+        ]
+        skip_functions = ["pytest_pyfunc_call", "_call_impl", "_hookexec"]
+
+        if not any(pattern in filename for pattern in skip_patterns) and function_name not in skip_functions:
+            frame = frame_info
+            break
+
+    if frame:
+        # Extract module name from filename
+        basename = Path(frame.filename).name
+        module_name = basename.replace(".py", "")
+
+        event_dict["module"] = module_name
+        event_dict["function"] = frame.function
+        event_dict["line"] = frame.lineno
+
+    return event_dict

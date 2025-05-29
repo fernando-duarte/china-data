@@ -17,7 +17,7 @@ The package generates multiple output formats to support different use cases and
 
 **File Structure:**
 
-```
+```text
 output/csv/
 ├── china_wdi_data.csv
 ├── china_imf_data.csv
@@ -167,7 +167,7 @@ server.start()
 
 ## File Naming Convention
 
-```
+```text
 {country}_{source}_{type}_{date}.{extension}
 
 Examples:

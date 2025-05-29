@@ -96,11 +96,13 @@ class TestWDIDownloader:
         with pytest.raises(DataDownloadError):
             download_wdi_data("NY.GDP.MKTP.CD")
 
-        # Check if logger.error or logger.warning was called appropriately by log_error_with_context
-        # This is a bit complex due to the decorator and retry logic.
-        # We expect MAX_RETRIES warnings and 1 final error through log_error_with_context.
-        # For simplicity, just check if error was logged.
-        assert any("Failed to download NY.GDP.MKTP.CD" in call.args[1] for call in mock_logger_wdi.log.call_args_list)
+        # Check for warning logs during retries
+        warning_calls = [call for call in mock_logger_wdi.log.call_args_list if call[0][0] == logging.WARNING]
+        assert len(warning_calls) > 0, "Expected warning logs during retries"
+
+        # Check for error log after all retries fail
+        error_calls = [call for call in mock_logger_wdi.log.call_args_list if call[0][0] == logging.ERROR]
+        assert len(error_calls) > 0, "Expected error log after all retries failed"
 
     @patch("pandas_datareader.wb.WorldBankReader")
     def test_download_wdi_data_different_indicators(self, mock_wb_reader_class, sample_wdi_data):

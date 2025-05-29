@@ -1,4 +1,4 @@
-from unittest.mock import mock_open, patch
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -113,9 +113,10 @@ class TestIMFLoader:
         assert result["TAX_pct_GDP"].dtype in [float, "float64"]
 
     @patch("utils.data_sources.imf_loader.find_file")
-    @patch("builtins.open", new_callable=mock_open, read_data=b"test data")
-    @patch("os.path.exists")
-    def test_check_and_update_hash_new_file(self, mock_exists, mock_file, mock_find_file):
+    @patch("pathlib.Path.read_bytes")
+    @patch("pathlib.Path.write_text")
+    @patch("pathlib.Path.exists")
+    def test_check_and_update_hash_new_file(self, mock_exists, mock_write_text, mock_read_bytes, mock_find_file):
         """Test check_and_update_hash when download_date.txt doesn't exist."""
         # Mock file locations
         mock_find_file.side_effect = [
@@ -123,11 +124,15 @@ class TestIMFLoader:
             None,  # download_date.txt doesn't exist
         ]
         mock_exists.return_value = False
+        mock_read_bytes.return_value = b"test data"  # Mock the file content
+        mock_write_text.return_value = None  # Mock the write operation
 
         result = check_and_update_hash()
 
         # Should return True (hash was updated)
         assert result is True
+        # Verify write_text was called to create download_date.txt
+        mock_write_text.assert_called_once()
 
     @patch("utils.data_sources.imf_loader.find_file")
     def test_check_and_update_hash_no_imf_file(self, mock_find_file):

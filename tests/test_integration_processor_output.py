@@ -40,8 +40,8 @@ class TestChinaDataProcessorOutput:
             }
         )
 
-    @patch("builtins.open", new_callable=mock_open)
-    def test_markdown_output_format(self, mock_file, sample_raw_data):
+    @patch("pathlib.Path.open", new_callable=mock_open)
+    def test_markdown_output_format(self, mock_file_open, sample_raw_data):
         """Test that markdown output is properly formatted."""
         from utils.output import create_markdown_table
 
@@ -59,8 +59,9 @@ class TestChinaDataProcessorOutput:
         # Create markdown
         create_markdown_table(processed_data, "test.md", extrapolation_info)
 
-        # Get written content
-        written_content = "".join(call.args[0] for call in mock_file().write.call_args_list)
+        # Get written content from the mock file handle
+        handle = mock_file_open()
+        written_content = "".join(call.args[0] for call in handle.write.call_args_list)
 
         # Check structure
         assert "# Processed China Economic Data" in written_content

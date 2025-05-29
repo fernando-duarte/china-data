@@ -3,10 +3,10 @@
 import sys
 from pathlib import Path
 
+import pandas as pd
+
 # Add the parent directory to the path to import model modules
 sys.path.append(str(Path(__file__).parent.parent))
-
-import pandas as pd
 
 
 def test_exports() -> None:

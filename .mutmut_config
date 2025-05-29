@@ -3,7 +3,7 @@
 paths_to_mutate = utils/,china_data_downloader.py,china_data_processor.py
 
 # Test runner command with optimizations
-runner = pytest --use-coverage -x
+runner = pytest -x
 
 # Test directory
 tests_dir = tests/
@@ -12,7 +12,7 @@ tests_dir = tests/
 backup = false
 
 # Enable incremental mode for faster re-runs
-use_patch_file = true
+# use_patch_file = true  # Commented out to avoid conflict with use_coverage
 
 # Enable parallel execution (adjust based on CPU cores)
 processes = 4
@@ -37,9 +37,9 @@ cache_dir = .mutmut-cache
 timeout = 60
 
 # Use coverage to only mutate covered lines
-use_coverage = true
+# use_coverage = true  # Commented out to avoid conflict
 
 # Coverage file to use
-coverage_file = .coverage
+# coverage_file = .coverage  # Commented out since not using coverage
 
 # For CI environments, add: --rerun-all

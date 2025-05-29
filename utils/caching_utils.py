@@ -1,3 +1,5 @@
+"""Utilities for caching downloaded data."""
+
 from datetime import timedelta
 
 import requests_cache

@@ -1,7 +1,6 @@
 # China Economic Data
 
 Data sources:
-
 - World Bank World Development Indicators (WDI)
 - Penn World Table (PWT) version 10.01
 - International Monetary Fund. Fiscal Monitor (FM)
@@ -77,8 +76,8 @@ Data sources:
 | 2024 | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | 773,128,536 | 25.60 | N/A | N/A | N/A | N/A | N/A |
 | 2025 | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | N/A | 25.08 | N/A | N/A | N/A | N/A | N/A |
 
-**Notes:**
 
+**Notes:**
 - GDP and its components (Consumption, Government, Investment, Exports, Imports) are in current US dollars
 - FDI is shown as a percentage of GDP (net inflows)
 - Tax Revenue is shown as a percentage of GDP
@@ -90,12 +89,11 @@ Data sources:
 - PWT hc: Human capital index, based on years of schooling and returns to education
 
 Sources:
-
 - World Bank WDI data: World Development Indicators, The World Bank. Available at
-  <https://databank.worldbank.org/source/world-development-indicators>.
-  Accessed on 2025-05-28.
+  https://databank.worldbank.org/source/world-development-indicators.
+  Accessed on 2025-05-29.
 - PWT data: Feenstra, Robert C., Robert Inklaar and Marcel P. Timmer (2015),
   "The Next Generation of the Penn World Table" American Economic Review, 105(10), 3150-3182.
-  Available at <https://www.ggdc.net/pwt>. Accessed on 2025-05-28.
-- International Monetary Fund. Fiscal Monitor (FM), <https://data.imf.org/en/datasets/IMF.FAD:FM>.
+  Available at https://www.ggdc.net/pwt. Accessed on 2025-05-29.
+- International Monetary Fund. Fiscal Monitor (FM), https://data.imf.org/en/datasets/IMF.FAD:FM.
   Accessed on 2025-05-20.

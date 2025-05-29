@@ -7,41 +7,42 @@ This module tests the data downloading functionality including:
 - Data format validation
 """
 
+import time
+
 import pandas as pd
 import pytest
+import requests
+from pandas_datareader import wb
 
 # Use updated import structure
 from utils.data_sources import download_wdi_data, get_pwt_data
 from utils.error_handling import DataDownloadError
 
 
-# Create module-like objects for backward compatibility with the test code
-class WdiDownloader:
-    download_wdi_data = download_wdi_data
-    wb = __import__("pandas_datareader", fromlist=["wb"]).wb
-    time = __import__("time")
-
-
-class PwtDownloader:
-    get_pwt_data = get_pwt_data
-    pd = __import__("pandas", fromlist=["pd"])
-    requests = __import__("requests")
-
-
-# Create instances for backward compatibility
-wdi_downloader = WdiDownloader()
-pwt_downloader = PwtDownloader()
-
-
 class DummySession:
     """Simple session mock returning a dummy response."""
 
     def get(self, url, stream=True, timeout=30):
-        return DummyResponse()
+        return DummyResponse(b"dummy content")
 
 
-def make_df(rows):
-    return pd.DataFrame(rows)
+class DummyResponse:
+    def __init__(self, content):
+        self.content = content
+        self.raw = self
+
+    def raise_for_status(self):
+        pass
+
+    def read(self):
+        connection_failed_msg = "Connection failed"
+        raise requests.exceptions.RequestException(connection_failed_msg)
+
+    def close(self):
+        pass
+
+    def iter_content(self, chunk_size=None):
+        yield self.content
 
 
 def test_download_wdi_data_success(monkeypatch):
@@ -50,41 +51,56 @@ def test_download_wdi_data_success(monkeypatch):
     def fake_download(country, indicator, start, end):
         return sample
 
-    monkeypatch.setattr(wdi_downloader.wb, "download", fake_download)
-    monkeypatch.setattr(wdi_downloader.time, "sleep", lambda s: None)
-    df = wdi_downloader.download_wdi_data("NY.GDP.MKTP.CD", end_year=2022)
+    # Patch at the module level where it's actually called
+    monkeypatch.setattr(wb, "download", fake_download)
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+
+    # Patch WorldBankReader to return mock data
+    class MockReader:
+        def __init__(self, *args, **kwargs):
+            self.timeout = 30
+
+        def read(self):
+            # Return data with MultiIndex like the real API
+            idx = pd.MultiIndex.from_tuples([("China", 2020)], names=["country", "year"])
+            return pd.DataFrame({"NY.GDP.MKTP.CD": [1.0]}, index=idx)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(wb, "WorldBankReader", MockReader)
+
+    df = download_wdi_data("NY.GDP.MKTP.CD", end_year=2022)
     assert not df.empty
     assert list(df.columns) == ["country", "year", "NY_GDP_MKTP_CD"]
-    assert "China" in df["country"].unique()
+    assert df["country"].iloc[0] == "China"
     assert df["year"].max() <= 2022
 
 
 def test_download_wdi_data_failure(monkeypatch):
-    def fail(*a, **k):
-        msg = "fail"
-        raise RuntimeError(msg)
+    import requests
 
-    monkeypatch.setattr(wdi_downloader.wb, "download", fail)
-    monkeypatch.setattr(wdi_downloader.time, "sleep", lambda s: None)
+    # Patch WorldBankReader to fail
+    class FailingReader:
+        def __init__(self, *args, **kwargs):
+            self.timeout = 30
+
+        def read(self):
+            error_msg = "Connection failed"
+            raise requests.exceptions.RequestException(error_msg)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(wb, "WorldBankReader", FailingReader)
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+
     with pytest.raises(DataDownloadError):
-        wdi_downloader.download_wdi_data("BAD")
+        download_wdi_data("BAD")
 
 
-class DummyResponse:
-    def __init__(self):
-        self.content = b"dummy"
-
-    def raise_for_status(self):
-        pass
-
-    def iter_content(self, chunk_size=8192):
-        yield b"data"
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        pass
+def make_df(rows):
+    return pd.DataFrame(rows)
 
 
 def test_get_pwt_data_success(monkeypatch, tmp_path):
@@ -100,18 +116,20 @@ def test_get_pwt_data_success(monkeypatch, tmp_path):
             "hc": [5],
         }
     )
-    monkeypatch.setattr(pwt_downloader.pd, "read_excel", lambda path, sheet_name="Data": expected)
+    monkeypatch.setattr(pd, "read_excel", lambda path, sheet_name="Data": expected)
     df = get_pwt_data()
     assert list(df.columns) == ["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]
     assert df.iloc[0]["year"] == 2017
 
 
 def test_get_pwt_data_error(monkeypatch):
+    import requests
+
     class ErrorSession(DummySession):
         def get(self, url, stream=True, timeout=30):
             msg = "bad"
-            raise pwt_downloader.requests.exceptions.HTTPError(msg)
+            raise requests.exceptions.HTTPError(msg)
 
     monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession())
-    with pytest.raises(pwt_downloader.requests.exceptions.HTTPError):
+    with pytest.raises(requests.exceptions.HTTPError):
         get_pwt_data()

@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
+import requests
 
 from utils.data_sources.wdi_downloader import download_wdi_data
 from utils.error_handling import DataDownloadError
@@ -63,7 +64,7 @@ class TestWDIDownloaderAdditional:
         assert isinstance(result, pd.DataFrame)
 
         # Test with exception -> should raise DataDownloadError
-        mock_wb_reader_class.return_value.read.side_effect = Exception("Error")
+        mock_wb_reader_class.return_value.read.side_effect = requests.exceptions.RequestException("Error")
         with pytest.raises(DataDownloadError):
             download_wdi_data("NY.GDP.MKTP.CD")
 

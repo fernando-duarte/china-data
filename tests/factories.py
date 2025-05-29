@@ -37,12 +37,6 @@ class EconomicDataFactory(factory.Factory):  # type: ignore[misc]
         gov_ratio = random.uniform(0.10, 0.25)
         return round(obj.GDP_USD_bn * gov_ratio, 2)
 
-    # Investment as percentage of GDP (typically 20-50% for China)
-    @factory.LazyAttribute  # type: ignore[misc]
-    def I_USD_bn(obj: Any) -> Any:
-        investment_ratio = random.uniform(0.20, 0.50)
-        return round(obj.GDP_USD_bn * investment_ratio, 2)
-
     # Exports as percentage of GDP (typically 10-35% for China)
     @factory.LazyAttribute  # type: ignore[misc]
     def X_USD_bn(obj: Any) -> Any:
@@ -54,6 +48,25 @@ class EconomicDataFactory(factory.Factory):  # type: ignore[misc]
     def M_USD_bn(obj: Any) -> Any:
         import_ratio = random.uniform(0.08, 0.30)
         return round(obj.GDP_USD_bn * import_ratio, 2)
+
+    # Investment calculated as residual to ensure GDP identity holds
+    # GDP = C + I + G + (X - M) => I = GDP - C - G - (X - M)
+    @factory.LazyAttribute  # type: ignore[misc]
+    def I_USD_bn(obj: Any) -> Any:
+        # Calculate investment as residual
+        investment = obj.GDP_USD_bn - obj.C_USD_bn - obj.G_USD_bn - (obj.X_USD_bn - obj.M_USD_bn)
+
+        # Ensure investment is within realistic bounds (20-50% of GDP)
+        min_investment = 0.20 * obj.GDP_USD_bn
+        max_investment = 0.50 * obj.GDP_USD_bn
+
+        # If calculated investment is out of bounds, adjust it and add small discrepancy
+        if investment < min_investment:
+            investment = min_investment
+        elif investment > max_investment:
+            investment = max_investment
+
+        return round(investment, 2)
 
     # Capital stock (typically 2-4 times GDP)
     @factory.LazyAttribute  # type: ignore[misc]

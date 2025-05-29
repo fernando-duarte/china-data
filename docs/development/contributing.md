@@ -99,7 +99,7 @@ git commit -m "docs: update API documentation"
 
 ## Project Structure
 
-```
+```text
 china_data/
 ├── utils/                    # Core utilities
 │   ├── data_sources/        # Data source connectors
@@ -207,4 +207,7 @@ make docs-test
 
 ## Code of Conduct
 
-Please be respectful and inclusive in all interactions. We follow the [Contributor Covenant](https://www.contributor-covenant.org/) code of conduct.
+Please be respectful and inclusive in all interactions. We follow the
+[Contributor Covenant][covenant] code of conduct.
+
+[covenant]: https://www.contributor-covenant.org/

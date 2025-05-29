@@ -1,31 +1,76 @@
 #!/usr/bin/env python3
-"""
-Fix ruamel namespace package installation issue.
+"""Fix ruamel namespace package installation issue.
 
 This script ensures that the ruamel namespace package is properly set up
 in the current virtual environment.
 """
-import os
-import sys
+
+import importlib.util
 import site
 import subprocess
+import sys
+from pathlib import Path
 
 
-def get_site_packages():
+def get_site_packages() -> Path | None:
     """Get the site-packages directory for the current environment."""
     # Get all site-packages directories
     site_packages = site.getsitepackages()
 
     # Find the one in the virtual environment
     for sp in site_packages:
-        if '.venv' in sp or 'venv' in sp:
-            return sp
+        if ".venv" in sp or "venv" in sp:
+            return Path(sp)
 
     # Fallback to the first one
-    return site_packages[0] if site_packages else None
+    return Path(site_packages[0]) if site_packages else None
 
 
-def fix_ruamel_namespace():
+def create_namespace_init(ruamel_dir: Path) -> None:
+    """Create the namespace __init__.py file."""
+    init_file = ruamel_dir / "__init__.py"
+    if not init_file.exists():
+        print(f"Creating namespace __init__.py: {init_file}")
+        init_file.write_text("__import__('pkg_resources').declare_namespace(__name__)\n")
+
+
+def reinstall_ruamel_yaml() -> None:
+    """Reinstall ruamel.yaml package."""
+    print("Reinstalling ruamel.yaml...")
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--force-reinstall", "--no-deps", "ruamel.yaml"],
+        capture_output=True,
+        check=False,
+    )
+
+
+def setup_yaml_directory(site_packages_dir: Path, yaml_dir: Path) -> None:
+    """Set up the yaml directory if it doesn't exist."""
+    # Look for the installed files
+    dist_info_pattern = "ruamel.yaml-*.dist-info"
+    dist_infos = list(site_packages_dir.glob(dist_info_pattern))
+
+    if dist_infos:
+        print(f"Found dist-info: {dist_infos[0]}")
+        # Create yaml directory
+        yaml_dir.mkdir(parents=True, exist_ok=True)
+
+        # Look for ruamel yaml files in RECORD
+        record_file = dist_infos[0] / "RECORD"
+        if record_file.exists():
+            for line in record_file.read_text().splitlines():
+                if line.startswith("ruamel/yaml/"):
+                    file_path = line.split(",")[0]
+                    src = site_packages_dir / file_path
+                    dst = site_packages_dir / file_path
+
+                    # Ensure directory exists
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+
+                    print(f"Checking: {src}")
+
+
+def fix_ruamel_namespace() -> bool:
     """Fix the ruamel namespace package issue."""
     site_packages_dir = get_site_packages()
     if not site_packages_dir:
@@ -35,74 +80,37 @@ def fix_ruamel_namespace():
     print(f"Site-packages directory: {site_packages_dir}")
 
     # Create ruamel directory if it doesn't exist
-    ruamel_dir = os.path.join(site_packages_dir, 'ruamel')
-    if not os.path.exists(ruamel_dir):
+    ruamel_dir = site_packages_dir / "ruamel"
+    if not ruamel_dir.exists():
         print(f"Creating ruamel namespace directory: {ruamel_dir}")
-        os.makedirs(ruamel_dir)
+        ruamel_dir.mkdir(parents=True)
 
     # Create __init__.py for namespace package
-    init_file = os.path.join(ruamel_dir, '__init__.py')
-    if not os.path.exists(init_file):
-        print(f"Creating namespace __init__.py: {init_file}")
-        with open(init_file, 'w') as f:
-            f.write("__import__('pkg_resources').declare_namespace(__name__)\n")
+    create_namespace_init(ruamel_dir)
 
     # Check if yaml directory exists
-    yaml_dir = os.path.join(ruamel_dir, 'yaml')
+    yaml_dir = ruamel_dir / "yaml"
 
     # If yaml directory doesn't exist, we need to extract the package files
-    if not os.path.exists(yaml_dir):
+    if not yaml_dir.exists():
         print("yaml subdirectory not found, attempting to extract package files...")
 
         # Try to reinstall the package properly
-        print("Reinstalling ruamel.yaml...")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '--force-reinstall', '--no-deps', 'ruamel.yaml'],
-                      capture_output=True)
+        reinstall_ruamel_yaml()
 
-        # Check again
-        if not os.path.exists(yaml_dir):
-            # Look for the installed files
-            dist_info_pattern = 'ruamel.yaml-*.dist-info'
-            import glob
-            dist_infos = glob.glob(os.path.join(site_packages_dir, dist_info_pattern))
-
-            if dist_infos:
-                print(f"Found dist-info: {dist_infos[0]}")
-                # The files might be installed flat, we need to move them
-                # This is a last resort
-                yaml_files = glob.glob(os.path.join(site_packages_dir, '*.py'))
-                yaml_files.extend(glob.glob(os.path.join(site_packages_dir, '*.pyx')))
-                yaml_files.extend(glob.glob(os.path.join(site_packages_dir, '*.so')))
-
-                # Create yaml directory
-                os.makedirs(yaml_dir, exist_ok=True)
-
-                # Look for ruamel yaml files in RECORD
-                record_file = os.path.join(dist_infos[0], 'RECORD')
-                if os.path.exists(record_file):
-                    with open(record_file) as f:
-                        for line in f:
-                            if line.startswith('ruamel/yaml/'):
-                                file_path = line.split(',')[0]
-                                src = os.path.join(site_packages_dir, file_path)
-                                dst = os.path.join(site_packages_dir, file_path)
-
-                                # Ensure directory exists
-                                os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-                                print(f"Checking: {src}")
+        # Check again and set up if needed
+        if not yaml_dir.exists():
+            setup_yaml_directory(site_packages_dir, yaml_dir)
 
     # Verify the fix
-    try:
-        import ruamel.yaml
+    if importlib.util.find_spec("ruamel.yaml") is not None:
         print("✅ Successfully fixed ruamel namespace package!")
         return True
-    except ImportError as e:
-        print(f"❌ Failed to fix ruamel namespace package: {e}")
-        return False
+    print("❌ Failed to fix ruamel namespace package")
+    return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if fix_ruamel_namespace():
         sys.exit(0)
     else:

@@ -63,12 +63,14 @@ class TestFactoryBoyIntegration:
 
     @pytest.mark.parametrize("economic_data__GDP_USD_bn", [1000.0, 5000.0, 10000.0])
     def test_parametrized_factory_attributes(
-        self, economic_data: dict[str, Any], economic_data__gdp_usd_bn: float
+        self,
+        economic_data: dict[str, Any],
+        economic_data__GDP_USD_bn: float,  # noqa: N803
     ) -> None:
         """Test parametrizing factory attributes using pytest-factoryboy syntax."""
-        # The economic_data fixture will have the parametrized GDP values
-        assert economic_data["GDP_USD_bn"] in [1000.0, 5000.0, 10000.0]
-        assert economic_data["GDP_USD_bn"] == economic_data__gdp_usd_bn
+        # The fixture value should override the factory default
+        assert economic_data["GDP_USD_bn"] == economic_data__GDP_USD_bn
+        assert economic_data["year"] == 2020  # Default value
 
     @pytest.mark.parametrize("economic_data__year", [2020, 2021, 2022])
     def test_parametrized_years(self, economic_data: dict[str, Any], economic_data__year: int) -> None:
@@ -119,6 +121,11 @@ class TestFactoryBoyWithRealFunctions:
         """Test comparative analysis using different factory configurations."""
         import pandas as pd
 
+        # Ensure both scenarios use the same tax rate for fair comparison
+        # Use the tax rate from baseline for both scenarios
+        if "TAX_pct_GDP" in baseline_economic_data:
+            alternative_economic_data["TAX_pct_GDP"] = baseline_economic_data["TAX_pct_GDP"]
+
         # Create DataFrames from the factory data
         baseline_dataframe = pd.DataFrame([baseline_economic_data])
         alternative_dataframe = pd.DataFrame([alternative_economic_data])
@@ -131,7 +138,7 @@ class TestFactoryBoyWithRealFunctions:
             baseline_tax = baseline_result["T_USD_bn"].iloc[0]
             alternative_tax = alternative_result["T_USD_bn"].iloc[0]
 
-            # Higher GDP should generally lead to higher tax revenue
+            # Higher GDP should lead to higher tax revenue when tax rates are equal
             if alternative_economic_data["GDP_USD_bn"] > baseline_economic_data["GDP_USD_bn"]:
                 assert alternative_tax >= baseline_tax
 

@@ -1,6 +1,7 @@
 # Processing Pipeline
 
-The China Economic Data Analysis package uses a sophisticated processing pipeline to transform raw data into analysis-ready datasets.
+The China Economic Data Analysis package uses a sophisticated processing pipeline to transform raw data into
+analysis-ready datasets.
 
 ## Pipeline Overview
 

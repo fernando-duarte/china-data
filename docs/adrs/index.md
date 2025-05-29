@@ -4,7 +4,9 @@ This section documents the key architectural decisions made during the developme
 
 ## What are ADRs?
 
-Architectural Decision Records (ADRs) are documents that capture important architectural decisions made along with their context and consequences. They help maintain institutional knowledge and provide context for future development decisions.
+Architectural Decision Records (ADRs) are documents that capture important architectural decisions made along
+with their context and consequences. They help maintain institutional knowledge and provide context for future
+development decisions.
 
 ## ADR Index
 

@@ -33,7 +33,7 @@ python china_data_processor.py
 
 ## Project Structure
 
-```
+```text
 china_data/
 ├── utils/                    # Core utilities and modules
 │   ├── data_sources/        # Data source connectors
