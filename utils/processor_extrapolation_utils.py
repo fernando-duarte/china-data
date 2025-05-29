@@ -56,8 +56,16 @@ def _fill_missing_key_variables(data_df: pd.DataFrame, years_to_add: list[int]) 
             if col in data_df.columns and pd.isna(data_df.loc[data_df.year == year, col].to_numpy()[0]):
                 last_valid = data_df[data_df.year < year][[col]].dropna()
                 if len(last_valid) > 0:
-                    last_value = float(last_valid.iloc[-1][col].to_numpy()[0])
-                    last_year = int(data_df.loc[last_valid.index[-1], "year"])
+                    last_value_raw = last_valid.iloc[-1][col]
+                    last_value = float(last_value_raw.item() if hasattr(last_value_raw, "item") else last_value_raw)
+                    last_year_raw = data_df.loc[last_valid.index[-1], "year"]
+                    # Handle different types that might be returned
+                    if hasattr(last_year_raw, "item"):
+                        last_year = int(last_year_raw.item())  # type: ignore[arg-type]
+                    elif isinstance(last_year_raw, int | float):
+                        last_year = int(last_year_raw)
+                    else:
+                        last_year = int(str(last_year_raw))
 
                     historical_data = data_df[data_df.year <= data_df.year.max()][[col]].dropna()
                     avg_growth = _calculate_historical_growth(historical_data, col)

@@ -45,8 +45,8 @@ def _validate_initial_parameters(m_0: float, e_0: float, y_0: float) -> None:
 
 
 def _process_series_inputs(
-    exchange_rate: float | pd.Series, domestic_income: float | pd.Series
-) -> tuple[pd.Series, pd.Series]:
+    exchange_rate: float | pd.Series[float], domestic_income: float | pd.Series[float]
+) -> tuple[pd.Series[float], pd.Series[float]]:
     """Process and validate series inputs.
 
     Args:
@@ -63,9 +63,9 @@ def _process_series_inputs(
     )
 
     if not isinstance(exchange_rate, pd.Series):
-        exchange_rate = pd.Series([exchange_rate] * max_len)
+        exchange_rate = pd.Series([exchange_rate] * max_len, dtype=float)
     if not isinstance(domestic_income, pd.Series):
-        domestic_income = pd.Series([domestic_income] * max_len)
+        domestic_income = pd.Series([domestic_income] * max_len, dtype=float)
 
     # Validate and clip negative values
     if (exchange_rate <= 0).any():
@@ -101,14 +101,14 @@ def _process_scalar_inputs(exchange_rate: float, domestic_income: float) -> tupl
 
 
 def _compute_imports(
-    exchange_rate: float | pd.Series,
-    domestic_income: float | pd.Series,
+    exchange_rate: float | pd.Series[float],
+    domestic_income: float | pd.Series[float],
     m_0: float,
     e_0: float,
     y_0: float,
     epsilon_m: float,
     mu_m: float,
-) -> float | pd.Series:
+) -> float | pd.Series[float]:
     """Compute imports using the import equation.
 
     Args:
@@ -137,21 +137,21 @@ def _compute_imports(
     except (ValueError, OverflowError, ZeroDivisionError):
         logger.exception("Error calculating imports")
         if isinstance(exchange_rate, pd.Series):
-            return pd.Series([np.nan] * len(exchange_rate))
+            return pd.Series([np.nan] * len(exchange_rate), dtype=float)
         return np.nan
     else:
         return imports
 
 
 def calculate_imports(
-    exchange_rate: float | pd.Series,
-    domestic_income: float | pd.Series,
+    exchange_rate: float | pd.Series[float],
+    domestic_income: float | pd.Series[float],
     m_0: float,
     e_0: float,
     y_0: float,
     epsilon_m: float = -1.2,
     mu_m: float = 1.1,
-) -> float | pd.Series:
+) -> float | pd.Series[float]:
     """Calculate imports using the China growth model import equation.
 
     Args:

@@ -42,7 +42,8 @@ class SarifReportGenerator:
             )
 
             if result.stdout:
-                return json.loads(result.stdout)
+                sarif_data = json.loads(result.stdout)
+                return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("bandit")
             return self._create_empty_sarif("bandit")
 
         except (subprocess.SubprocessError, json.JSONDecodeError) as e:
@@ -60,7 +61,8 @@ class SarifReportGenerator:
             )
 
             if result.stdout:
-                return json.loads(result.stdout)
+                sarif_data = json.loads(result.stdout)
+                return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("semgrep")
             return self._create_empty_sarif("semgrep")
 
         except (subprocess.SubprocessError, json.JSONDecodeError) as e:
@@ -78,7 +80,8 @@ class SarifReportGenerator:
             )
 
             if result.stdout:
-                return json.loads(result.stdout)
+                sarif_data = json.loads(result.stdout)
+                return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("ruff")
             return self._create_empty_sarif("ruff")
 
         except (subprocess.SubprocessError, json.JSONDecodeError) as e:
@@ -102,7 +105,8 @@ class SarifReportGenerator:
                 sarif_file = report_dir / "mypy.sarif"
                 if sarif_file.exists():
                     with sarif_file.open() as f:
-                        return json.load(f)
+                        sarif_data = json.load(f)
+                        return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("mypy")
 
             return self._create_empty_sarif("mypy")
 
@@ -131,7 +135,7 @@ class SarifReportGenerator:
 
     def merge_sarif_reports(self, reports: list[dict[str, Any]]) -> dict[str, Any]:
         """Merge multiple SARIF reports into a unified report."""
-        unified_report = {
+        unified_report: dict[str, Any] = {
             "$schema": self.schema_uri,
             "version": self.sarif_version,
             "runs": [],
@@ -139,28 +143,30 @@ class SarifReportGenerator:
 
         for report in reports:
             if "runs" in report:
-                unified_report["runs"].extend(report["runs"])
+                runs = report["runs"]
+                if isinstance(runs, list):
+                    unified_report["runs"].extend(runs)
 
         # Add metadata
-        unified_report["runs"].insert(
-            0,
-            {
-                "tool": {
-                    "driver": {
-                        "name": "china-data-unified-security",
-                        "version": "1.0.0",
-                        "informationUri": "https://github.com/fernandoduarte/china_data",
-                        "semanticVersion": "1.0.0",
-                    }
-                },
-                "invocation": {
-                    "executionSuccessful": True,
-                    "startTimeUtc": datetime.now(timezone.utc).isoformat(),
-                    "workingDirectory": {"uri": f"file://{Path.cwd()}"},
-                },
-                "results": [],
+        metadata_run = {
+            "tool": {
+                "driver": {
+                    "name": "china-data-unified-security",
+                    "version": "1.0.0",
+                    "informationUri": "https://github.com/fernandoduarte/china_data",
+                    "semanticVersion": "1.0.0",
+                }
             },
-        )
+            "invocation": {
+                "executionSuccessful": True,
+                "startTimeUtc": datetime.now(timezone.utc).isoformat(),
+                "workingDirectory": {"uri": f"file://{Path.cwd()}"},
+            },
+            "results": [],
+        }
+
+        # Insert metadata at the beginning
+        unified_report["runs"].insert(0, metadata_run)
 
         return unified_report
 

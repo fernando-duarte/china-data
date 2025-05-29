@@ -227,7 +227,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 ]
 
 "scripts/**/*.py" = [
-    "T201", "S602", "S603"  # Allow prints and subprocess in scripts
+    "T201", "S602", "S603", "S607"  # Allow prints and subprocess calls in scripts
 ]
 
 [lint.isort]

@@ -60,7 +60,7 @@ def _configure_tracing(service_name: str, service_version: str, otlp_endpoint: s
     trace.set_tracer_provider(tracer_provider)
 
     if otlp_endpoint:
-        span_exporter = OTLPSpanExporter(
+        span_exporter: Any = OTLPSpanExporter(
             endpoint=otlp_endpoint,
             headers=_get_otlp_headers(),
             timeout=30,

@@ -45,8 +45,8 @@ def _validate_initial_parameters(x_0: float, e_0: float, y_star_0: float) -> Non
 
 
 def _process_series_inputs(
-    exchange_rate: float | pd.Series, foreign_income: float | pd.Series
-) -> tuple[pd.Series, pd.Series]:
+    exchange_rate: float | pd.Series[float], foreign_income: float | pd.Series[float]
+) -> tuple[pd.Series[float], pd.Series[float]]:
     """Process and validate series inputs.
 
     Args:
@@ -63,9 +63,9 @@ def _process_series_inputs(
     )
 
     if not isinstance(exchange_rate, pd.Series):
-        exchange_rate = pd.Series([exchange_rate] * max_len)
+        exchange_rate = pd.Series([exchange_rate] * max_len, dtype=float)
     if not isinstance(foreign_income, pd.Series):
-        foreign_income = pd.Series([foreign_income] * max_len)
+        foreign_income = pd.Series([foreign_income] * max_len, dtype=float)
 
     # Validate and clip negative values
     if (exchange_rate <= 0).any():
@@ -101,14 +101,14 @@ def _process_scalar_inputs(exchange_rate: float, foreign_income: float) -> tuple
 
 
 def _compute_exports(
-    exchange_rate: float | pd.Series,
-    foreign_income: float | pd.Series,
+    exchange_rate: float | pd.Series[float],
+    foreign_income: float | pd.Series[float],
     x_0: float,
     e_0: float,
     y_star_0: float,
     epsilon_x: float,
     mu_x: float,
-) -> float | pd.Series:
+) -> float | pd.Series[float]:
     """Compute exports using the export equation.
 
     Args:
@@ -137,21 +137,21 @@ def _compute_exports(
     except (ValueError, OverflowError, ZeroDivisionError):
         logger.exception("Error calculating exports")
         if isinstance(exchange_rate, pd.Series):
-            return pd.Series([np.nan] * len(exchange_rate))
+            return pd.Series([np.nan] * len(exchange_rate), dtype=float)
         return np.nan
     else:
         return exports
 
 
 def calculate_exports(
-    exchange_rate: float | pd.Series,
-    foreign_income: float | pd.Series,
+    exchange_rate: float | pd.Series[float],
+    foreign_income: float | pd.Series[float],
     x_0: float,
     e_0: float,
     y_star_0: float,
     epsilon_x: float = 1.5,
     mu_x: float = 1.5,
-) -> float | pd.Series:
+) -> float | pd.Series[float]:
     """Calculate exports using the China growth model export equation.
 
     Args:

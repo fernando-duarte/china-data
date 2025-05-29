@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 
 
-class PathConfig(BaseModel):
+class PathConfig(BaseModel):  # type: ignore[misc]
     """Configuration for project paths."""
 
     project_root: Path = Field(default_factory=lambda: Path(__file__).parent)
@@ -25,7 +25,7 @@ class PathConfig(BaseModel):
         return v
 
 
-class ProcessingConfig(BaseModel):
+class ProcessingConfig(BaseModel):  # type: ignore[misc]
     """Configuration for data processing parameters."""
 
     default_alpha: float = Field(default=0.33, ge=0, le=1, description="Capital share parameter")
@@ -34,7 +34,7 @@ class ProcessingConfig(BaseModel):
     default_depreciation_rate: float = Field(default=0.05, ge=0, le=1, description="Depreciation rate")
 
 
-class NetworkConfig(BaseModel):
+class NetworkConfig(BaseModel):  # type: ignore[misc]
     """Configuration for network and retry settings."""
 
     max_retries: int = Field(default=3, ge=1, le=10, description="Maximum retry attempts")
@@ -43,7 +43,7 @@ class NetworkConfig(BaseModel):
     download_delay_seconds: int = Field(default=1, ge=0, le=10, description="Delay between downloads")
 
 
-class ValidationConfig(BaseModel):
+class ValidationConfig(BaseModel):  # type: ignore[misc]
     """Configuration for data validation thresholds."""
 
     min_data_points_for_regression: int = Field(default=2, ge=2, description="Min points for regression")
@@ -53,7 +53,7 @@ class ValidationConfig(BaseModel):
     min_years_for_investment_stats: int = Field(default=5, ge=3, description="Min years for investment stats")
 
 
-class GrowthRateConfig(BaseModel):
+class GrowthRateConfig(BaseModel):  # type: ignore[misc]
     """Configuration for growth rate defaults."""
 
     default_growth_rate: float = Field(default=0.05, ge=-0.5, le=0.5, description="Default growth rate")
@@ -61,7 +61,7 @@ class GrowthRateConfig(BaseModel):
     default_hc_growth_rate: float = Field(default=0.01, ge=-0.1, le=0.1, description="Human capital growth rate")
 
 
-class LoggingConfig(BaseModel):
+class LoggingConfig(BaseModel):  # type: ignore[misc]
     """Configuration for logging settings."""
 
     log_file: str = Field(default="china_data.log", description="Log file path")
@@ -73,7 +73,7 @@ class LoggingConfig(BaseModel):
     structured_logging_include_process_info: bool = Field(default=True, description="Include process info in logs")
 
 
-class CacheConfig(BaseModel):
+class CacheConfig(BaseModel):  # type: ignore[misc]
     """Configuration for caching settings."""
 
     cache_name: str = Field(default="china_data_cache", description="Cache database name")
@@ -81,7 +81,7 @@ class CacheConfig(BaseModel):
     cache_expire_after_days: int = Field(default=7, ge=1, le=30, description="Cache expiration in days")
 
 
-class ChinaDataConfig(BaseModel):
+class ChinaDataConfig(BaseModel):  # type: ignore[misc]
     """Main configuration schema for China Data Processor."""
 
     # Sub-configurations

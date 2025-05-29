@@ -7,7 +7,7 @@ used throughout the China data processing pipeline.
 import os
 import sys
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import structlog
 from dotenv import load_dotenv
@@ -202,7 +202,7 @@ class Config:
 def configure_logging() -> None:
     """Configure structured logging for the application."""
     # Configure processors based on environment
-    processors = [
+    processors: list[Any] = [
         structlog.stdlib.add_log_level,  # Add log level to event dict
         structlog.stdlib.add_logger_name,  # Add logger name to event dict
         structlog.processors.TimeStamper(fmt="iso"),  # Add timestamp

@@ -21,7 +21,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _validate_and_clip_tfp(current_tfp: float | pd.Series) -> float | pd.Series:
+def _validate_and_clip_tfp(current_tfp: float | pd.Series[float]) -> float | pd.Series[float]:
     """Validate and clip TFP values."""
     if isinstance(current_tfp, pd.Series):
         if (current_tfp <= 0).any():
@@ -46,7 +46,9 @@ def _validate_and_clip_scalar_ratios(openness_ratio: float, fdi_ratio: float) ->
     return openness_ratio, fdi_ratio
 
 
-def _validate_and_clip_series_ratios(openness_ratio: pd.Series, fdi_ratio: pd.Series) -> tuple[pd.Series, pd.Series]:
+def _validate_and_clip_series_ratios(
+    openness_ratio: pd.Series[float], fdi_ratio: pd.Series[float]
+) -> tuple[pd.Series[float], pd.Series[float]]:
     """Validate and clip series ratio inputs."""
     if (openness_ratio < 0).any():
         logger.warning("Some openness ratio values are negative")
@@ -60,30 +62,33 @@ def _validate_and_clip_series_ratios(openness_ratio: pd.Series, fdi_ratio: pd.Se
 
 
 def _convert_to_series_for_tfp(
-    current_tfp: float | pd.Series,
-    openness_ratio: float | pd.Series,
-    fdi_ratio: float | pd.Series,
-) -> tuple[pd.Series, pd.Series, pd.Series]:
+    current_tfp: float | pd.Series[float],
+    openness_ratio: float | pd.Series[float],
+    fdi_ratio: float | pd.Series[float],
+) -> tuple[pd.Series[float], pd.Series[float], pd.Series[float]]:
     """Convert inputs to pandas Series for consistent handling."""
     if not isinstance(openness_ratio, pd.Series):
-        openness_ratio = pd.Series([openness_ratio] * len(fdi_ratio))
+        openness_len = len(fdi_ratio) if isinstance(fdi_ratio, pd.Series) else 1
+        openness_ratio = pd.Series([openness_ratio] * openness_len, dtype=float)
     if not isinstance(fdi_ratio, pd.Series):
-        fdi_ratio = pd.Series([fdi_ratio] * len(openness_ratio))
+        fdi_len = len(openness_ratio) if isinstance(openness_ratio, pd.Series) else 1
+        fdi_ratio = pd.Series([fdi_ratio] * fdi_len, dtype=float)
     if not isinstance(current_tfp, pd.Series):
-        current_tfp = pd.Series([current_tfp] * len(openness_ratio))
+        tfp_len = len(openness_ratio) if isinstance(openness_ratio, pd.Series) else 1
+        current_tfp = pd.Series([current_tfp] * tfp_len, dtype=float)
 
     return current_tfp, openness_ratio, fdi_ratio
 
 
 def calculate_tfp_growth(
-    current_tfp: float | pd.Series,
-    openness_ratio: float | pd.Series,
-    fdi_ratio: float | pd.Series,
+    current_tfp: float | pd.Series[float],
+    openness_ratio: float | pd.Series[float],
+    fdi_ratio: float | pd.Series[float],
     *,
     g: float = 0.02,
     theta: float = 0.10,
     phi: float = 0.08,
-) -> float | pd.Series:
+) -> float | pd.Series[float]:
     """Calculate next period TFP using the growth equation with spillovers.
 
     Args:
@@ -125,7 +130,7 @@ def calculate_tfp_growth(
     except (ValueError, OverflowError):
         logger.exception("Error calculating TFP growth")
         if isinstance(current_tfp, pd.Series):
-            return pd.Series([np.nan] * len(current_tfp))
+            return pd.Series([np.nan] * len(current_tfp), dtype=float)
         return np.nan
     else:
         return next_tfp
@@ -186,13 +191,13 @@ def calculate_tfp_growth_dataframe(
 
 def calculate_tfp_sequence(
     initial_tfp: float,
-    openness_sequence: pd.Series,
-    fdi_sequence: pd.Series,
+    openness_sequence: pd.Series[float],
+    fdi_sequence: pd.Series[float],
     *,
     g: float = 0.02,
     theta: float = 0.10,
     phi: float = 0.08,
-) -> pd.Series:
+) -> pd.Series[float]:
     """Calculate a sequence of TFP values over multiple periods.
 
     Args:
@@ -214,13 +219,13 @@ def calculate_tfp_sequence(
         raise ValueError(length_error_msg)
 
     tfp_sequence = pd.Series(index=openness_sequence.index, dtype=float)
-    current_tfp = initial_tfp
+    current_tfp: float = initial_tfp
 
     for i, (openness, fdi) in enumerate(zip(openness_sequence, fdi_sequence, strict=False)):
         tfp_sequence.iloc[i] = current_tfp
 
         # Calculate next period TFP
-        current_tfp = calculate_tfp_growth(
+        tfp_result = calculate_tfp_growth(
             current_tfp=current_tfp,
             openness_ratio=openness,
             fdi_ratio=fdi,
@@ -228,6 +233,8 @@ def calculate_tfp_sequence(
             theta=theta,
             phi=phi,
         )
+        # Since we're passing floats, we know the result is a float
+        current_tfp = tfp_result.iloc[0] if isinstance(tfp_result, pd.Series) else tfp_result
 
     logger.info("Calculated TFP sequence for %d periods", len(tfp_sequence))
 

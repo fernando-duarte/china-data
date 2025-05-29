@@ -98,6 +98,7 @@ dev = [
     "detect-secrets>=1.5.0,<2.0",
     "types-pytz>=2025.2,<2026.0",
     "types-requests>=2.32,<3.0",
+    "types-PyYAML>=6.0,<7.0",
 
     # 2025 additions
     "syrupy>=4.0,<5.0",           # Snapshot testing
@@ -165,6 +166,8 @@ dev-dependencies = [
     "detect-secrets>=1.5.0,<2.0",
     "types-pytz>=2025.2,<2026.0",
     "types-requests>=2.32,<3.0",
+    "types-PyYAML>=6.0,<7.0",
+
     # 2025 additions
     "syrupy>=4.0,<5.0", # Snapshot testing
     "pytest-asyncio>=0.24,<1.0", # Async testing
@@ -173,6 +176,7 @@ dev-dependencies = [
     "pytest-sugar>=1.0,<2.0", # Pretty test output
     "rich>=13.0,<14.0", # Rich terminal output
     "pyyaml>=6.0.2",
+    "ruamel-yaml>=0.18.11",
 ]
 
 # UV workspace configuration

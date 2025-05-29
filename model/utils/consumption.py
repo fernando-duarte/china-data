@@ -1,13 +1,14 @@
 """Consumption calculation module for the China Growth Model.
 
-This module implements the consumption equation:
-C_t = (1 - s_t) * Y_t - G_t
+This module calculates consumption as a residual of GDP accounting:
+C_t = Y_t - I_t - G_t - NX_t
 
 Where:
 - C_t: Consumption in period t
-- s_t: Saving rate in period t (player controlled)
 - Y_t: GDP in period t
+- I_t: Investment in period t
 - G_t: Government spending in period t
+- NX_t: Net exports in period t
 """
 
 import logging
@@ -18,77 +19,81 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _validate_and_clip_series_inputs(
-    gdp: pd.Series, saving_rate: pd.Series, government_spending: pd.Series
-) -> tuple[pd.Series, pd.Series, pd.Series]:
-    """Validate and clip series inputs for consumption calculation."""
-    if (gdp < 0).any():
-        logger.warning("Some GDP values are negative")
-        gdp = gdp.clip(lower=0)
-
-    if (saving_rate < 0).any() or (saving_rate > 1).any():
-        logger.warning("Some saving rate values are outside [0,1] range")
-        saving_rate = saving_rate.clip(lower=0, upper=1)
-
-    if (government_spending < 0).any():
-        logger.warning("Some government spending values are negative")
-        government_spending = government_spending.clip(lower=0)
-
-    return gdp, saving_rate, government_spending
-
-
-def _validate_and_clip_scalar_inputs(
-    gdp: float, saving_rate: float, government_spending: float
-) -> tuple[float, float, float]:
-    """Validate and clip scalar inputs for consumption calculation."""
+def _validate_and_clip_scalar_inputs(gdp: float, investment: float, gov_spending: float) -> tuple[float, float, float]:
+    """Validate and clip scalar inputs."""
     if gdp < 0:
         logger.warning("GDP %s is negative, clipping to 0", gdp)
         gdp = max(gdp, 0)
 
-    if saving_rate < 0 or saving_rate > 1:
-        logger.warning("Saving rate %s is outside [0,1] range, clipping", saving_rate)
-        saving_rate = max(0, min(saving_rate, 1))
+    if investment < 0:
+        logger.warning("Investment %s is negative, clipping to 0", investment)
+        investment = max(investment, 0)
 
-    if government_spending < 0:
-        logger.warning("Government spending %s is negative, clipping to 0", government_spending)
-        government_spending = max(government_spending, 0)
+    if gov_spending < 0:
+        logger.warning("Government spending %s is negative, clipping to 0", gov_spending)
+        gov_spending = max(gov_spending, 0)
 
-    return gdp, saving_rate, government_spending
+    return gdp, investment, gov_spending
+
+
+def _validate_and_clip_series_inputs(
+    gdp: pd.Series[float], investment: pd.Series[float], gov_spending: pd.Series[float]
+) -> tuple[pd.Series[float], pd.Series[float], pd.Series[float]]:
+    """Validate and clip series inputs."""
+    if (gdp < 0).any():
+        logger.warning("Some GDP values are negative")
+        gdp = gdp.clip(lower=0)
+
+    if (investment < 0).any():
+        logger.warning("Some investment values are negative")
+        investment = investment.clip(lower=0)
+
+    if (gov_spending < 0).any():
+        logger.warning("Some government spending values are negative")
+        gov_spending = gov_spending.clip(lower=0)
+
+    return gdp, investment, gov_spending
 
 
 def _convert_to_series(
-    gdp: float | pd.Series,
-    saving_rate: float | pd.Series,
-    government_spending: float | pd.Series,
-) -> tuple[pd.Series, pd.Series, pd.Series]:
+    gdp: float | pd.Series[float],
+    investment: float | pd.Series[float],
+    gov_spending: float | pd.Series[float],
+    net_exports: float | pd.Series[float],
+) -> tuple[pd.Series[float], pd.Series[float], pd.Series[float], pd.Series[float]]:
     """Convert inputs to pandas Series for consistent handling."""
     max_len = max(
         len(gdp) if isinstance(gdp, pd.Series) else 1,
-        len(saving_rate) if isinstance(saving_rate, pd.Series) else 1,
-        len(government_spending) if isinstance(government_spending, pd.Series) else 1,
+        len(investment) if isinstance(investment, pd.Series) else 1,
+        len(gov_spending) if isinstance(gov_spending, pd.Series) else 1,
+        len(net_exports) if isinstance(net_exports, pd.Series) else 1,
     )
 
     if not isinstance(gdp, pd.Series):
-        gdp = pd.Series([gdp] * max_len)
-    if not isinstance(saving_rate, pd.Series):
-        saving_rate = pd.Series([saving_rate] * max_len)
-    if not isinstance(government_spending, pd.Series):
-        government_spending = pd.Series([government_spending] * max_len)
+        gdp = pd.Series([gdp] * max_len, dtype=float)
+    if not isinstance(investment, pd.Series):
+        investment = pd.Series([investment] * max_len, dtype=float)
+    if not isinstance(gov_spending, pd.Series):
+        gov_spending = pd.Series([gov_spending] * max_len, dtype=float)
+    if not isinstance(net_exports, pd.Series):
+        net_exports = pd.Series([net_exports] * max_len, dtype=float)
 
-    return gdp, saving_rate, government_spending
+    return gdp, investment, gov_spending, net_exports
 
 
 def calculate_consumption(
-    gdp: float | pd.Series,
-    saving_rate: float | pd.Series,
-    government_spending: float | pd.Series,
-) -> float | pd.Series:
-    """Calculate consumption using the China growth model consumption equation.
+    gdp: float | pd.Series[float],
+    investment: float | pd.Series[float],
+    gov_spending: float | pd.Series[float],
+    net_exports: float | pd.Series[float],
+) -> float | pd.Series[float]:
+    """Calculate consumption using the GDP accounting identity.
 
     Args:
         gdp: GDP in period t (billions USD)
-        saving_rate: Saving rate in period t (fraction, 0-1)
-        government_spending: Government spending in period t (billions USD)
+        investment: Investment in period t (billions USD)
+        gov_spending: Government spending in period t (billions USD)
+        net_exports: Net exports in period t (billions USD)
 
     Returns:
         Calculated consumption (billions USD)
@@ -97,39 +102,49 @@ def calculate_consumption(
         ValueError: If any parameters are invalid
 
     Example:
-        >>> consumption = calculate_consumption(gdp=1000.0, saving_rate=0.3, government_spending=200.0)
-        >>> # Result: (1 - 0.3) * 1000 - 200 = 500
+        >>> consumption = calculate_consumption(gdp=1000.0, investment=300.0, gov_spending=200.0, net_exports=50.0)
+        >>> # Result: 1000 - 300 - 200 - 50 = 450
     """
     # Handle both scalar and series inputs
-    is_series_input = (
-        isinstance(gdp, pd.Series) or isinstance(saving_rate, pd.Series) or isinstance(government_spending, pd.Series)
+    is_series = (
+        isinstance(gdp, pd.Series)
+        or isinstance(investment, pd.Series)
+        or isinstance(gov_spending, pd.Series)
+        or isinstance(net_exports, pd.Series)
     )
 
-    if is_series_input:
-        gdp, saving_rate, government_spending = _convert_to_series(gdp, saving_rate, government_spending)
-        gdp, saving_rate, government_spending = _validate_and_clip_series_inputs(gdp, saving_rate, government_spending)
+    if is_series:
+        gdp, investment, gov_spending, net_exports = _convert_to_series(gdp, investment, gov_spending, net_exports)
+        gdp, investment, gov_spending = _validate_and_clip_series_inputs(gdp, investment, gov_spending)
     else:
-        gdp, saving_rate, government_spending = _validate_and_clip_scalar_inputs(gdp, saving_rate, government_spending)
+        # Type assertions for MyPy
+        assert isinstance(gdp, float)
+        assert isinstance(investment, float)
+        assert isinstance(gov_spending, float)
+        gdp, investment, gov_spending = _validate_and_clip_scalar_inputs(gdp, investment, gov_spending)
 
     try:
-        consumption = (1 - saving_rate) * gdp - government_spending
+        # Calculate consumption using the formula: C_t = Y_t - I_t - G_t - NX_t
+        consumption = gdp - investment - gov_spending - net_exports
 
         # Check for negative consumption
         if isinstance(consumption, pd.Series):
             if (consumption < 0).any():
                 logger.warning("Some calculated consumption values are negative")
-                consumption = consumption.clip(lower=0)
         elif consumption < 0:
-            logger.warning("Calculated consumption %s is negative, clipping to 0", consumption)
-            consumption = max(consumption, 0)
+            logger.warning("Calculated consumption %s is negative", consumption)
 
         logger.debug(
-            "Calculated consumption with saving_rate=%s, gdp=%s, gov_spending=%s", saving_rate, gdp, government_spending
+            "Calculated consumption with gdp=%s, investment=%s, gov_spending=%s, net_exports=%s",
+            gdp,
+            investment,
+            gov_spending,
+            net_exports,
         )
     except (ValueError, OverflowError):
         logger.exception("Error calculating consumption")
         if isinstance(gdp, pd.Series):
-            return pd.Series([np.nan] * len(gdp))
+            return pd.Series([np.nan] * len(gdp), dtype=float)
         return np.nan
     else:
         return consumption
@@ -139,17 +154,19 @@ def calculate_consumption_dataframe(
     df: pd.DataFrame,
     *,
     gdp_col: str = "GDP_USD_bn",
-    saving_rate_col: str = "saving_rate",
-    government_spending_col: str = "G_USD_bn",
+    investment_col: str = "I_USD_bn",
+    gov_spending_col: str = "G_USD_bn",
+    net_exports_col: str = "NX_USD_bn",
     output_col: str = "C_USD_bn",
 ) -> pd.DataFrame:
     """Calculate consumption for a DataFrame with time series data.
 
     Args:
-        df: DataFrame containing GDP, saving rate, and government spending data
+        df: DataFrame containing GDP, investment, government spending, and net exports data
         gdp_col: Column name for GDP data
-        saving_rate_col: Column name for saving rate data
-        government_spending_col: Column name for government spending data
+        investment_col: Column name for investment data
+        gov_spending_col: Column name for government spending data
+        net_exports_col: Column name for net exports data
         output_col: Column name for calculated consumption (default: "C_USD_bn")
 
     Returns:
@@ -159,11 +176,10 @@ def calculate_consumption_dataframe(
         ValueError: If required columns are missing
     """
     # Validate required columns
-    required_cols = [gdp_col, saving_rate_col, government_spending_col]
+    required_cols = [gdp_col, investment_col, gov_spending_col, net_exports_col]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
-        missing_cols_str = ", ".join(missing_cols)
-        msg = f"Missing required columns: {missing_cols_str}"
+        msg = f"Missing required columns: {missing_cols}"
         raise ValueError(msg)
 
     result_df = df.copy()
@@ -171,8 +187,9 @@ def calculate_consumption_dataframe(
     # Calculate consumption
     result_df[output_col] = calculate_consumption(
         gdp=df[gdp_col],
-        saving_rate=df[saving_rate_col],
-        government_spending=df[government_spending_col],
+        investment=df[investment_col],
+        gov_spending=df[gov_spending_col],
+        net_exports=df[net_exports_col],
     )
 
     logger.info("Calculated consumption for %d periods", len(result_df))
@@ -180,23 +197,28 @@ def calculate_consumption_dataframe(
     return result_df
 
 
-def validate_consumption_feasibility(
-    gdp: float | pd.Series,
-    saving_rate: float | pd.Series,
-    government_spending: float | pd.Series,
-) -> bool | pd.Series:
-    """Validate that consumption calculation will yield non-negative results.
+def calculate_consumption_share(
+    consumption: float | pd.Series[float],
+    gdp: float | pd.Series[float],
+) -> float | pd.Series[float]:
+    """Calculate consumption as a share of GDP.
 
     Args:
-        gdp: GDP in period t (billions USD)
-        saving_rate: Saving rate in period t (fraction, 0-1)
-        government_spending: Government spending in period t (billions USD)
+        consumption: Consumption value(s)
+        gdp: GDP value(s)
 
     Returns:
-        Boolean or Series indicating whether consumption would be non-negative
-    """
-    consumption = (1 - saving_rate) * gdp - government_spending
+        Consumption share (C/Y)
 
-    if isinstance(consumption, pd.Series):
-        return consumption >= 0
-    return consumption >= 0
+    Raises:
+        ValueError: If GDP is zero or negative
+    """
+    # Validate GDP
+    gdp_positive_msg = "GDP must be positive for share calculation"
+    if isinstance(gdp, pd.Series):
+        if (gdp <= 0).any():
+            raise ValueError(gdp_positive_msg)
+    elif gdp <= 0:
+        raise ValueError(gdp_positive_msg)
+
+    return consumption / gdp

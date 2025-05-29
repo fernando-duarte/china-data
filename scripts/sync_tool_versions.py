@@ -13,6 +13,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -27,7 +28,7 @@ class VersionSynchronizer:
         self.workflows_dir = repo_root / ".github" / "workflows"
 
         # Define tool version mappings
-        self.tool_versions = {
+        self.tool_versions: dict[str, dict[str, str | None]] = {
             "pip-audit": {"pre_commit": "v2.7.3", "pyproject": ">=2.7.3,<3.0", "ci_exact": "2.7.3"},
             "detect-secrets": {
                 "pre_commit": "v1.5.0",
@@ -65,10 +66,13 @@ class VersionSynchronizer:
             "mypy": {"pre_commit": "v1.13.0", "pyproject": ">=1.13.0,<2.0", "ci_exact": "1.13.0"},
         }
 
-    def load_pre_commit_config(self) -> dict:
+    def load_pre_commit_config(self) -> dict[str, Any]:
         """Load pre-commit configuration."""
         with self.pre_commit_config.open() as f:
-            return yaml.safe_load(f)
+            config = yaml.safe_load(f)
+            if not isinstance(config, dict):
+                return {}
+            return config
 
     def load_pyproject_toml(self) -> str:
         """Load pyproject.toml as text (for easier regex manipulation)."""
@@ -105,14 +109,17 @@ class VersionSynchronizer:
             "mypy": "mypy",
         }
 
-        for repo in config.get("repos", []):
-            repo_url = repo.get("repo", "")
-            rev = repo.get("rev", "")
+        repos = config.get("repos", [])
+        if isinstance(repos, list):
+            for repo in repos:
+                if isinstance(repo, dict):
+                    repo_url = repo.get("repo", "")
+                    rev = repo.get("rev", "")
 
-            for url_pattern, tool_name in tool_mappings.items():
-                if url_pattern in repo_url:
-                    issues.extend(self._check_tool_in_repo(rev, tool_name))
-                    break
+                    for url_pattern, tool_name in tool_mappings.items():
+                        if url_pattern in repo_url:
+                            issues.extend(self._check_tool_in_repo(rev, tool_name))
+                            break
 
         return issues
 
@@ -122,7 +129,8 @@ class VersionSynchronizer:
         content = self.load_pyproject_toml()
 
         for tool, versions in self.tool_versions.items():
-            if versions["pyproject"] is None:
+            pyproject_version = versions.get("pyproject")
+            if pyproject_version is None:
                 continue
 
             # Look for the tool in dev dependencies
@@ -134,9 +142,9 @@ class VersionSynchronizer:
             else:
                 issues.extend(
                     [
-                        f"{tool} pyproject.toml version mismatch: {match} should contain {versions['pyproject']}"
+                        f"{tool} pyproject.toml version mismatch: {match} should contain {pyproject_version}"
                         for match in matches
-                        if versions["pyproject"] not in match
+                        if pyproject_version not in match
                     ]
                 )
 
@@ -152,7 +160,8 @@ class VersionSynchronizer:
 
             # Check for hardcoded tool versions in workflows
             for tool, versions in self.tool_versions.items():
-                if versions["ci_exact"] is None:
+                ci_exact = versions.get("ci_exact")
+                if ci_exact is None:
                     continue
 
                 # Look for tool installation commands
@@ -166,18 +175,19 @@ class VersionSynchronizer:
                     matches = re.findall(pattern, content)
                     issues.extend(
                         [
-                            f"{tool} in {workflow_file.name}: {match} should use version {versions['ci_exact']}"
+                            f"{tool} in {workflow_file.name}: {match} should use version {ci_exact}"
                             for match in matches
-                            if versions["ci_exact"] not in match
+                            if ci_exact not in match
                         ]
                     )
 
         return issues
 
-    def _update_tool_in_repo(self, repo: dict, tool_name: str) -> bool:
+    def _update_tool_in_repo(self, repo: dict[str, Any], tool_name: str) -> bool:
         """Update a specific tool version in a repository."""
         expected = self.tool_versions[tool_name]["pre_commit"]
-        if repo["rev"] != expected:
+        current_rev = repo.get("rev", "")
+        if current_rev != expected:
             repo["rev"] = expected
             return True
         return False
@@ -198,14 +208,17 @@ class VersionSynchronizer:
             "mypy": "mypy",
         }
 
-        for repo in config.get("repos", []):
-            repo_url = repo.get("repo", "")
+        repos = config.get("repos", [])
+        if isinstance(repos, list):
+            for repo in repos:
+                if isinstance(repo, dict):
+                    repo_url = repo.get("repo", "")
 
-            for url_pattern, tool_name in tool_mappings.items():
-                if url_pattern in repo_url:
-                    if self._update_tool_in_repo(repo, tool_name):
-                        updated = True
-                    break
+                    for url_pattern, tool_name in tool_mappings.items():
+                        if url_pattern in repo_url:
+                            if self._update_tool_in_repo(repo, tool_name):
+                                updated = True
+                            break
 
         if updated:
             with self.pre_commit_config.open("w") as f:
@@ -220,12 +233,13 @@ class VersionSynchronizer:
         updated = False
 
         for tool, versions in self.tool_versions.items():
-            if versions["pyproject"] is None:
+            pyproject_version = versions.get("pyproject")
+            if pyproject_version is None:
                 continue
 
             # Update version ranges in dev dependencies
             pattern = rf'"{tool}[^"]*"'
-            replacement = f'"{tool}{versions["pyproject"]}"'
+            replacement = f'"{tool}{pyproject_version}"'
 
             new_content = re.sub(pattern, replacement, updated_content)
             if new_content != updated_content:
@@ -262,10 +276,11 @@ class VersionSynchronizer:
     def _add_pyupgrade_step(self, content: str) -> str:
         """Add pyupgrade step to CI workflow."""
         if "pyupgrade" not in content:
+            ci_exact = self.tool_versions["pyupgrade"].get("ci_exact", "")
             pyupgrade_step = f"""
       - name: Run pyupgrade syntax modernization
         run: |
-          uv add --dev pyupgrade=={self.tool_versions["pyupgrade"]["ci_exact"]}
+          uv add --dev pyupgrade=={ci_exact}
           uv run pyupgrade --py313-plus china_data_processor.py china_data_downloader.py utils/**/*.py || true
 """  # pragma: allowlist secret
 
@@ -278,10 +293,11 @@ class VersionSynchronizer:
     def _add_prettier_step(self, content: str) -> str:
         """Add prettier step to CI workflow."""
         if "prettier" not in content:
+            ci_exact = self.tool_versions["prettier"].get("ci_exact", "")
             prettier_step = f"""
       - name: Format YAML and Markdown with prettier
         run: |
-          npm install -g prettier@{self.tool_versions["prettier"]["ci_exact"]}
+          npm install -g prettier@{ci_exact}
           prettier --check "**/*.{{yml,yaml,md}}" --ignore-path .gitignore || true
 """
 
@@ -300,10 +316,11 @@ class VersionSynchronizer:
     def _add_markdownlint_step(self, content: str) -> str:
         """Add markdownlint step to CI workflow."""
         if "markdownlint" not in content:
+            ci_exact = self.tool_versions["markdownlint"].get("ci_exact", "")
             markdownlint_step = f"""
       - name: Lint Markdown files
         run: |
-          npm install -g markdownlint-cli@{self.tool_versions["markdownlint"]["ci_exact"]}
+          npm install -g markdownlint-cli@{ci_exact}
           markdownlint "**/*.md" --ignore node_modules --ignore .github || true
 """
 
@@ -318,10 +335,11 @@ class VersionSynchronizer:
     def _add_radon_step(self, content: str) -> str:
         """Add radon complexity check to CI workflow."""
         if "radon" not in content:
+            ci_exact = self.tool_versions["radon"].get("ci_exact", "")
             radon_step = f"""
       - name: Check code complexity with radon
         run: |
-          uv add --dev radon=={self.tool_versions["radon"]["ci_exact"]}
+          uv add --dev radon=={ci_exact}
           uv run radon cc china_data_processor.py china_data_downloader.py utils/ --min B --show-complexity || true
 """
 
@@ -336,10 +354,11 @@ class VersionSynchronizer:
     def _add_interrogate_step(self, content: str) -> str:
         """Add interrogate docstring coverage to CI workflow."""
         if "interrogate" not in content:
+            ci_exact = self.tool_versions["interrogate"].get("ci_exact", "")
             interrogate_step = f"""
       - name: Check docstring coverage with interrogate
         run: |
-          uv add --dev interrogate=={self.tool_versions["interrogate"]["ci_exact"]}
+          uv add --dev interrogate=={ci_exact}
           uv run interrogate china_data_processor.py china_data_downloader.py utils/ --verbose --fail-under=80 || true
 """
 
@@ -358,13 +377,14 @@ class VersionSynchronizer:
     def _update_tool_versions_in_content(self, content: str) -> str:
         """Update existing tool versions in content."""
         for tool, versions in self.tool_versions.items():
-            if versions["ci_exact"] is None:
+            ci_exact = versions.get("ci_exact")
+            if ci_exact is None:
                 continue
 
             # Update hardcoded versions
             patterns = [
-                (rf"uv add --dev {tool}==[0-9.]+", f"uv add --dev {tool}=={versions['ci_exact']}"),
-                (rf'pip install "{tool}==[0-9.]+"', f'pip install "{tool}=={versions["ci_exact"]}"'),
+                (rf"uv add --dev {tool}==[0-9.]+", f"uv add --dev {tool}=={ci_exact}"),
+                (rf'pip install "{tool}==[0-9.]+"', f'pip install "{tool}=={ci_exact}"'),
             ]
 
             for pattern, replacement in patterns:
@@ -384,17 +404,19 @@ class VersionSynchronizer:
     def _update_security_workflow(self, content: str) -> str:
         """Update security workflow with pinned versions."""
         # Pin detect-secrets version
+        detect_secrets_version = self.tool_versions["detect-secrets"].get("ci_exact", "")
         content = re.sub(
             r'uv pip install "detect-secrets[^"]*"',
-            f'uv pip install "detect-secrets=={self.tool_versions["detect-secrets"]["ci_exact"]}"',
+            f'uv pip install "detect-secrets=={detect_secrets_version}"',
             content,
         )
 
         # Ensure bandit is pinned
+        bandit_version = self.tool_versions["bandit"].get("ci_exact", "")
         if "bandit" in content and "bandit==" not in content:
             content = re.sub(
                 r"uv run bandit",
-                f"uv add --dev bandit=={self.tool_versions['bandit']['ci_exact']} && uv run bandit",
+                f"uv add --dev bandit=={bandit_version} && uv run bandit",
                 content,
             )
 

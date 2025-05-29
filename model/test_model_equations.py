@@ -70,9 +70,10 @@ def test_tfp_growth() -> None:
 
     # Test with sample data
     current_tfp = 1.0
-    growth_rate = 0.03  # 3% growth
+    openness_ratio = 0.3  # Trade openness
+    fdi_ratio = 0.05  # FDI ratio
 
-    next_tfp = calculate_tfp_growth(current_tfp=current_tfp, growth_rate=growth_rate)
+    next_tfp = calculate_tfp_growth(current_tfp=current_tfp, openness_ratio=openness_ratio, fdi_ratio=fdi_ratio)
 
     print(f"Next TFP: {next_tfp:.4f}")
     print()
@@ -81,16 +82,19 @@ def test_tfp_growth() -> None:
 def test_consumption() -> None:
     """Test the consumption equation."""
     print("Testing Consumption Equation:")
-    print("C_t = (1 - s_t) * Y_t - G_t")
+    print("C_t = Y_t - I_t - G_t - NX_t")
 
     from model.utils.consumption import calculate_consumption
 
     # Test with sample data
     gdp = 350.0  # GDP in billions
-    saving_rate = 0.45  # 45% saving rate
-    government_spending = 50.0  # Government spending
+    investment = 150.0  # Investment
+    gov_spending = 50.0  # Government spending
+    net_exports = 10.0  # Net exports
 
-    consumption = calculate_consumption(gdp=gdp, saving_rate=saving_rate, government_spending=government_spending)
+    consumption = calculate_consumption(
+        gdp=gdp, investment=investment, gov_spending=gov_spending, net_exports=net_exports
+    )
 
     print(f"Consumption: {consumption:.2f} billion USD")
     print()
@@ -99,15 +103,16 @@ def test_consumption() -> None:
 def test_investment_from_saving() -> None:
     """Test the investment from saving equation."""
     print("Testing Investment from Saving Equation:")
-    print("I_t = s_t * Y_t")
+    print("I_t = s_t * Y_t + CA_t")
 
     from model.utils.investment_from_saving import calculate_investment_from_saving
 
     # Test with sample data
     gdp = 350.0  # GDP in billions
-    saving_rate = 0.45  # 45% saving rate
+    savings_rate = 0.45  # 45% saving rate
+    net_exports = 10.0  # Net exports
 
-    investment = calculate_investment_from_saving(gdp=gdp, saving_rate=saving_rate)
+    investment = calculate_investment_from_saving(gdp=gdp, savings_rate=savings_rate, net_exports=net_exports)
 
     print(f"Investment: {investment:.2f} billion USD")
     print()
@@ -152,9 +157,9 @@ def test_with_dataframe() -> None:
     china_data = calculate_consumption_dataframe(china_data)
 
     # Calculate investment
-    from model.utils.investment_from_saving import calculate_investment_from_saving_dataframe
+    from model.utils.investment_from_saving import calculate_investment_dataframe
 
-    china_data = calculate_investment_from_saving_dataframe(china_data)
+    china_data = calculate_investment_dataframe(china_data)
 
     # Calculate TFP growth
     from model.utils.tfp_growth import calculate_tfp_growth_dataframe

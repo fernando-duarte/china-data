@@ -23,7 +23,7 @@ class TestWDIDownloader:
         """Create sample WDI data for mocking."""
         # This data should resemble what WorldBankReader().read() returns
         # It has 'country' and 'year' in the index initially
-        idx = pd.MultiIndex.from_product([["China"], range(2020, 2025)], names=["country", "year"])
+        idx = pd.MultiIndex.from_product([["China"], list(range(2020, 2025))], names=["country", "year"])
         return pd.DataFrame({"NY.GDP.MKTP.CD": [1.5e13, 1.6e13, 1.7e13, 1.8e13, 1.9e13]}, index=idx)
 
     @patch("pandas_datareader.wb.WorldBankReader")
@@ -143,7 +143,7 @@ class TestWDIDownloader:
     @patch("pandas_datareader.wb.WorldBankReader")
     def test_download_wdi_data_missing_values(self, mock_wb_reader_class):
         """Test WDI data with missing values (NaNs)."""
-        idx = pd.MultiIndex.from_product([["China"], range(2020, 2023)], names=["country", "year"])
+        idx = pd.MultiIndex.from_product([["China"], list(range(2020, 2023))], names=["country", "year"])
         data_with_nans = pd.DataFrame({"NY.GDP.MKTP.CD": [1.5e13, np.nan, 1.7e13]}, index=idx)
         mock_reader_instance = mock_wb_reader_class.return_value
         mock_reader_instance.read.return_value = data_with_nans

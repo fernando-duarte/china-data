@@ -1,257 +1,299 @@
 # Makefile (enhanced for 2025)
-.PHONY: setup dev test lint security clean
+# Respects single source of truth - all tool configurations are maintained in their respective config files
 
-# One-command setup
-setup:
+# Variables with sane defaults (overridable)
+PYTHON ?= python
+UV ?= uv
+PYTEST_ARGS ?= -x --maxfail=5
+PARALLEL_JOBS ?= auto
+RADON_EXCLUDE ?= "*test*,tests/*,scripts/*,*/__pycache__/*,*/.*/*,*/build/*,*/dist/*"
+
+# Default target
+.DEFAULT_GOAL := help
+
+# Declare all phony targets at once for clarity
+.PHONY: help setup dev clean install install-dev test test-full test-standard test-property test-mutation \
+        test-mutation-quick test-factories test-benchmark test-parallel test-integration test-all \
+        lint format complexity quick-check security security-full security-scan security-sarif \
+        security-sarif-custom security-sarif-validate run-download run-process docs-serve docs-build \
+        docs-test docs-deploy check-versions sync-versions pre-commit-run pre-commit-update \
+        profile-download profile-process cache-clear cache-status shell notebook validate
+
+# Self-documenting help command
+help: ## Show this help message
+	@echo "China Data Pipeline - Makefile Commands"
+	@echo "======================================="
+	@echo ""
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Setup & Development:"
+	@grep -E '^(setup|dev|install|install-dev|shell|notebook):.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Testing:"
+	@grep -E '^test[^:]*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Code Quality:"
+	@grep -E '^(lint|format|complexity|quick-check|validate):.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Security:"
+	@grep -E '^security[^:]*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Documentation:"
+	@grep -E '^docs[^:]*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Data Processing:"
+	@grep -E '^run[^:]*:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+	@echo ""
+	@echo "Maintenance:"
+	@grep -E '^(clean|cache-clear|cache-status|check-versions|sync-versions|pre-commit|profile):.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
+
+# ===== Setup & Development =====
+
+setup: ## One-command development environment setup (installs UV if needed)
 	@echo "🚀 Setting up development environment..."
-	@command -v uv >/dev/null 2>&1 || { echo "Installing UV..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
-	uv sync --all-extras
-	uv run pre-commit install
+	@command -v $(UV) >/dev/null 2>&1 || { echo "Installing UV..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
+	$(UV) sync --all-extras
+	$(UV) run pre-commit install
 	@echo "✅ Development environment ready!"
 
-# Development workflow
-dev: setup
+dev: setup ## Start development mode (runs processor)
 	@echo "🔧 Starting development mode..."
-	uv run python china_data_processor.py
+	$(UV) run $(PYTHON) china_data_processor.py
 
-# Fast testing (under 3 minutes)
-test:
+install: ## Install production dependencies only
+	@command -v $(UV) >/dev/null 2>&1 || { echo "$(UV) not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
+	$(UV) sync --no-dev
+
+install-dev: ## Install all dependencies including dev
+	@command -v $(UV) >/dev/null 2>&1 || { echo "$(UV) not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
+	$(UV) sync
+
+shell: ## Start IPython shell with project context
+	@echo "🐚 Starting IPython shell with project context..."
+	$(UV) run ipython
+
+notebook: ## Start Jupyter notebook
+	@echo "📓 Starting Jupyter notebook..."
+	$(UV) run jupyter notebook
+
+# ===== Testing =====
+
+test: ## Run fast test suite (under 3 minutes)
 	@echo "🧪 Running fast test suite..."
-	uv run pytest tests/ -v --maxfail=5 --tb=short -x --timeout=180 \
-		--ignore=tests/test_property_based.py \
-		--ignore=tests/test_factories_demo.py \
-		--ignore=tests/test_performance_regression.py \
-		--ignore=tests/test_snapshots.py \
-		-m "not benchmark and not slow"
+	$(UV) run pytest $(PYTEST_ARGS) -m "not benchmark and not slow"
 
-# Comprehensive testing (may take longer)
-test-full:
+test-full: ## Run comprehensive test suite with coverage
 	@echo "🧪 Running comprehensive test suite..."
-	uv run pytest --cov --cov-report=html --cov-report=term --timeout=300
-	uv run pytest --doctest-modules --timeout=180
-	uv run pytest tests/test_property_based.py --hypothesis-show-statistics --timeout=300
+	$(UV) run pytest --cov --cov-report=html --cov-report=term
+	$(UV) run pytest --doctest-modules
+	$(UV) run pytest tests/test_property_based.py --hypothesis-show-statistics
 
-# Security and quality checks (optimized)
-lint:
+test-standard: ## Run standard unit tests
+	@echo "🧪 Running standard tests..."
+	$(UV) run pytest -v --maxfail=10 -m "not benchmark and not slow"
+
+test-property: ## Run property-based tests with Hypothesis
+	@echo "🔬 Running property-based tests with Hypothesis..."
+	$(UV) run pytest tests/test_property_based.py -v --hypothesis-show-statistics
+
+test-mutation: ## Run mutation tests with mutmut (may take time)
+	@echo "🧬 Running mutation tests with mutmut..."
+	@echo "⚠️  This may take several minutes..."
+	$(UV) run mutmut run || echo "⚠️  Mutation testing may have timed out"
+
+test-mutation-quick: ## Run quick mutation test on economic indicators
+	@echo "🧬 Running quick mutation test on economic indicators..."
+	$(UV) run mutmut run --paths-to-mutate utils/economic_indicators/
+
+test-factories: ## Run factory demonstration tests
+	@echo "🏭 Running factory demonstration tests..."
+	$(UV) run pytest tests/test_factories_demo.py -v
+
+test-benchmark: ## Run performance benchmark tests
+	@echo "⚡ Running performance benchmark tests..."
+	$(UV) run pytest tests/test_performance_regression.py -v --benchmark-only
+
+test-parallel: ## Run tests in parallel with pytest-xdist
+	@echo "🚀 Running tests in parallel with pytest-xdist..."
+	$(UV) run pytest -n $(PARALLEL_JOBS) -m "not benchmark and not slow" --maxfail=10
+
+test-integration: ## Run integration tests with factory fixtures
+	@echo "🔗 Running integration tests with factory fixtures..."
+	$(UV) run pytest tests/test_factoryboy_integration.py -v
+
+test-all: test test-property test-factories test-benchmark test-parallel test-integration ## Run all types of tests
+	@echo "✅ All tests completed!"
+
+# ===== Code Quality =====
+
+lint: ## Run code quality checks (ruff, mypy, bandit)
 	@echo "🔍 Running code quality checks..."
-	uv run ruff check --fix --exclude scripts/
-	uv run ruff format --exclude scripts/
-	uv run mypy . --ignore-missing-imports
-	@echo "⚠️  Skipping bandit on scripts/ due to known security warnings"
-	uv run bandit -r . -f json -o bandit-report.json --exclude scripts/ || true
+	# Using ruff with its ruff.toml configuration
+	$(UV) run ruff check --fix
+	$(UV) run ruff format
+	# Using mypy with its pyproject.toml configuration
+	$(UV) run mypy .
+	# Using bandit with its .bandit.yaml configuration
+	$(UV) run bandit -r . -f json -o bandit-report.json || true
 
-security:
+format: ## Format code with ruff
+	@echo "🎨 Formatting code with Ruff..."
+	$(UV) run ruff check --fix
+	$(UV) run ruff format
+	@echo "✅ Code formatting complete!"
+
+complexity: ## Run code complexity analysis
+	@echo "📊 Running code complexity analysis..."
+	# Using radon with exclude patterns for performance (tests and scripts excluded)
+	$(UV) run radon cc . -s -e "$(RADON_EXCLUDE)"
+
+quick-check: ## Run quick quality checks (faster than full lint)
+	@echo "⚡ Running quick quality checks..."
+	$(UV) run ruff check --select=E,F,I
+	$(UV) run mypy . --follow-imports=skip --ignore-missing-imports
+	@echo "✅ Quick check complete!"
+
+validate: lint test security ## Run all validation checks
+	@echo "✅ All validation checks passed!"
+
+# ===== Security =====
+
+security: ## Run fast security scans
 	@echo "🔒 Running security scans..."
-	uv run pip-audit --desc || true
-	uv run safety check || true
+	# Using pip-audit as configured in pre-commit
+	$(UV) run pip-audit --desc || true
+	# Using safety as configured in pre-commit
+	$(UV) run safety scan || true
 	@echo "⚠️  Skipping semgrep due to timeout issues"
 	@echo "Run 'make security-full' for complete security scan"
 
-# Full security scan (may take longer)
-security-full:
+security-full: ## Run comprehensive security scans
 	@echo "🔒 Running comprehensive security scans..."
-	uv run pip-audit --desc
-	uv run safety check
-	uv run semgrep --config=auto
+	$(UV) run pip-audit --desc
+	$(UV) run safety scan
+	# Using semgrep with pre-commit configuration
+	$(UV) run semgrep --config=p/security-audit --config=p/secrets --timeout=30 --skip-unknown-extensions
 
-# Generate SARIF reports for local development and IDE integration
-security-sarif:
+security-scan: ## Run dependency vulnerability scan
+	@echo "🔍 Running dependency vulnerability scan..."
+	$(UV) run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
+	$(UV) run safety scan --output json > safety-vulnerabilities.json || true
+	@echo "✅ Vulnerability scan complete. Check pip-audit-vulnerabilities.json and safety-vulnerabilities.json"
+
+security-sarif: ## Generate unified SARIF security reports
 	@echo "📊 Generating unified SARIF security reports..."
 	@echo "⚠️  Note: This may take several minutes"
-	uv run python scripts/generate_sarif_reports.py || true
+	$(UV) run $(PYTHON) scripts/generate_sarif_reports.py || true
 	@echo "✅ SARIF reports generated (if successful) in security-reports/ directory"
 
-# Generate SARIF reports with custom output directory
-security-sarif-custom:
+security-sarif-custom: ## Generate SARIF reports to custom directory
 	@echo "📊 Generating SARIF reports to custom directory..."
 	@read -p "Enter output directory [security-reports]: " dir; \
 	dir=$${dir:-security-reports}; \
-	uv run python scripts/generate_sarif_reports.py --output-dir "$$dir" || true
+	$(UV) run $(PYTHON) scripts/generate_sarif_reports.py --output-dir "$$dir" || true
 
-# Validate existing SARIF files
-security-sarif-validate:
+security-sarif-validate: ## Validate existing SARIF files
 	@echo "🔍 Validating existing SARIF files..."
 	@if [ -d "security-reports" ]; then \
 		for file in security-reports/*.sarif; do \
 			if [ -f "$$file" ]; then \
 				echo "Validating $$file..."; \
-				uv run python -c "import json; json.load(open('$$file')); print('✅ Valid JSON')" || echo "❌ Invalid JSON"; \
+				$(UV) run $(PYTHON) -c "import json; json.load(open('$$file')); print('✅ Valid JSON')" || echo "❌ Invalid JSON"; \
 			fi; \
 		done; \
 	else \
 		echo "No security-reports directory found. Run 'make security-sarif' first."; \
 	fi
 
-# Clean environment
-clean:
+# ===== Documentation =====
+
+docs-serve: ## Start documentation development server
+	@echo "📚 Starting documentation server..."
+	$(UV) run mkdocs serve --dev-addr localhost:8000
+
+docs-build: ## Build documentation
+	@echo "🏗️  Building documentation..."
+	$(UV) run mkdocs build --clean
+
+docs-test: ## Test documentation (strict mode)
+	@echo "🧪 Testing documentation..."
+	$(UV) run mkdocs build --strict
+
+docs-deploy: ## Deploy documentation to GitHub Pages
+	@echo "🚀 Deploying documentation..."
+	$(UV) run mkdocs gh-deploy --force
+
+# ===== Data Processing =====
+
+run-download: ## Download raw data
+	@echo "📥 Downloading raw data..."
+	$(UV) run $(PYTHON) china_data_downloader.py
+
+run-process: ## Process downloaded data
+	@echo "⚙️  Processing downloaded data..."
+	$(UV) run $(PYTHON) china_data_processor.py
+
+# ===== Maintenance =====
+
+clean: ## Clean up generated files and caches
 	@echo "🧹 Cleaning up..."
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	rm -rf .coverage htmlcov/ .pytest_cache/ .mypy_cache/ .ruff_cache/
 	rm -rf security-reports/
-	uv cache clean
+	$(UV) cache clean
 
-# Additional targets from original Makefile
+cache-clear: ## Clear all caches (ruff, mypy, pytest, etc.)
+	@echo "🧹 Clearing all caches..."
+	rm -rf .ruff_cache/ .mypy_cache/ .pytest_cache/ .hypothesis/ .mutmut-cache/
+	$(UV) cache clean
+	@echo "✅ All caches cleared!"
 
-.PHONY: help install install-dev format complexity test-property test-mutation test-factories test-benchmark test-parallel test-integration test-all check-versions sync-versions run-download run-process security-scan docs-serve docs-build docs-test docs-deploy
+cache-status: ## Show cache directory sizes
+	@echo "📊 Cache status:"
+	@du -sh .ruff_cache/ 2>/dev/null || echo "Ruff cache: Not found"
+	@du -sh .mypy_cache/ 2>/dev/null || echo "Mypy cache: Not found"
+	@du -sh .pytest_cache/ 2>/dev/null || echo "Pytest cache: Not found"
+	@du -sh .hypothesis/ 2>/dev/null || echo "Hypothesis cache: Not found"
+	@du -sh .mutmut-cache/ 2>/dev/null || echo "Mutmut cache: Not found"
 
-# Default target
-help:
-	@echo "Available commands:"
-	@echo "  make setup         - One-command development environment setup (UV)"
-	@echo "  make dev           - Start development mode"
-	@echo "  make test          - Run fast test suite (under 3 minutes)"
-	@echo "  make test-full     - Run comprehensive test suite (may take longer)"
-	@echo "  make lint          - Run code quality checks (optimized)"
-	@echo "  make security      - Run fast security scans"
-	@echo "  make security-full - Run comprehensive security scans"
-	@echo "  make security-sarif - Generate unified SARIF security reports"
-	@echo "  make security-sarif-custom - Generate SARIF reports to custom directory"
-	@echo "  make security-sarif-validate - Validate existing SARIF files"
-	@echo "  make clean         - Clean up generated files"
-	@echo "  make install       - Install production dependencies (UV)"
-	@echo "  make install-dev   - Install development dependencies (UV)"
-	@echo "  make format        - Format code with ruff"
-	@echo "  make complexity    - Run detailed code complexity analysis"
-	@echo "  make test-property - Run property-based tests with Hypothesis"
-	@echo "  make test-mutation - Run mutation tests with mutmut (enhanced)"
-	@echo "  make test-factories - Run factory demonstration tests"
-	@echo "  make test-benchmark - Run performance benchmark tests"
-	@echo "  make test-parallel - Run tests in parallel with pytest-xdist"
-	@echo "  make test-integration - Run integration tests with factory fixtures"
-	@echo "  make test-all      - Run all types of tests"
-	@echo "  make security-scan - Run dependency vulnerability scan"
-	@echo "  make sync-versions - Synchronize tool versions between pre-commit and CI"
-	@echo "  make check-versions - Check tool version alignment"
-	@echo "  make run-download  - Download raw data"
-	@echo "  make run-process   - Process downloaded data"
-	@echo "  make docs-serve    - Start documentation development server"
-	@echo "  make docs-build    - Build documentation"
-	@echo "  make docs-test     - Test documentation"
-	@echo "  make docs-deploy   - Deploy documentation to GitHub Pages"
-
-# Install production dependencies (UV-first)
-install:
-	@command -v uv >/dev/null 2>&1 || { echo "uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
-	uv sync --no-dev
-
-# Install development dependencies (UV-first)
-install-dev:
-	@command -v uv >/dev/null 2>&1 || { echo "uv not found. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"; exit 1; }
-	uv sync
-
-# Format code (simplified and optimized)
-format:
-	@echo "🎨 Formatting code with Ruff..."
-	uv run ruff check . --fix --exclude scripts/
-	uv run ruff format . --exclude scripts/
-	@echo "✅ Code formatting complete!"
-
-# Run detailed code complexity analysis
-# Paths to analyze are documented in [tool.radon] section of pyproject.toml
-# Using targeted approach for fast execution (avoids scanning large directories)
-complexity:
-	@echo "📊 Running detailed code complexity analysis..."
-	@echo "ℹ️  Analyzing specific paths (see [tool.radon] in pyproject.toml for details)"
-	uv run radon cc utils/ config.py config_schema.py china_data_downloader.py china_data_processor.py -s -a
-
-# Run standard tests (optimized)
-test-standard:
-	@echo "🧪 Running standard tests..."
-	uv run pytest tests/ -v --timeout=180 --maxfail=10 \
-		--ignore=tests/test_property_based.py \
-		--ignore=tests/test_factories_demo.py \
-		--ignore=tests/test_performance_regression.py \
-		-m "not benchmark and not slow"
-
-# Run property-based tests with Hypothesis (with timeout)
-test-property:
-	@echo "🔬 Running property-based tests with Hypothesis..."
-	uv run pytest tests/test_property_based.py -v --hypothesis-show-statistics --timeout=300
-
-# Run mutation tests with mutmut (enhanced with timeout)
-test-mutation:
-	@echo "🧬 Running mutation tests with mutmut..."
-	@echo "⚠️  This may take several minutes..."
-	uv run mutmut run --use-patch-file --processes 2 || echo "⚠️  Mutation testing may have timed out"
-
-# Run quick mutation test on specific module
-test-mutation-quick:
-	@echo "🧬 Running quick mutation test on economic indicators..."
-	uv run mutmut run --paths-to-mutate utils/economic_indicators/ --runner "python -m pytest tests/test_economic_indicators.py -x --tb=short"
-
-# Run factory demonstration tests (with timeout)
-test-factories:
-	@echo "🏭 Running factory demonstration tests..."
-	uv run pytest tests/test_factories_demo.py -v --timeout=180
-
-# Run benchmark tests (with timeout)
-test-benchmark:
-	@echo "⚡ Running performance benchmark tests..."
-	uv run pytest tests/test_performance_regression.py -v --benchmark-only --timeout=300
-
-# Run tests in parallel with pytest-xdist (optimized)
-test-parallel:
-	@echo "🚀 Running tests in parallel with pytest-xdist..."
-	uv run pytest -n auto -m "not benchmark and not slow" --timeout=180 --maxfail=10
-
-# Run integration tests with factory fixtures (with timeout)
-test-integration:
-	@echo "🔗 Running integration tests with factory fixtures..."
-	uv run pytest tests/test_factoryboy_integration.py -v --timeout=300
-
-# Run all types of tests (with reasonable timeouts)
-test-all: test test-property test-factories test-benchmark test-parallel test-integration
-	@echo "✅ All tests completed!"
-
-# Run dependency vulnerability scan (with timeout)
-security-scan:
-	@echo "🔍 Running dependency vulnerability scan..."
-	uv run pip-audit --format=json --output=pip-audit-vulnerabilities.json || true
-	uv run safety check --json --output=safety-vulnerabilities.json || true
-	@echo "✅ Vulnerability scan complete. Check pip-audit-vulnerabilities.json and safety-vulnerabilities.json"
-
-# Download raw data (with timeout)
-run-download:
-	@echo "📥 Downloading raw data..."
-	uv run python china_data_downloader.py
-
-# Process downloaded data (with timeout)
-run-process:
-	@echo "⚙️  Processing downloaded data..."
-	uv run python china_data_processor.py
-
-# Documentation commands (with timeouts)
-docs-serve:
-	@echo "📚 Starting documentation server..."
-	uv run mkdocs serve --dev-addr localhost:8000
-
-docs-build:
-	@echo "🏗️  Building documentation..."
-	uv run mkdocs build --clean
-
-docs-test:
-	@echo "🧪 Testing documentation..."
-	uv run mkdocs build --strict
-
-docs-deploy:
-	@echo "🚀 Deploying documentation..."
-	uv run mkdocs gh-deploy --force
-
-# Check tool version alignment (with timeout)
-check-versions:
+check-versions: ## Check tool version alignment
 	@echo "🔍 Checking tool version alignment across all configuration files..."
-	uv run python scripts/sync_tool_versions.py --check-only
+	$(UV) run $(PYTHON) scripts/sync_tool_versions.py --check-only
 
-# Synchronize tool versions (with timeout)
-sync-versions:
+sync-versions: ## Synchronize tool versions across configs
 	@echo "🔄 Synchronizing tool versions across pre-commit, CI, and pyproject.toml..."
-	uv run python scripts/sync_tool_versions.py
+	$(UV) run $(PYTHON) scripts/sync_tool_versions.py
 	@echo "📦 Updating lock file..."
-	uv lock
+	$(UV) lock
 	@echo "✅ Version synchronization complete!"
 	@echo ""
 	@echo "📋 Next steps:"
 	@echo "1. Run 'make check-versions' to verify synchronization"
 	@echo "2. Run 'pre-commit run --all-files' to test locally"
 	@echo "3. Commit and push changes to test CI"
+
+pre-commit-run: ## Run pre-commit on all files
+	@echo "🔍 Running pre-commit on all files..."
+	$(UV) run pre-commit run --all-files
+
+pre-commit-update: ## Update pre-commit hooks
+	@echo "📦 Updating pre-commit hooks..."
+	$(UV) run pre-commit autoupdate
+
+profile-download: ## Profile china_data_downloader.py performance
+	@echo "📊 Profiling china_data_downloader.py..."
+	$(UV) run $(PYTHON) -m cProfile -o download_profile.stats china_data_downloader.py
+	$(UV) run $(PYTHON) -c "import pstats; p = pstats.Stats('download_profile.stats'); p.strip_dirs().sort_stats('cumulative').print_stats(20)"
+
+profile-process: ## Profile china_data_processor.py performance
+	@echo "📊 Profiling china_data_processor.py..."
+	$(UV) run $(PYTHON) -m cProfile -o process_profile.stats china_data_processor.py
+	$(UV) run $(PYTHON) -c "import pstats; p = pstats.Stats('process_profile.stats'); p.strip_dirs().sort_stats('cumulative').print_stats(20)"
