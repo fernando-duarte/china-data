@@ -68,6 +68,24 @@ def mock_cached_session_for_tests(monkeypatch):
     monkeypatch.setattr("utils.caching_utils.get_cached_session", non_cached_session)
 
 
+@pytest.fixture(autouse=True)
+def cleanup_test_artifacts():
+    """Automatically clean up test artifacts before and after each test."""
+    # Clean up before test
+    test_artifacts = ["test.md", "test_output.md"]
+    for artifact in test_artifacts:
+        if Path(artifact).exists():
+            Path(artifact).unlink()
+
+    # Run test
+    yield
+
+    # Clean up after test
+    for artifact in test_artifacts:
+        if Path(artifact).exists():
+            Path(artifact).unlink()
+
+
 @pytest.fixture
 def minimal_economic_data():
     """Fixture providing minimal economic data for testing."""

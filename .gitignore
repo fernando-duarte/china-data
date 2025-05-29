@@ -217,6 +217,10 @@ output/*.log
 china_data.log*
 *.log
 
+# Test artifacts
+test.md
+test_output.md
+
 # Security and compliance reports
 security-results.sarif
 security-reports/
