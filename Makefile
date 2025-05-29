@@ -61,6 +61,8 @@ setup: ## One-command development environment setup (installs UV if needed)
 	@command -v $(UV) >/dev/null 2>&1 || { echo "Installing UV..."; curl -LsSf https://astral.sh/uv/install.sh | sh; }
 	$(UV) sync --all-extras
 	$(UV) run pre-commit install
+	@echo "🔧 Fixing ruamel namespace package issue..."
+	@$(UV) run $(PYTHON) scripts/fix_ruamel_namespace.py || echo "⚠️  Could not fix ruamel namespace (might already be fixed)"
 	@echo "✅ Development environment ready!"
 
 dev: setup ## Start development mode (runs processor)
@@ -169,7 +171,8 @@ security: ## Run fast security scans
 	@echo "🔒 Running security scans..."
 	# Using pip-audit as configured in pre-commit
 	$(UV) run pip-audit --desc || true
-	# Using safety as configured in pre-commit
+	# Using safety directly (namespace issue should be fixed by setup)
+	# Note: may show pkg_resources deprecation warning - this is harmless
 	$(UV) run safety scan || true
 	@echo "⚠️  Skipping semgrep due to timeout issues"
 	@echo "Run 'make security-full' for complete security scan"
