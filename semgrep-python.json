@@ -1,1 +1,1 @@
-{"version":"1.99.0","results":[],"errors":[],"paths":{"scanned":["utils/processor_extrapolation_utils.py"]},"interfile_languages_used":[],"skipped_rules":[]}
+{"version":"1.99.0","results":[],"errors":[],"paths":{"scanned":["utils/capital/projection/__init__.py","utils/data_sources/fallback_utils.py","utils/error_handling/exceptions.py","utils/extrapolation_methods/average_growth_rate.py","utils/logging_core.py","utils/output/__init__.py","utils/output/formatters.py","utils/processor_cli.py"]},"interfile_languages_used":[],"skipped_rules":[]}

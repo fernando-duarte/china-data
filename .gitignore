@@ -232,3 +232,4 @@ sbom-vulnerabilities.cyclonedx.json
 Dockerfile.backup
 docker-compose.yml.backup
 renovate.json5.backup
+security-results/
