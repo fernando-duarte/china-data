@@ -12,7 +12,9 @@ class ChinaDataError(Exception):
 class DataDownloadError(ChinaDataError):
     """Raised when data download fails."""
 
-    def __init__(self, source: str, indicator: str, message: str, original_error: Exception | None = None) -> None:
+    def __init__(
+        self, source: str, indicator: str, message: str, original_error: Exception | None = None
+    ) -> None:
         self.source = source
         self.indicator = indicator
         self.original_error = original_error
@@ -31,7 +33,9 @@ class DataValidationError(ChinaDataError):
 class ProjectionError(ChinaDataError):
     """Raised when data projection/extrapolation fails."""
 
-    def __init__(self, method: str, column: str, message: str, original_error: Exception | None = None) -> None:
+    def __init__(
+        self, method: str, column: str, message: str, original_error: Exception | None = None
+    ) -> None:
         self.method = method
         self.column = column
         self.original_error = original_error
@@ -41,7 +45,9 @@ class ProjectionError(ChinaDataError):
 class FileOperationError(ChinaDataError):
     """Raised when file operations fail."""
 
-    def __init__(self, operation: str, filepath: str, message: str, original_error: Exception | None = None) -> None:
+    def __init__(
+        self, operation: str, filepath: str, message: str, original_error: Exception | None = None
+    ) -> None:
         self.operation = operation
         self.filepath = filepath
         self.original_error = original_error

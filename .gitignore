@@ -50,6 +50,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.mutmut-cache
+
+# Cache files
+china_data_cache.sqlite
 
 # Translations
 *.mo
@@ -228,10 +232,18 @@ security-reports/
 audit.json
 safety.json
 pip-audit.json
+safety-vulnerabilities.json
+pip-audit-vulnerabilities.json
 semgrep.json
 sbom.spdx.json
 sbom.cyclonedx.json
 sbom-vulnerabilities.cyclonedx.json
+
+# Profile statistics
+*.stats
+
+# Security reports
+bandit-report.json
 
 # Backup files
 Dockerfile.backup

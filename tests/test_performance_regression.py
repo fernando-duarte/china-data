@@ -34,7 +34,9 @@ class TestEconomicIndicatorsPerformance:
     def test_calculate_tfp_performance(self, benchmark: Any) -> None:
         """Benchmark the calculate_tfp function with realistic data."""
         # Create data with required columns for TFP calculation
-        economic_dataframe = DataFrameFactory.create_economic_dataframe(years=list(range(2000, 2023)), num_rows=23)
+        economic_dataframe = DataFrameFactory.create_economic_dataframe(
+            years=list(range(2000, 2023)), num_rows=23
+        )
 
         result = benchmark(calculate_tfp, economic_dataframe, alpha=1 / 3)
 
@@ -45,7 +47,9 @@ class TestEconomicIndicatorsPerformance:
     def test_large_dataset_performance(self, benchmark: Any) -> None:
         """Benchmark performance with larger datasets."""
         # Create a larger dataset (40 years of data)
-        large_dataframe = DataFrameFactory.create_economic_dataframe(years=list(range(1980, 2023)), num_rows=43)
+        large_dataframe = DataFrameFactory.create_economic_dataframe(
+            years=list(range(1980, 2023)), num_rows=43
+        )
 
         result = benchmark(calculate_economic_indicators, large_dataframe)
 
@@ -57,7 +61,9 @@ class TestDataProcessingPerformance:
     """Performance benchmarks for data processing functions."""
 
     @pytest.mark.benchmark(group="data_processing")
-    def test_convert_units_performance(self, benchmark: Any, complete_economic_data: pd.DataFrame) -> None:
+    def test_convert_units_performance(
+        self, benchmark: Any, complete_economic_data: pd.DataFrame
+    ) -> None:
         """Benchmark the convert_units function."""
         result = benchmark(convert_units, complete_economic_data)
 
@@ -67,7 +73,9 @@ class TestDataProcessingPerformance:
     @pytest.mark.benchmark(group="data_processing")
     def test_calculate_capital_stock_performance(self, benchmark: Any) -> None:
         """Benchmark the calculate_capital_stock function."""
-        economic_dataframe = DataFrameFactory.create_economic_dataframe(years=list(range(2000, 2023)), num_rows=23)
+        economic_dataframe = DataFrameFactory.create_economic_dataframe(
+            years=list(range(2000, 2023)), num_rows=23
+        )
 
         result = benchmark(calculate_capital_stock, economic_dataframe, capital_output_ratio=3.0)
 
@@ -93,7 +101,10 @@ class TestRealWorldScenarioPerformance:
     def test_missing_data_scenario_performance(self, benchmark: Any) -> None:
         """Benchmark performance with missing data (realistic scenario)."""
         missing_data_dataframe = DataFrameFactory.create_economic_dataframe(
-            years=list(range(1990, 2023)), num_rows=33, include_missing=True, missing_probability=0.15
+            years=list(range(1990, 2023)),
+            num_rows=33,
+            include_missing=True,
+            missing_probability=0.15,
         )
 
         result = benchmark(calculate_economic_indicators, missing_data_dataframe)
@@ -114,7 +125,9 @@ class TestPerformanceRegression:
     def test_economic_indicators_regression(self, benchmark: Any) -> None:
         """Regression test for economic indicators calculation performance."""
         # Use a standardized dataset for consistent benchmarking
-        standard_dataframe = DataFrameFactory.create_economic_dataframe(years=list(range(2000, 2021)), num_rows=21)
+        standard_dataframe = DataFrameFactory.create_economic_dataframe(
+            years=list(range(2000, 2021)), num_rows=21
+        )
 
         result = benchmark(calculate_economic_indicators, standard_dataframe)
 
@@ -130,7 +143,9 @@ class TestPerformanceRegression:
     )
     def test_unit_conversion_regression(self, benchmark: Any) -> None:
         """Regression test for unit conversion performance."""
-        conversion_dataframe = DataFrameFactory.create_economic_dataframe(years=list(range(2010, 2021)), num_rows=11)
+        conversion_dataframe = DataFrameFactory.create_economic_dataframe(
+            years=list(range(2010, 2021)), num_rows=11
+        )
 
         result = benchmark(convert_units, conversion_dataframe)
 
@@ -140,7 +155,9 @@ class TestPerformanceRegression:
 
 # Benchmark configuration for different scenarios
 @pytest.mark.benchmark(group="memory")
-def test_memory_usage_economic_indicators(benchmark: Any, complete_economic_data: pd.DataFrame) -> None:
+def test_memory_usage_economic_indicators(
+    benchmark: Any, complete_economic_data: pd.DataFrame
+) -> None:
     """Test memory usage patterns for economic indicators calculation."""
     import os
 

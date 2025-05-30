@@ -12,6 +12,7 @@ Where:
 """
 
 import logging
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -19,7 +20,9 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _validate_and_clip_scalar_inputs(gdp: float, investment: float, gov_spending: float) -> tuple[float, float, float]:
+def _validate_and_clip_scalar_inputs(
+    gdp: float, investment: float, gov_spending: float
+) -> tuple[float, float, float]:
     """Validate and clip scalar inputs."""
     if gdp < 0:
         logger.warning("GDP %s is negative, clipping to 0", gdp)
@@ -102,7 +105,9 @@ def calculate_consumption(
         ValueError: If any parameters are invalid
 
     Example:
-        >>> consumption = calculate_consumption(gdp=1000.0, investment=300.0, gov_spending=200.0, net_exports=50.0)
+        >>> consumption = calculate_consumption(
+        ...     gdp=1000.0, investment=300.0, gov_spending=200.0, net_exports=50.0
+        ... )
         >>> # Result: 1000 - 300 - 200 - 50 = 450
     """
     # Handle both scalar and series inputs
@@ -114,14 +119,20 @@ def calculate_consumption(
     )
 
     if is_series:
-        gdp, investment, gov_spending, net_exports = _convert_to_series(gdp, investment, gov_spending, net_exports)
-        gdp, investment, gov_spending = _validate_and_clip_series_inputs(gdp, investment, gov_spending)
+        gdp, investment, gov_spending, net_exports = _convert_to_series(
+            gdp, investment, gov_spending, net_exports
+        )
+        gdp, investment, gov_spending = _validate_and_clip_series_inputs(
+            gdp, investment, gov_spending
+        )
     else:
         # Type assertions for MyPy
         assert isinstance(gdp, float)
         assert isinstance(investment, float)
         assert isinstance(gov_spending, float)
-        gdp, investment, gov_spending = _validate_and_clip_scalar_inputs(gdp, investment, gov_spending)
+        gdp, investment, gov_spending = _validate_and_clip_scalar_inputs(
+            gdp, investment, gov_spending
+        )
 
     try:
         # Calculate consumption using the formula: C_t = Y_t - I_t - G_t - NX_t
@@ -150,24 +161,26 @@ def calculate_consumption(
         return consumption
 
 
+# Define a configuration class for column names
+@dataclass
+class ConsumptionColumnConfig:
+    """Configuration for column names used in consumption calculation."""
+
+    gdp_col: str = "GDP_USD_bn"
+    investment_col: str = "I_USD_bn"
+    gov_spending_col: str = "G_USD_bn"
+    net_exports_col: str = "NX_USD_bn"
+    output_col: str = "C_USD_bn"
+
+
 def calculate_consumption_dataframe(
-    df: pd.DataFrame,
-    *,
-    gdp_col: str = "GDP_USD_bn",
-    investment_col: str = "I_USD_bn",
-    gov_spending_col: str = "G_USD_bn",
-    net_exports_col: str = "NX_USD_bn",
-    output_col: str = "C_USD_bn",
+    df: pd.DataFrame, *, config: ConsumptionColumnConfig | None = None
 ) -> pd.DataFrame:
     """Calculate consumption for a DataFrame with time series data.
 
     Args:
         df: DataFrame containing GDP, investment, government spending, and net exports data
-        gdp_col: Column name for GDP data
-        investment_col: Column name for investment data
-        gov_spending_col: Column name for government spending data
-        net_exports_col: Column name for net exports data
-        output_col: Column name for calculated consumption (default: "C_USD_bn")
+        config: Configuration object for column names. If None, a default config is used.
 
     Returns:
         DataFrame with consumption column added
@@ -175,8 +188,17 @@ def calculate_consumption_dataframe(
     Raises:
         ValueError: If required columns are missing
     """
+    # Instantiate default config if None is provided
+    if config is None:
+        config = ConsumptionColumnConfig()
+
     # Validate required columns
-    required_cols = [gdp_col, investment_col, gov_spending_col, net_exports_col]
+    required_cols = [
+        config.gdp_col,
+        config.investment_col,
+        config.gov_spending_col,
+        config.net_exports_col,
+    ]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         msg = f"Missing required columns: {missing_cols}"
@@ -185,11 +207,11 @@ def calculate_consumption_dataframe(
     result_df = df.copy()
 
     # Calculate consumption
-    result_df[output_col] = calculate_consumption(
-        gdp=df[gdp_col],
-        investment=df[investment_col],
-        gov_spending=df[gov_spending_col],
-        net_exports=df[net_exports_col],
+    result_df[config.output_col] = calculate_consumption(
+        gdp=df[config.gdp_col],
+        investment=df[config.investment_col],
+        gov_spending=df[config.gov_spending_col],
+        net_exports=df[config.net_exports_col],
     )
 
     logger.info("Calculated consumption for %d periods", len(result_df))

@@ -30,7 +30,9 @@ def test_imports_gdp_ratio_within_bounds(raw_df):
 
 def test_gdp_equals_sum_c_i_g_plus_net_exports(raw_df):
     tol = 0.06
-    for _, row in raw_df.dropna(subset=["GDP_USD", "C_USD", "I_USD", "G_USD", "X_USD", "M_USD"]).iterrows():
+    for _, row in raw_df.dropna(
+        subset=["GDP_USD", "C_USD", "I_USD", "G_USD", "X_USD", "M_USD"]
+    ).iterrows():
         gdp = row["GDP_USD"]
         total = row["C_USD"] + row["I_USD"] + row["G_USD"] + (row["X_USD"] - row["M_USD"])
         if gdp:

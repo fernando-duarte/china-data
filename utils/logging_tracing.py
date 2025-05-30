@@ -15,14 +15,24 @@ try:
     )
     from opentelemetry.sdk.resources import Resource  # pylint: disable=import-error
     from opentelemetry.sdk.trace import TracerProvider  # pylint: disable=import-error
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor  # pylint: disable=import-error
+    from opentelemetry.sdk.trace.export import (
+        BatchSpanProcessor,  # pylint: disable=import-error
+        ConsoleSpanExporter,  # Moved from _configure_tracing
+    )
+    from opentelemetry.sdk.trace.sampling import (
+        ALWAYS_OFF,  # Moved from _get_sampler
+        ALWAYS_ON,  # Moved from _get_sampler
+        TraceIdRatioBased,  # Moved from _get_sampler
+    )
 
     OPENTELEMETRY_AVAILABLE = True
 except ImportError:  # pragma: no cover - optional dependency
     OPENTELEMETRY_AVAILABLE = False
 
 
-def _add_trace_context(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+def _add_trace_context(
+    _logger: Any, _method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Add OpenTelemetry trace context to log records."""
     if not OPENTELEMETRY_AVAILABLE:
         return event_dict
@@ -66,8 +76,6 @@ def _configure_tracing(service_name: str, service_version: str, otlp_endpoint: s
             timeout=30,
         )
     else:
-        from opentelemetry.sdk.trace.export import ConsoleSpanExporter
-
         span_exporter = ConsoleSpanExporter()
 
     span_processor = BatchSpanProcessor(
@@ -89,8 +97,6 @@ def _get_sampler() -> Any:
     """Get appropriate sampler based on environment."""
     if not OPENTELEMETRY_AVAILABLE:
         return None
-
-    from opentelemetry.sdk.trace.sampling import ALWAYS_OFF, ALWAYS_ON, TraceIdRatioBased
 
     env = os.getenv("ENVIRONMENT", "development").lower()
     sample_rate = float(os.getenv("TRACE_SAMPLE_RATE", "1.0"))

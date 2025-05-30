@@ -23,7 +23,9 @@ def validate_year_range(df: pd.DataFrame, year_column: str = "year") -> None:
             message=f"Year column '{year_column}' not found for range validation.",
         )
     if not pd.api.types.is_numeric_dtype(df[year_column]):
-        raise DataValidationError(column=year_column, message=f"Year column '{year_column}' is not numeric.")
+        raise DataValidationError(
+            column=year_column, message=f"Year column '{year_column}' is not numeric."
+        )
 
     min_year = df[year_column].min()
     max_year = df[year_column].max()
@@ -73,7 +75,10 @@ def validate_numeric_values(
         invalid_values = series_to_validate[series_to_validate <= 0]
         raise DataValidationError(
             column=column,
-            message=f"Column '{column}' must be strictly positive. Found: {invalid_values.head().tolist()}",
+            message=(
+                f"Column '{column}' must be strictly positive. "
+                f"Found: {invalid_values.head().tolist()}"
+            ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
 
@@ -82,7 +87,8 @@ def validate_numeric_values(
         raise DataValidationError(
             column=column,
             message=(
-                f"Values in column '{column}' are below minimum {min_value}. Found: {invalid_values.head().tolist()}"
+                f"Values in column '{column}' are below minimum {min_value}. "
+                f"Found: {invalid_values.head().tolist()}"
             ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
@@ -92,7 +98,8 @@ def validate_numeric_values(
         raise DataValidationError(
             column=column,
             message=(
-                f"Values in column '{column}' are above maximum {max_value}. Found: {invalid_values.head().tolist()}"
+                f"Values in column '{column}' are above maximum {max_value}. "
+                f"Found: {invalid_values.head().tolist()}"
             ),
             data_info=f"Affected rows count: {len(invalid_values)}",
         )
@@ -126,7 +133,9 @@ def validate_dataframe_with_rules(
             )
         else:
             # This is not necessarily an error if a source doesn't provide all possible indicators
-            logger.debug("Column '%s' not found in DataFrame for validation, skipping.", column_name)
+            logger.debug(
+                "Column '%s' not found in DataFrame for validation, skipping.", column_name
+            )
 
 
 def validate_series(

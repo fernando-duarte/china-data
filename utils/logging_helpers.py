@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import functools
+import inspect
 import os
 import time
 from collections.abc import Callable
@@ -12,13 +13,23 @@ from typing import Any, TypeVar, cast
 
 import structlog
 
+# Optional import for psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
 F = TypeVar("F", bound=Callable[..., Any])
 
 
-def _add_correlation_id(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+def _add_correlation_id(
+    _logger: Any, _method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Add correlation ID for request tracing."""
     correlation_id = (
-        os.getenv("CORRELATION_ID") or getattr(_logger, "_correlation_id", None) or event_dict.get("correlation_id")
+        os.getenv("CORRELATION_ID")
+        or getattr(_logger, "_correlation_id", None)
+        or event_dict.get("correlation_id")
     )
 
     if correlation_id:
@@ -27,25 +38,23 @@ def _add_correlation_id(_logger: Any, _method_name: str, event_dict: dict[str, A
     return event_dict
 
 
-def _add_performance_metrics(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+def _add_performance_metrics(
+    _logger: Any, _method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Add performance metrics context."""
-    with contextlib.suppress(ImportError, OSError):
-        import psutil
-
-        event_dict["system"] = {
-            "cpu_percent": psutil.cpu_percent(interval=None),
-            "memory_percent": psutil.virtual_memory().percent,
-            "timestamp": time.time(),
-        }
-
+    if psutil:
+        with contextlib.suppress(OSError):  # Only suppress OSError now
+            event_dict["system"] = {
+                "cpu_percent": psutil.cpu_percent(interval=None),
+                "memory_percent": psutil.virtual_memory().percent,
+                "timestamp": time.time(),
+            }
     return event_dict
 
 
 def get_logger(name: str | None = None, **context: Any) -> Any:
     """Get a structured logger instance with optional context."""
     if name is None:
-        import inspect
-
         frame = inspect.currentframe()
         if frame and frame.f_back:
             name = frame.f_back.f_globals.get("__name__", "unknown")
@@ -56,8 +65,8 @@ def get_logger(name: str | None = None, **context: Any) -> Any:
     return bound_logger
 
 
-class LoggerMixin:
-    """Mixin class to add structured logging to any class."""
+class LoggerMixin:  # pylint: disable=too-few-public-methods
+    """Provides a logger for subclasses."""
 
     @property
     def logger(self) -> Any:
@@ -104,8 +113,6 @@ def log_performance(func: F) -> F:
 
 def _add_module_info(_logger: Any, _method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """Add module, function, and line information to log events."""
-    import inspect
-
     # Get the stack, skipping logging-related frames
     frame = None
     for frame_info in inspect.stack()[1:]:  # Skip the current frame
@@ -128,7 +135,10 @@ def _add_module_info(_logger: Any, _method_name: str, event_dict: dict[str, Any]
         ]
         skip_functions = ["pytest_pyfunc_call", "_call_impl", "_hookexec"]
 
-        if not any(pattern in filename for pattern in skip_patterns) and function_name not in skip_functions:
+        if (
+            not any(pattern in filename for pattern in skip_patterns)
+            and function_name not in skip_functions
+        ):
             frame = frame_info
             break
 

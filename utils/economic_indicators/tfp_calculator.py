@@ -85,7 +85,9 @@ def calculate_tfp(df: pd.DataFrame, alpha: float) -> pd.DataFrame:
         if valid_for_calculation.any():
             result.loc[valid_for_calculation, "TFP"] = gdp[valid_for_calculation] / (
                 np.power(capital[valid_for_calculation], alpha)
-                * np.power(labor[valid_for_calculation] * human_capital[valid_for_calculation], 1 - alpha)
+                * np.power(
+                    labor[valid_for_calculation] * human_capital[valid_for_calculation], 1 - alpha
+                )
             )
 
         # Set TFP to 0 where GDP is 0 but other inputs are valid

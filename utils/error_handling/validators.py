@@ -30,7 +30,11 @@ def log_error_with_context(
         context: Additional context information
         level: Logging level
     """
-    error_info = {"error_type": type(error).__name__, "error_message": str(error), "original_message": message}
+    error_info = {
+        "error_type": type(error).__name__,
+        "error_message": str(error),
+        "original_message": message,
+    }
 
     if context:
         error_info.update(context)
@@ -50,7 +54,9 @@ def validate_dataframe_not_empty(df: pd.DataFrame, name: str) -> None:
     """
     if len(df) == 0:
         raise DataValidationError(
-            column=name, message="DataFrame is empty", data_info=f"Shape: {df.shape}, Columns: {list(df.columns)}"
+            column=name,
+            message="DataFrame is empty",
+            data_info=f"Shape: {df.shape}, Columns: {list(df.columns)}",
         )
 
 
@@ -83,7 +89,9 @@ def _raise_conversion_error(column_name: str, series: "pd.Series[str | float]") 
     )
 
 
-def safe_numeric_conversion(series: "pd.Series[str | float]", column_name: str) -> "pd.Series[float]":
+def safe_numeric_conversion(
+    series: "pd.Series[str | float]", column_name: str
+) -> "pd.Series[float]":
     """Safely convert a pandas Series to numeric, with error handling.
 
     Args:

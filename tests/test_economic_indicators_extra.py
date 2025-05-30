@@ -36,7 +36,9 @@ class TestEconomicIndicatorsExtra:
         result = calculate_economic_indicators(complete_data)
 
         assert "S_USD_bn" in result.columns
-        expected_savings = complete_data["GDP_USD_bn"] - complete_data["C_USD_bn"] - complete_data["G_USD_bn"]
+        expected_savings = (
+            complete_data["GDP_USD_bn"] - complete_data["C_USD_bn"] - complete_data["G_USD_bn"]
+        )
         pd.testing.assert_series_equal(result["S_USD_bn"], expected_savings, check_names=False)
 
     def test_private_savings_calculation(self, complete_data):
@@ -45,8 +47,12 @@ class TestEconomicIndicatorsExtra:
 
         assert "S_priv_USD_bn" in result.columns
         # Private savings = GDP - Tax - Consumption
-        expected_priv_savings = complete_data["GDP_USD_bn"] - result["T_USD_bn"] - complete_data["C_USD_bn"]
-        pd.testing.assert_series_equal(result["S_priv_USD_bn"], expected_priv_savings, check_names=False)
+        expected_priv_savings = (
+            complete_data["GDP_USD_bn"] - result["T_USD_bn"] - complete_data["C_USD_bn"]
+        )
+        pd.testing.assert_series_equal(
+            result["S_priv_USD_bn"], expected_priv_savings, check_names=False
+        )
 
     def test_public_savings_calculation(self, complete_data):
         """Test public savings calculation."""
@@ -55,7 +61,9 @@ class TestEconomicIndicatorsExtra:
         assert "S_pub_USD_bn" in result.columns
         # Public savings = Tax - Government spending
         expected_pub_savings = result["T_USD_bn"] - complete_data["G_USD_bn"]
-        pd.testing.assert_series_equal(result["S_pub_USD_bn"], expected_pub_savings, check_names=False)
+        pd.testing.assert_series_equal(
+            result["S_pub_USD_bn"], expected_pub_savings, check_names=False
+        )
 
     def test_saving_rate_calculation(self, complete_data):
         """Test saving rate calculation."""
@@ -90,7 +98,7 @@ class TestEconomicIndicatorsExtra:
         # Columns that couldn't be calculated should exist but be NaN
         assert "NX_USD_bn" in result.columns
         assert result["NX_USD_bn"].isna().all()  # Missing X and M should result in NaN
-        # assert "K_Y_ratio" not in result.columns  # Missing K - K_Y_ratio is not calculated by this func
+        # assert "K_Y_ratio" not in result.columns  # Missing K - not calculated here
 
     def test_with_custom_logger(self, complete_data):
         """Test that custom logger is used when provided."""

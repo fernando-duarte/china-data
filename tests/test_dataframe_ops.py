@@ -1,6 +1,11 @@
 import pandas as pd
 
-from utils.processor_dataframe import merge_dataframe_column, merge_projections, merge_tax_data, prepare_final_dataframe
+from utils.processor_dataframe import (
+    merge_dataframe_column,
+    merge_projections,
+    merge_tax_data,
+    prepare_final_dataframe,
+)
 
 
 def test_merge_dataframe_column_adds_values():

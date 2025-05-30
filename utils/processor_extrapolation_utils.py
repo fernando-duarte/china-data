@@ -29,7 +29,9 @@ def _calculate_historical_growth(historical_data: pd.DataFrame, col: str) -> flo
         n_years = min(DEFAULT_LOOKBACK_YEARS, len(historical_data))
         last_years = historical_data.iloc[-n_years:][col].to_numpy()
         if len(last_years) > 1:
-            growth_rates = [(last_years[i] / last_years[i - 1]) - 1 for i in range(1, len(last_years))]
+            growth_rates = [
+                (last_years[i] / last_years[i - 1]) - 1 for i in range(1, len(last_years))
+            ]
             return float(sum(growth_rates) / len(growth_rates))
     return _get_default_growth_rate(col)
 
@@ -53,11 +55,15 @@ def _fill_missing_key_variables(data_df: pd.DataFrame, years_to_add: list[int]) 
 
     for year in years_to_add:
         for col in key_vars:
-            if col in data_df.columns and pd.isna(data_df.loc[data_df.year == year, col].to_numpy()[0]):
+            if col in data_df.columns and pd.isna(
+                data_df.loc[data_df.year == year, col].to_numpy()[0]
+            ):
                 last_valid = data_df[data_df.year < year][[col]].dropna()
                 if len(last_valid) > 0:
                     last_value_raw = last_valid.iloc[-1][col]
-                    last_value = float(last_value_raw.item() if hasattr(last_value_raw, "item") else last_value_raw)
+                    last_value = float(
+                        last_value_raw.item() if hasattr(last_value_raw, "item") else last_value_raw
+                    )
                     last_year_raw = data_df.loc[last_valid.index[-1], "year"]
                     # Handle different types that might be returned
                     if hasattr(last_year_raw, "item"):

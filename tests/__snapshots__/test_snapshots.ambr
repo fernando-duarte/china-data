@@ -1,0 +1,255 @@
+# serializer version: 1
+# name: TestDataProcessingSnapshots.test_china_data_processing_output
+  dict({
+    'gdp_growth': list([
+      6.1,
+      2.3,
+      8.1,
+    ]),
+    'inflation': list([
+      2.9,
+      2.5,
+      0.9,
+    ]),
+    'metadata': dict({
+      'processed_at': '2025-01-01T00:00:00Z',
+      'source': 'test_data',
+      'version': '1.0.0',
+    }),
+    'unemployment': list([
+      5.2,
+      5.9,
+      5.5,
+    ]),
+    'years': list([
+      2019,
+      2020,
+      2021,
+    ]),
+  })
+# ---
+# name: TestDataProcessingSnapshots.test_data_transformation_pipeline
+  dict({
+    'gdp_nominal_trillions': list([
+      14.34,
+      17.73,
+      17.95,
+    ]),
+    'gdp_per_capita': list([
+      10163.004961020553,
+      12556.657223796034,
+      12703.4677990092,
+    ]),
+    'transformation_metadata': dict({
+      'base_year': 2020,
+      'currency': 'USD',
+      'method': 'gdp_per_capita_calculation',
+    }),
+    'year': list([
+      2020,
+      2021,
+      2022,
+    ]),
+  })
+# ---
+# name: TestDataProcessingSnapshots.test_economic_indicators_dataframe
+  dict({
+    'columns': list([
+      'year',
+      'gdp_usd',
+      'gdp_growth_rate',
+      'cpi_inflation',
+      'unemployment_rate',
+    ]),
+    'data': list([
+      dict({
+        'cpi_inflation': 2.5,
+        'gdp_growth_rate': 2.3,
+        'gdp_usd': 14340000000000.0,
+        'unemployment_rate': 5.9,
+        'year': 2020,
+      }),
+      dict({
+        'cpi_inflation': 0.9,
+        'gdp_growth_rate': 8.1,
+        'gdp_usd': 17730000000000.0,
+        'unemployment_rate': 5.5,
+        'year': 2021,
+      }),
+      dict({
+        'cpi_inflation': 2.0,
+        'gdp_growth_rate': 3.0,
+        'gdp_usd': 17950000000000.0,
+        'unemployment_rate': 5.4,
+        'year': 2022,
+      }),
+    ]),
+    'dtypes': dict({
+      'cpi_inflation': 'float64',
+      'gdp_growth_rate': 'float64',
+      'gdp_usd': 'float64',
+      'unemployment_rate': 'float64',
+      'year': 'int64',
+    }),
+    'shape': tuple(
+      3,
+      5,
+    ),
+  })
+# ---
+# name: TestDataProcessingSnapshots.test_yearly_data_filtering[2020-1]
+  dict({
+    'data': list([
+      dict({
+        'cpi_inflation': 2.5,
+        'gdp_growth_rate': 2.3,
+        'gdp_usd': 14340000000000.0,
+        'unemployment_rate': 5.9,
+        'year': 2020,
+      }),
+    ]),
+    'filter_year': 2020,
+    'record_count': 1,
+  })
+# ---
+# name: TestDataProcessingSnapshots.test_yearly_data_filtering[2021-2]
+  dict({
+    'data': list([
+      dict({
+        'cpi_inflation': 2.5,
+        'gdp_growth_rate': 2.3,
+        'gdp_usd': 14340000000000.0,
+        'unemployment_rate': 5.9,
+        'year': 2020,
+      }),
+      dict({
+        'cpi_inflation': 0.9,
+        'gdp_growth_rate': 8.1,
+        'gdp_usd': 17730000000000.0,
+        'unemployment_rate': 5.5,
+        'year': 2021,
+      }),
+    ]),
+    'filter_year': 2021,
+    'record_count': 2,
+  })
+# ---
+# name: TestDataProcessingSnapshots.test_yearly_data_filtering[2022-3]
+  dict({
+    'data': list([
+      dict({
+        'cpi_inflation': 2.5,
+        'gdp_growth_rate': 2.3,
+        'gdp_usd': 14340000000000.0,
+        'unemployment_rate': 5.9,
+        'year': 2020,
+      }),
+      dict({
+        'cpi_inflation': 0.9,
+        'gdp_growth_rate': 8.1,
+        'gdp_usd': 17730000000000.0,
+        'unemployment_rate': 5.5,
+        'year': 2021,
+      }),
+      dict({
+        'cpi_inflation': 2.0,
+        'gdp_growth_rate': 3.0,
+        'gdp_usd': 17950000000000.0,
+        'unemployment_rate': 5.4,
+        'year': 2022,
+      }),
+    ]),
+    'filter_year': 2022,
+    'record_count': 3,
+  })
+# ---
+# name: TestDataValidationSnapshots.test_data_quality_report
+  dict({
+    'data_types': dict({
+      'cpi_inflation': 'float64',
+      'gdp_growth_rate': 'float64',
+      'gdp_usd': 'float64',
+      'unemployment_rate': 'float64',
+      'year': 'int64',
+    }),
+    'missing_values': dict({
+      'cpi_inflation': 0,
+      'gdp_growth_rate': 0,
+      'gdp_usd': 0,
+      'unemployment_rate': 0,
+      'year': 0,
+    }),
+    'numeric_summaries': dict({
+      'cpi_inflation': dict({
+        'max': 2.5,
+        'mean': 1.8,
+        'min': 0.9,
+      }),
+      'gdp_growth_rate': dict({
+        'max': 8.1,
+        'mean': 4.466666666666666,
+        'min': 2.3,
+      }),
+      'gdp_usd': dict({
+        'max': 17950000000000.0,
+        'mean': 16673333333333.334,
+        'min': 14340000000000.0,
+      }),
+      'unemployment_rate': dict({
+        'max': 5.9,
+        'mean': 5.6000000000000005,
+        'min': 5.4,
+      }),
+      'year': dict({
+        'max': 2022.0,
+        'mean': 2021.0,
+        'min': 2020.0,
+      }),
+    }),
+    'total_records': 3,
+    'validation_timestamp': '2025-01-01T00:00:00Z',
+  })
+# ---
+# name: TestDataValidationSnapshots.test_outlier_detection_results
+  dict({
+    'outlier_analysis': dict({
+      'cpi_inflation': dict({
+        'bounds': dict({
+          'lower': 0.24999999999999978,
+          'upper': 3.45,
+        }),
+        'outlier_count': 0,
+        'outlier_indices': list([
+        ]),
+      }),
+      'gdp_growth_rate': dict({
+        'bounds': dict({
+          'lower': -1.6999999999999997,
+          'upper': 9.899999999999999,
+        }),
+        'outlier_count': 0,
+        'outlier_indices': list([
+        ]),
+      }),
+      'gdp_usd': dict({
+        'bounds': dict({
+          'lower': 13327500000000.0,
+          'upper': 20547500000000.0,
+        }),
+        'outlier_count': 0,
+        'outlier_indices': list([
+        ]),
+      }),
+      'unemployment_rate': dict({
+        'bounds': dict({
+          'lower': 5.075,
+          'upper': 6.075,
+        }),
+        'outlier_count': 0,
+        'outlier_indices': list([
+        ]),
+      }),
+    }),
+    'total_outliers': 0,
+  })
+# ---

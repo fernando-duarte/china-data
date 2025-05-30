@@ -45,7 +45,9 @@ def _project_years(
     return proj
 
 
-def _merge_projections(capital_data: pd.DataFrame, proj_df: pd.DataFrame, end_year: int) -> pd.DataFrame:
+def _merge_projections(
+    capital_data: pd.DataFrame, proj_df: pd.DataFrame, end_year: int
+) -> pd.DataFrame:
     """Merge projected values with original data."""
     result = capital_data
     for year in range(int(capital_data["year"].min()), end_year + 1):
@@ -61,7 +63,9 @@ def _merge_projections(capital_data: pd.DataFrame, proj_df: pd.DataFrame, end_ye
     return result.sort_values("year").reset_index(drop=True)
 
 
-def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: float = 0.05) -> pd.DataFrame:
+def project_capital_stock(
+    processed_data: pd.DataFrame, end_year: int, delta: float = 0.05
+) -> pd.DataFrame:
     """Project capital stock into the future using a perpetual inventory method."""
     logger.info("Projecting capital stock to year %d with delta=%f", end_year, delta)
     is_valid, error_msg = _validate_inputs(processed_data)
@@ -100,7 +104,7 @@ def project_capital_stock(processed_data: pd.DataFrame, end_year: int, delta: fl
             "Final result has capital stock data for %d years",
             result.dropna(subset=["K_USD_bn"]).shape[0],
         )
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("Error projecting capital stock")
         return capital_data
     return result

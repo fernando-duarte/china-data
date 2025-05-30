@@ -15,6 +15,7 @@ import logging
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 
@@ -38,9 +39,42 @@ if Config.STRUCTURED_LOGGING_ENABLED:
     )
     logger = get_logger(__name__)
 else:
-    logging.basicConfig(level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT)
+    logging.basicConfig(
+        level=logging.INFO, format=Config.LOG_FORMAT, datefmt=Config.LOG_DATE_FORMAT
+    )
     # Use get_logger for consistency even when structured logging is disabled
     logger = get_logger(__name__)
+
+
+def _gather_all_source_data(
+    end_year: int, output_dir_str: str
+) -> tuple[dict[str, pd.DataFrame], dict[str, str | None]]:
+    """Helper function to download/load all data sources and handle fallbacks."""
+    all_data: dict[str, pd.DataFrame] = {}
+    failures: dict[str, bool] = {}
+    dates: dict[str, str | None] = {}
+
+    # Download WDI data
+    wdi_map, failures["wdi"], dates["wdi"] = download_wdi_indicators(end_year)
+    all_data.update(wdi_map)
+
+    # Load IMF tax data
+    tax = load_imf_tax_data()
+    if not tax.empty:  # Check if DataFrame is not empty
+        all_data["TAX_pct_GDP"] = tax
+    # Get IMF download date (moved here for better grouping)
+    dates["imf"] = get_imf_download_date()
+
+    # Download PWT data
+    pwt, failures["pwt"], dates["pwt"] = download_pwt_data()
+    if not pwt.empty:  # Check if DataFrame is not empty
+        all_data["PWT"] = pwt
+
+    # Handle fallback data if needed
+    # The dates dict is passed and potentially modified by handle_fallback_data
+    all_data, dates = handle_fallback_data(all_data, failures, dates, output_dir_str)
+
+    return all_data, dates
 
 
 def download_wdi_indicators(end_year: int) -> tuple[dict[str, pd.DataFrame], bool, str]:
@@ -52,7 +86,9 @@ def download_wdi_indicators(end_year: int) -> tuple[dict[str, pd.DataFrame], boo
     for code, name in Config.WDI_INDICATORS.items():
         data = download_wdi_data(code, end_year=end_year)
         if len(data) > 0:
-            data = data[["year", code.replace(".", "_")]].rename(columns={code.replace(".", "_"): name})
+            clean_code = code.replace(".", "_")
+            data = data[["year", clean_code]]
+            data = data.rename(columns={clean_code: name})
             # Convert year to int once here instead of multiple times later
             data["year"] = data["year"].astype(int)
             all_data[name] = data
@@ -67,7 +103,8 @@ def download_wdi_indicators(end_year: int) -> tuple[dict[str, pd.DataFrame], boo
 def get_imf_download_date() -> str | None:
     """Get IMF download date from download_date.txt if it exists."""
     imf_download_date = None
-    possible_locations_relative = get_search_locations_relative_to_root()["input_files"]
+    search_locations = get_search_locations_relative_to_root()
+    possible_locations_relative = search_locations["input_files"]
     date_file = find_file("download_date.txt", possible_locations_relative)
 
     if date_file and Path(date_file).exists():
@@ -115,14 +152,18 @@ def download_pwt_data() -> tuple[pd.DataFrame, bool, str]:
 def handle_fallback_data(
     all_data: dict[str, pd.DataFrame],
     download_failures: dict[str, bool],
-    download_dates: dict[str, str],
+    download_dates: dict[str, str | None],
     output_dir: str,
-) -> tuple[dict[str, pd.DataFrame], dict[str, str]]:
+) -> tuple[dict[str, pd.DataFrame], dict[str, str | None]]:
     """Handle fallback data if downloads failed."""
     wdi_download_failed = download_failures.get("wdi", False)
     pwt_download_failed = download_failures.get("pwt", False)
 
-    if (wdi_download_failed or pwt_download_failed) or all(len(data) == 0 for data in all_data.values()):
+    if (
+        wdi_download_failed
+        or pwt_download_failed
+        or all(len(data) == 0 for data in all_data.values())
+    ):
         logger.warning("Some downloads failed, attempting to use fallback data")
         fallback_data = load_fallback_data(output_dir)
 
@@ -134,11 +175,11 @@ def handle_fallback_data(
                     all_data[name] = data
 
             # Update download dates to indicate fallback was used
-            updated_dates = download_dates.copy()
+            updated_dates: dict[str, str | None] = download_dates.copy()
             if wdi_download_failed:
-                updated_dates["wdi"] = f"{download_dates['wdi']} (fallback used)"
+                updated_dates["wdi"] = f"{download_dates.get('wdi', '')} (fallback used)"
             if pwt_download_failed:
-                updated_dates["pwt"] = f"{download_dates['pwt']} (fallback used)"
+                updated_dates["pwt"] = f"{download_dates.get('pwt', '')} (fallback used)"
 
             return all_data, updated_dates
         logger.error("Failed to load fallback data")
@@ -189,32 +230,13 @@ def main() -> None:
     args = parser.parse_args()
     end_year = args.end_year if args.end_year else datetime.now(tz=timezone.utc).year
 
-    # Get output directory using the common utility function
-    output_dir = get_output_directory()
-    logger.info("Output files will be saved to: %s", output_dir)
+    output_dir_path = get_output_directory()
+    logger.info("Output files will be saved to: %s", output_dir_path)
 
-    # Download WDI data
-    all_data, wdi_download_failed, wdi_download_date = download_wdi_indicators(end_year)
-
-    # Load IMF tax data using the dedicated loader
-    tax_data = load_imf_tax_data()
-    if len(tax_data) > 0:
-        all_data["TAX_pct_GDP"] = tax_data
-
-    # Get IMF download date
-    imf_download_date = get_imf_download_date()
-
-    # Download PWT data
-    pwt_data, pwt_download_failed, pwt_download_date = download_pwt_data()
-    all_data["PWT"] = pwt_data
-
-    # Handle fallback data if needed
-    download_failures = {"wdi": wdi_download_failed, "pwt": pwt_download_failed}
-    download_dates = {"wdi": wdi_download_date, "pwt": pwt_download_date}
-    all_data, download_dates = handle_fallback_data(all_data, download_failures, download_dates, str(output_dir))
+    all_downloaded_data, download_dates = _gather_all_source_data(end_year, str(output_dir_path))
 
     # Merge all data
-    merged_data = merge_all_data(all_data, end_year)
+    merged_data = merge_all_data(all_downloaded_data, end_year)
 
     if merged_data is None:
         logger.error("No data available for processing")
@@ -223,12 +245,12 @@ def main() -> None:
     # Pass download dates to the markdown renderer
     markdown_output = render_markdown_table(
         merged_data,
-        wdi_date=download_dates["wdi"],
-        pwt_date=download_dates["pwt"],
-        imf_date=imf_download_date,
+        wdi_date=download_dates.get("wdi"),
+        pwt_date=download_dates.get("pwt"),
+        imf_date=download_dates.get("imf"),
     )
 
-    output_file = Path(output_dir) / "china_data_raw.md"
+    output_file = cast("Path", output_dir_path) / "china_data_raw.md"
     output_file.write_text(markdown_output, encoding="utf-8")
     logger.info("Data download and integration complete!")
 

@@ -25,7 +25,11 @@ def process_china_data_sample() -> dict[str, Any]:
         "inflation": [2.9, 2.5, 0.9],
         "unemployment": [5.2, 5.9, 5.5],
         "years": [2019, 2020, 2021],
-        "metadata": {"source": "test_data", "processed_at": "2025-01-01T00:00:00Z", "version": "1.0.0"},
+        "metadata": {
+            "source": "test_data",
+            "processed_at": "2025-01-01T00:00:00Z",
+            "version": "1.0.0",
+        },
     }
 
 
@@ -78,22 +82,34 @@ class TestDataProcessingSnapshots:
         population = cast("list[float]", raw_data["population"])
         transformed = {
             "year": raw_data["years"],
-            "gdp_per_capita": [gdp / pop for gdp, pop in zip(gdp_nominal, population, strict=False)],
+            "gdp_per_capita": [
+                gdp / pop for gdp, pop in zip(gdp_nominal, population, strict=False)
+            ],
             "gdp_nominal_trillions": [gdp / 1e12 for gdp in gdp_nominal],
-            "transformation_metadata": {"method": "gdp_per_capita_calculation", "currency": "USD", "base_year": 2020},
+            "transformation_metadata": {
+                "method": "gdp_per_capita_calculation",
+                "currency": "USD",
+                "base_year": 2020,
+            },
         }
 
         assert transformed == snapshot
 
     @pytest.mark.parametrize(("year", "expected_records"), [(2020, 1), (2021, 2), (2022, 3)])
-    def test_yearly_data_filtering(self, snapshot: SnapshotAssertion, year: int, expected_records: int):
+    def test_yearly_data_filtering(
+        self, snapshot: SnapshotAssertion, year: int, expected_records: int
+    ):
         """Test yearly data filtering with snapshots."""
         df = process_economic_indicators()
 
         # Filter data up to the specified year
         filtered_df = df[df["year"] <= year]
 
-        result = {"filter_year": year, "record_count": len(filtered_df), "data": filtered_df.to_dict("records")}
+        result = {
+            "filter_year": year,
+            "record_count": len(filtered_df),
+            "data": filtered_df.to_dict("records"),
+        }
 
         assert result == snapshot
         assert len(filtered_df) == expected_records
@@ -112,7 +128,11 @@ class TestDataValidationSnapshots:
             "missing_values": df.isna().sum().to_dict(),
             "data_types": df.dtypes.astype(str).to_dict(),
             "numeric_summaries": {
-                col: {"min": float(df[col].min()), "max": float(df[col].max()), "mean": float(df[col].mean())}
+                col: {
+                    "min": float(df[col].min()),
+                    "max": float(df[col].max()),
+                    "mean": float(df[col].mean()),
+                }
                 for col in df.select_dtypes(include=["number"]).columns
             },
             "validation_timestamp": "2025-01-01T00:00:00Z",  # Fixed for testing

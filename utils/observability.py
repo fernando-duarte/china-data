@@ -3,6 +3,7 @@
 This module provides structured logging, metrics, and tracing capabilities
 using OpenTelemetry for comprehensive observability.
 """
+
 # mypy: disable-error-code=no-any-unimported
 
 import os
@@ -182,7 +183,9 @@ class TracedOperation:
             self.span.end()
 
 
-def trace_function(operation_name: str | None = None, tracer_name: str = "china_data") -> Callable[[F], F]:
+def trace_function(
+    operation_name: str | None = None, tracer_name: str = "china_data"
+) -> Callable[[F], F]:
     """Decorator to trace function execution."""
 
     def decorator(func: F) -> F:

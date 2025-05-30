@@ -4,6 +4,7 @@ This module centralizes all configuration settings, constants, and parameters
 used throughout the China data processing pipeline.
 """
 
+import logging
 import os
 import sys
 from pathlib import Path
@@ -161,7 +162,8 @@ class Config:
     LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
     # Structured logging configuration
-    STRUCTURED_LOGGING_ENABLED = bool(os.getenv("CHINA_DATA_STRUCTURED_LOGGING_ENABLED", "True").lower() == "true")
+    _structured_logging_enabled_str = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_ENABLED", "True")
+    STRUCTURED_LOGGING_ENABLED = bool(_structured_logging_enabled_str.lower() == "true")
     STRUCTURED_LOGGING_LEVEL = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_LEVEL", "INFO")
     STRUCTURED_LOGGING_JSON_FORMAT = bool(
         os.getenv("CHINA_DATA_STRUCTURED_LOGGING_JSON_FORMAT", "False").lower() == "true"
@@ -172,9 +174,9 @@ class Config:
     STRUCTURED_LOGGING_FILE = os.getenv("CHINA_DATA_STRUCTURED_LOGGING_FILE", "logs/china_data.log")
 
     # Caching configuration
-    CACHE_NAME = "china_data_cache"
-    CACHE_BACKEND = "sqlite"  # Use sqlite for persistence
-    CACHE_EXPIRE_AFTER_DAYS = 7  # Cache data for 7 days
+    CACHE_NAME: str = "china_data_cache"
+    CACHE_BACKEND: str = "sqlite"  # Use sqlite for persistence
+    CACHE_EXPIRE_AFTER_DAYS: int = 7  # Cache data for 7 days
 
     @classmethod
     def get_output_directory(cls) -> Path:
@@ -235,11 +237,7 @@ def configure_logging() -> None:
     )
 
     # Configure standard library logging
-    import logging
-
     # Ensure logs directory exists
-    log_file_path = Path(Config.STRUCTURED_LOGGING_FILE)
-    log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Set log level
     log_level = getattr(logging, Config.STRUCTURED_LOGGING_LEVEL.upper())
@@ -248,7 +246,7 @@ def configure_logging() -> None:
         format=Config.LOG_FORMAT,
         datefmt=Config.LOG_DATE_FORMAT,
         handlers=[
-            logging.FileHandler(log_file_path),
+            logging.FileHandler(Config.STRUCTURED_LOGGING_FILE),
             logging.StreamHandler(sys.stderr),
         ],
     )

@@ -1,3 +1,5 @@
+"""TODO: Add module docstring."""
+
 import logging
 import tempfile
 from pathlib import Path
@@ -26,7 +28,8 @@ def get_pwt_data() -> pd.DataFrame:
 
     # Security improvements:
     # 1. Set timeout to prevent hanging connections
-    # 2. Explicitly verify SSL certificates (handled by requests-cache session defaults or requests itself)
+    # 2. Explicitly verify SSL certificates (handled by requests-cache session defaults
+    #    or requests itself)
     # 3. Use secure temporary file handling
 
     try:
@@ -66,12 +69,16 @@ def get_pwt_data() -> pd.DataFrame:
                 logger.warning("Failed to delete temporary file %s: %s", tmp_path, str(e))
 
     # Filter for China and select relevant columns in one operation
-    chn_data = pwt[pwt.countrycode == "CHN"][["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]].copy()
+    chn_data = pwt[pwt.countrycode == "CHN"][
+        ["year", "rgdpo", "rkna", "pl_gdpo", "cgdpo", "hc"]
+    ].copy()
     chn_data["year"] = chn_data["year"].astype(int)
 
     # Validate PWT data
     # Rules are based on original PWT column names used in INDICATOR_VALIDATION_RULES
     validate_dataframe_with_rules(chn_data, rules=INDICATOR_VALIDATION_RULES, year_column="year")
-    logger.info("Successfully downloaded and validated PWT data with %d rows for China.", len(chn_data))
+    logger.info(
+        "Successfully downloaded and validated PWT data with %d rows for China.", len(chn_data)
+    )
 
     return chn_data

@@ -5,6 +5,7 @@ from typing import Any
 import pandas as pd
 
 from utils.extrapolation_methods import (
+    AvgGrowthRateConfig,
     extrapolate_with_arima,
     extrapolate_with_average_growth_rate,
     extrapolate_with_linear_regression,
@@ -46,8 +47,14 @@ def _apply_fallback_extrapolation(
     default_growth = 0.03
     lookback = 4
 
+    config = AvgGrowthRateConfig(
+        lookback_years=lookback,
+        default_growth=default_growth,
+        min_data_points=MIN_HISTORICAL_DATA_POINTS,
+    )
+
     updated_df, success, method = extrapolate_with_average_growth_rate(
-        data_df, col, years_to_project, lookback_years=lookback, default_growth=default_growth
+        data_df, col, years_to_project, config=config
     )
     if success:
         info[col] = {"method": method, "years": years_to_project}
@@ -59,7 +66,15 @@ def _apply_methods(
     data_df: pd.DataFrame, years_to_add: list[int], cols: list[str], info: dict[str, Any]
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Apply appropriate extrapolation methods to each column based on column type."""
-    gdp_columns = ["GDP_USD_bn", "C_USD_bn", "G_USD_bn", "I_USD_bn", "X_USD_bn", "M_USD_bn", "NX_USD_bn"]
+    gdp_columns = [
+        "GDP_USD_bn",
+        "C_USD_bn",
+        "G_USD_bn",
+        "I_USD_bn",
+        "X_USD_bn",
+        "M_USD_bn",
+        "NX_USD_bn",
+    ]
     demographic_columns = ["POP_mn", "LF_mn"]
     human_capital_columns = ["hc"]
 
@@ -84,11 +99,15 @@ def _apply_methods(
                 continue
 
         if col in {*demographic_columns, *human_capital_columns} and not success:
-            data_df, info, success = _apply_demographic_extrapolation(data_df, col, years_to_project, info)
+            data_df, info, success = _apply_demographic_extrapolation(
+                data_df, col, years_to_project, info
+            )
             if success:
                 continue
 
         if not success:
-            data_df, info, success = _apply_fallback_extrapolation(data_df, col, years_to_project, info)
+            data_df, info, success = _apply_fallback_extrapolation(
+                data_df, col, years_to_project, info
+            )
 
     return data_df, info

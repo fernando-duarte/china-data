@@ -152,6 +152,8 @@ class TestCalculateEconomicIndicators:
         result = calculate_economic_indicators(complete_data)
 
         assert "Openness_Ratio" in result.columns
-        expected_ratio = (complete_data["X_USD_bn"] + complete_data["M_USD_bn"]) / complete_data["GDP_USD_bn"]
+        expected_ratio = (complete_data["X_USD_bn"] + complete_data["M_USD_bn"]) / complete_data[
+            "GDP_USD_bn"
+        ]
         # Use pytest.approx for floating point comparisons
         assert result["Openness_Ratio"].tolist() == pytest.approx(expected_ratio.tolist(), rel=1e-4)

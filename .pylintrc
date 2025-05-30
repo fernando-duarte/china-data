@@ -1,0 +1,9 @@
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=
+    unsubscriptable-object,  # False positives with pd.Series[float] type annotations
+    too-many-positional-arguments,  # We have some functions with more than 5 args by design
+    no-else-return  # Sometimes else-return is more readable
+
+[MAIN]
+max-line-length = 100

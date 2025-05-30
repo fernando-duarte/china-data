@@ -1,3 +1,5 @@
+"""TODO: Add module docstring."""
+
 import logging
 from typing import Any
 
@@ -52,6 +54,11 @@ def extrapolate_series_to_end_year(
         return data_df, info
     data_df, info = _apply_methods(data_df, years_to_add, cols, info)
     data_df, info = _finalize(
-        data_df, years_to_add, raw_data if raw_data is not None else data, cols, info, end_year=end_year
+        data_df,
+        years_to_add,
+        raw_data if raw_data is not None else data,
+        cols,
+        info,
+        end_year=end_year,
     )
     return data_df, info

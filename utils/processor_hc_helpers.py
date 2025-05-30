@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from utils.extrapolation_methods import (
+    AvgGrowthRateConfig,
     extrapolate_with_average_growth_rate,
     extrapolate_with_linear_regression,
 )
@@ -73,7 +74,11 @@ def _create_placeholder_dataframe(end_year: int) -> pd.DataFrame:
 
 def _check_for_alternative_columns(processed_data: pd.DataFrame) -> None:
     """Check for alternative human capital columns and log findings."""
-    pwt_cols = [col for col in processed_data.columns if col.startswith("PWT") or col.lower().startswith("pwt")]
+    pwt_cols = [
+        col
+        for col in processed_data.columns
+        if col.startswith("PWT") or col.lower().startswith("pwt")
+    ]
     if pwt_cols:
         logger.info("Found potential human capital columns: %s", pwt_cols)
 
@@ -89,7 +94,9 @@ def _ensure_years_exist(hc_data: pd.DataFrame, years_to_project: list[int]) -> p
     return hc_data
 
 
-def _try_linear_regression_projection(hc_data: pd.DataFrame, years_to_project: list[int]) -> tuple[pd.DataFrame, bool]:
+def _try_linear_regression_projection(
+    hc_data: pd.DataFrame, years_to_project: list[int]
+) -> tuple[pd.DataFrame, bool]:
     """Try to project human capital using linear regression."""
     updated_df, success, method = extrapolate_with_linear_regression(
         hc_data,
@@ -106,14 +113,20 @@ def _try_linear_regression_projection(hc_data: pd.DataFrame, years_to_project: l
     return hc_data, False
 
 
-def _try_growth_rate_projection(hc_data: pd.DataFrame, years_to_project: list[int]) -> tuple[pd.DataFrame, bool]:
+def _try_growth_rate_projection(
+    hc_data: pd.DataFrame, years_to_project: list[int]
+) -> tuple[pd.DataFrame, bool]:
     """Try to project human capital using average growth rate."""
+    config = AvgGrowthRateConfig(
+        lookback_years=FALLBACK_LOOKBACK_YEARS,
+        default_growth=DEFAULT_HC_GROWTH_RATE,
+        min_data_points=MIN_DATA_POINTS_FOR_REGRESSION,
+    )
     updated_df, success, method = extrapolate_with_average_growth_rate(
         hc_data,
         "hc",
         years_to_project,
-        lookback_years=FALLBACK_LOOKBACK_YEARS,
-        default_growth=DEFAULT_HC_GROWTH_RATE,
+        config=config,
     )
 
     if success:
@@ -124,14 +137,16 @@ def _try_growth_rate_projection(hc_data: pd.DataFrame, years_to_project: list[in
     return hc_data, False
 
 
-def _try_last_value_projection(hc_data: pd.DataFrame, years_to_project: list[int]) -> tuple[pd.DataFrame, bool]:
+def _try_last_value_projection(
+    hc_data: pd.DataFrame, years_to_project: list[int]
+) -> tuple[pd.DataFrame, bool]:
     """Try to project human capital using last value carry-forward."""
+    config = AvgGrowthRateConfig(default_growth=0.0, min_data_points=1, lookback_years=1)
     updated_df, success, method = extrapolate_with_average_growth_rate(
         hc_data,
         "hc",
         years_to_project,
-        default_growth=0.0,
-        min_data_points=1,
+        config=config,
     )
 
     if success:
@@ -142,7 +157,9 @@ def _try_last_value_projection(hc_data: pd.DataFrame, years_to_project: list[int
     return hc_data, False
 
 
-def _project_with_fallback_methods(hc_data: pd.DataFrame, years_to_project: list[int]) -> pd.DataFrame:
+def _project_with_fallback_methods(
+    hc_data: pd.DataFrame, years_to_project: list[int]
+) -> pd.DataFrame:
     """Project human capital using fallback methods when insufficient data for regression."""
     if len(hc_data.dropna(subset=["hc"])) > 0:
         logger.info("Falling back to last value carry-forward due to insufficient data points")

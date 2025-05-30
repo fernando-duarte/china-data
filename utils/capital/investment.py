@@ -55,7 +55,9 @@ def _apply_investment_sanity_checks(inv: float, curr_k: float, curr_year: int) -
     if inv < 0:
         logger.warning("Calculated negative investment for year %d: %.2f", curr_year, inv)
         if inv < -Config.NEGATIVE_INVESTMENT_THRESHOLD * curr_k:
-            logger.warning("Large negative investment (%.2f) in year %d, capping to zero", inv, curr_year)
+            logger.warning(
+                "Large negative investment (%.2f) in year %d, capping to zero", inv, curr_year
+            )
             return 0
     return inv
 
@@ -109,7 +111,9 @@ def _log_investment_ratios(non_na: pd.DataFrame) -> None:
     )
 
 
-def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAULT_DEPRECIATION_RATE) -> pd.DataFrame:
+def calculate_investment(
+    capital_data: pd.DataFrame, delta: float = Config.DEFAULT_DEPRECIATION_RATE
+) -> pd.DataFrame:
     """Calculate investment data using changes in capital stock and depreciation.
 
     This function calculates investment using the perpetual inventory method in reverse:
@@ -175,7 +179,7 @@ def calculate_investment(capital_data: pd.DataFrame, delta: float = Config.DEFAU
         if "I_USD_bn" in result.columns:
             result["I_USD_bn"] = result["I_USD_bn"].round(Config.DECIMAL_PLACES_INVESTMENT)
 
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("Error calculating investment")
         result = pd.DataFrame({"year": capital_data["year"], "I_USD_bn": np.nan})
 

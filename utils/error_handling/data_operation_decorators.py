@@ -28,7 +28,7 @@ def handle_data_operation(
                 return func(*args, **kwargs)
             except ChinaDataError:
                 raise
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 if hasattr(logger, "bind"):
                     logger.exception(
                         "Error in %s",
@@ -82,11 +82,15 @@ def safe_dataframe_operation(
                 return pd.DataFrame()
             except ChinaDataError:
                 raise
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # pylint: disable=broad-exception-caught # noqa: BLE001
                 logger.exception(
                     "Error in %s",
                     operation_name,
-                    extra={"operation": operation_name, "function": func.__name__, "error_type": type(e).__name__},
+                    extra={
+                        "operation": operation_name,
+                        "function": func.__name__,
+                        "error_type": type(e).__name__,
+                    },
                 )
                 return default_df if default_df is not None else pd.DataFrame()
 

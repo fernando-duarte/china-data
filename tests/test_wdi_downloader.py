@@ -23,7 +23,9 @@ class TestWDIDownloader:
         """Create sample WDI data for mocking."""
         # This data should resemble what WorldBankReader().read() returns
         # It has 'country' and 'year' in the index initially
-        idx = pd.MultiIndex.from_product([["China"], list(range(2020, 2025))], names=["country", "year"])
+        idx = pd.MultiIndex.from_product(
+            [["China"], list(range(2020, 2025))], names=["country", "year"]
+        )
         return pd.DataFrame({"NY.GDP.MKTP.CD": [1.5e13, 1.6e13, 1.7e13, 1.8e13, 1.9e13]}, index=idx)
 
     @patch("pandas_datareader.wb.WorldBankReader")
@@ -61,7 +63,11 @@ class TestWDIDownloader:
         download_wdi_data("NY.GDP.MKTP.CD", end_year=custom_end_year)
 
         mock_wb_reader_class.assert_called_once_with(
-            symbols="NY.GDP.MKTP.CD", countries="CN", start=1960, end=custom_end_year, session=mock.ANY
+            symbols="NY.GDP.MKTP.CD",
+            countries="CN",
+            start=1960,
+            end=custom_end_year,
+            session=mock.ANY,
         )
 
     @patch("pandas_datareader.wb.WorldBankReader")
@@ -91,17 +97,23 @@ class TestWDIDownloader:
     def test_download_wdi_data_logs_error(self, mock_wb_reader_class, mock_logger_wdi):
         """Test that errors are logged during WDI download attempts."""
         mock_reader_instance = mock_wb_reader_class.return_value
-        mock_reader_instance.read.side_effect = requests.exceptions.RequestException("Simulated API Error")
+        mock_reader_instance.read.side_effect = requests.exceptions.RequestException(
+            "Simulated API Error"
+        )
 
         with pytest.raises(DataDownloadError):
             download_wdi_data("NY.GDP.MKTP.CD")
 
         # Check for warning logs during retries
-        warning_calls = [call for call in mock_logger_wdi.log.call_args_list if call[0][0] == logging.WARNING]
+        warning_calls = [
+            call for call in mock_logger_wdi.log.call_args_list if call[0][0] == logging.WARNING
+        ]
         assert len(warning_calls) > 0, "Expected warning logs during retries"
 
         # Check for error log after all retries fail
-        error_calls = [call for call in mock_logger_wdi.log.call_args_list if call[0][0] == logging.ERROR]
+        error_calls = [
+            call for call in mock_logger_wdi.log.call_args_list if call[0][0] == logging.ERROR
+        ]
         assert len(error_calls) > 0, "Expected error log after all retries failed"
 
     @patch("pandas_datareader.wb.WorldBankReader")
@@ -130,7 +142,9 @@ class TestWDIDownloader:
     def test_download_wdi_data_duplicate_years(self, mock_wb_reader_class):
         """Test handling of data with duplicate years (should not happen from API)."""
         # WorldBankReader should already handle this, but if it didn't:
-        idx = pd.MultiIndex.from_tuples([("China", 2020), ("China", 2020), ("China", 2021)], names=["country", "year"])
+        idx = pd.MultiIndex.from_tuples(
+            [("China", 2020), ("China", 2020), ("China", 2021)], names=["country", "year"]
+        )
         dup_data = pd.DataFrame({"NY.GDP.MKTP.CD": [1e13, 1.1e13, 1.2e13]}, index=idx)
 
         mock_reader_instance = mock_wb_reader_class.return_value
@@ -145,7 +159,9 @@ class TestWDIDownloader:
     @patch("pandas_datareader.wb.WorldBankReader")
     def test_download_wdi_data_missing_values(self, mock_wb_reader_class):
         """Test WDI data with missing values (NaNs)."""
-        idx = pd.MultiIndex.from_product([["China"], list(range(2020, 2023))], names=["country", "year"])
+        idx = pd.MultiIndex.from_product(
+            [["China"], list(range(2020, 2023))], names=["country", "year"]
+        )
         data_with_nans = pd.DataFrame({"NY.GDP.MKTP.CD": [1.5e13, np.nan, 1.7e13]}, index=idx)
         mock_reader_instance = mock_wb_reader_class.return_value
         mock_reader_instance.read.return_value = data_with_nans
@@ -156,7 +172,9 @@ class TestWDIDownloader:
 
     @patch("time.sleep")  # Mock time.sleep within wdi_downloader context
     @patch("pandas_datareader.wb.WorldBankReader")
-    def test_no_sleep_in_successful_download(self, mock_wb_reader_class, mock_sleep, sample_wdi_data):
+    def test_no_sleep_in_successful_download(
+        self, mock_wb_reader_class, mock_sleep, sample_wdi_data
+    ):
         """Test that time.sleep is not called on a successful download (only on retries)."""
         mock_reader_instance = mock_wb_reader_class.return_value
         mock_reader_instance.read.return_value = sample_wdi_data

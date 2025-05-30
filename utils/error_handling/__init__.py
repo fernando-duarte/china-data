@@ -12,7 +12,13 @@ from typing import Any, NoReturn
 import structlog
 
 from .decorators import handle_data_operation, safe_dataframe_operation
-from .exceptions import ChinaDataError, DataDownloadError, DataValidationError, FileOperationError, ProjectionError
+from .exceptions import (
+    ChinaDataError,
+    DataDownloadError,
+    DataValidationError,
+    FileOperationError,
+    ProjectionError,
+)
 from .validators import (
     log_error_with_context,
     safe_numeric_conversion,
@@ -38,7 +44,11 @@ def setup_error_handling() -> None:
     )
 
 
-def log_and_raise(error_msg: str, exception_class: type = Exception, **kwargs: Any) -> NoReturn:
+def log_and_raise(
+    error_msg: str,
+    exception_class: type[ChinaDataError] = ChinaDataError,
+    **kwargs: Any,
+) -> NoReturn:
     """Log an error message and raise an exception."""
     logger = logging.getLogger(__name__)
     logger.error(error_msg, **kwargs)

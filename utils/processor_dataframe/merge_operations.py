@@ -30,7 +30,9 @@ def merge_dataframe_column(
         non_na_count = result_df[column_name].notna().sum()
         logger.info("Added %s data for %d years", description, non_na_count)
     else:
-        logger.warning("%s calculation failed - %s column not found", description.capitalize(), column_name)
+        logger.warning(
+            "%s calculation failed - %s column not found", description.capitalize(), column_name
+        )
         result_df[column_name] = np.nan
         non_na_count = 0
 
@@ -38,7 +40,11 @@ def merge_dataframe_column(
 
 
 def merge_projections(
-    target_df: pd.DataFrame, projection_df: pd.DataFrame, column_name: str, method_name: str, description: str
+    target_df: pd.DataFrame,
+    projection_df: pd.DataFrame,
+    column_name: str,
+    method_name: str,
+    description: str,
 ) -> tuple[pd.DataFrame, dict[str, Any] | None]:
     """Merge projection data into the main dataframe with proper metadata tracking.
 
@@ -93,7 +99,9 @@ def merge_projections(
     return result_df, projection_info
 
 
-def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any] | None]:
+def merge_tax_data(
+    target_df: pd.DataFrame, tax_data: pd.DataFrame
+) -> tuple[pd.DataFrame, dict[str, Any] | None]:
     """Merge tax revenue data from IMF into the target dataframe.
 
     Args:
@@ -134,7 +142,7 @@ def merge_tax_data(target_df: pd.DataFrame, tax_data: pd.DataFrame) -> tuple[pd.
             result_df = result_df.drop(columns=["TAX_pct_GDP_imf"])
         else:
             logger.warning("No IMF tax data column found after merge")
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("Error merging IMF tax data")
 
     return result_df, None

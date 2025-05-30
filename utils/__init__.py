@@ -12,6 +12,8 @@ contains the main scripts, utils/, tests/, input/, and output/ directories.
 import logging
 from pathlib import Path
 
+from utils.path_constants import get_search_locations_relative_to_root
+
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +32,9 @@ def get_project_root() -> str:
     return str(Path(__file__).parent.parent)
 
 
-def find_file(filename: str, possible_locations_relative_to_root: list[str] | None = None) -> str | None:
+def find_file(
+    filename: str, possible_locations_relative_to_root: list[str] | None = None
+) -> str | None:
     """Find a file by searching multiple possible locations relative to the project root.
 
     Args:
@@ -44,8 +48,6 @@ def find_file(filename: str, possible_locations_relative_to_root: list[str] | No
     project_root = Path(get_project_root())
 
     if possible_locations_relative_to_root is None:
-        from utils.path_constants import get_search_locations_relative_to_root
-
         search_locations_relative = get_search_locations_relative_to_root()["input_files"]
     else:
         search_locations_relative = possible_locations_relative_to_root
@@ -53,7 +55,11 @@ def find_file(filename: str, possible_locations_relative_to_root: list[str] | No
     checked_paths = []
     for rel_location in search_locations_relative:
         # Construct absolute path using pathlib
-        path = project_root / filename if rel_location == "." else project_root / rel_location / filename
+        path = (
+            project_root / filename
+            if rel_location == "."
+            else project_root / rel_location / filename
+        )
 
         checked_paths.append(str(path))
         if path.exists():

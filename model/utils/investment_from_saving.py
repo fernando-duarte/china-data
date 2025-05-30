@@ -16,6 +16,7 @@ Net exports (NX_t) = Exports - Imports
 """
 
 import logging
+from dataclasses import dataclass
 
 import pandas as pd
 
@@ -46,7 +47,12 @@ def _calculate_scalar_investment(
     current_account = -net_exports
     investment = domestic_savings + current_account
 
-    logger.debug("Calculated investment: I=%.2f from S=%.2f, CA=%.2f", investment, domestic_savings, current_account)
+    logger.debug(
+        "Calculated investment: I=%.2f from S=%.2f, CA=%.2f",
+        investment,
+        domestic_savings,
+        current_account,
+    )
 
     return investment, domestic_savings, current_account, net_exports
 
@@ -86,12 +92,18 @@ def calculate_investment_from_saving(
         ValueError: If GDP is non-positive or savings rate is not in [0, 1]
 
     Example:
-        >>> investment = calculate_investment_from_saving(gdp=1000.0, savings_rate=0.3, net_exports=50.0)
+        >>> investment = calculate_investment_from_saving(
+        ...     gdp=1000.0, savings_rate=0.3, net_exports=50.0
+        ... )
         >>> print(f"Investment: {investment:.2f}")
         Investment: 250.00
     """
     # Handle series input
-    if isinstance(gdp, pd.Series) or isinstance(savings_rate, pd.Series) or isinstance(net_exports, pd.Series):
+    if (
+        isinstance(gdp, pd.Series)
+        or isinstance(savings_rate, pd.Series)
+        or isinstance(net_exports, pd.Series)
+    ):
         # Convert all to series for consistent handling
         if not isinstance(gdp, pd.Series):
             if isinstance(savings_rate, pd.Series):
@@ -128,11 +140,26 @@ def calculate_investment_from_saving(
     validated_savings_rate = _validate_savings_rate(savings_rate)
     assert isinstance(net_exports, float)  # Type narrowing for MyPy
 
-    scalar_investment, _, _, _ = _calculate_scalar_investment(validated_gdp, validated_savings_rate, net_exports)
+    scalar_investment, _, _, _ = _calculate_scalar_investment(
+        validated_gdp, validated_savings_rate, net_exports
+    )
     return scalar_investment
 
 
-def calculate_investment_breakdown(gdp: float, savings_rate: float, net_exports: float) -> dict[str, float]:
+@dataclass
+class InvestmentColumnConfig:
+    """Configuration for column names and components in investment calculation."""
+
+    gdp_col: str = "gdp"
+    savings_rate_col: str = "savings_rate"
+    net_exports_col: str = "net_exports"
+    output_col: str = "investment"
+    add_components: bool = False
+
+
+def calculate_investment_breakdown(
+    gdp: float, savings_rate: float, net_exports: float
+) -> dict[str, float]:
     """Calculate investment with detailed breakdown of components.
 
     Args:
@@ -169,22 +196,13 @@ def calculate_investment_breakdown(gdp: float, savings_rate: float, net_exports:
 
 def calculate_investment_dataframe(
     df: pd.DataFrame,
-    *,
-    gdp_col: str = "gdp",
-    savings_rate_col: str = "savings_rate",
-    net_exports_col: str = "net_exports",
-    output_col: str = "investment",
-    add_components: bool = False,
+    config: InvestmentColumnConfig | None = None,
 ) -> pd.DataFrame:
     """Calculate investment for a DataFrame with time series data.
 
     Args:
         df: DataFrame containing GDP, savings rate, and net exports data
-        gdp_col: Column name for GDP data
-        savings_rate_col: Column name for savings rate data
-        net_exports_col: Column name for net exports data
-        output_col: Column name for calculated investment
-        add_components: Whether to add component columns (savings, CA)
+        config: Configuration for column names and components. If None, uses defaults.
 
     Returns:
         DataFrame with investment column(s) added
@@ -192,8 +210,11 @@ def calculate_investment_dataframe(
     Raises:
         ValueError: If required columns are missing
     """
+    if config is None:
+        config = InvestmentColumnConfig()
+
     # Validate required columns
-    required_cols = [gdp_col, savings_rate_col, net_exports_col]
+    required_cols = [config.gdp_col, config.savings_rate_col, config.net_exports_col]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         msg = f"Missing required columns: {missing_cols}"
@@ -202,14 +223,16 @@ def calculate_investment_dataframe(
     result_df = df.copy()
 
     # Calculate investment
-    result_df[output_col] = calculate_investment_from_saving(
-        gdp=df[gdp_col], savings_rate=df[savings_rate_col], net_exports=df[net_exports_col]
+    result_df[config.output_col] = calculate_investment_from_saving(
+        gdp=df[config.gdp_col],
+        savings_rate=df[config.savings_rate_col],
+        net_exports=df[config.net_exports_col],
     )
 
-    if add_components:
-        result_df["domestic_savings"] = df[savings_rate_col] * df[gdp_col]
-        result_df["current_account"] = -df[net_exports_col]
-        result_df["investment_rate"] = result_df[output_col] / df[gdp_col]
+    if config.add_components:
+        result_df["domestic_savings"] = df[config.savings_rate_col] * df[config.gdp_col]
+        result_df["current_account"] = -df[config.net_exports_col]
+        result_df["investment_rate"] = result_df[config.output_col] / df[config.gdp_col]
 
     logger.info("Calculated investment for %d periods", len(result_df))
 

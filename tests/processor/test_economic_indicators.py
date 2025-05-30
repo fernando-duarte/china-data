@@ -12,7 +12,13 @@ from utils.economic_indicators import calculate_economic_indicators, calculate_t
 
 def test_calculate_tfp_with_missing_hc():
     data = pd.DataFrame(
-        {"year": [2017, 2018], "GDP_USD_bn": [2.0, 2.1], "K_USD_bn": [1.0, 1.1], "LF_mn": [1, 1.1], "hc": [1.0, np.nan]}
+        {
+            "year": [2017, 2018],
+            "GDP_USD_bn": [2.0, 2.1],
+            "K_USD_bn": [1.0, 1.1],
+            "LF_mn": [1, 1.1],
+            "hc": [1.0, np.nan],
+        }
     )
     out = calculate_tfp(data, alpha=1 / 3)
     assert "TFP" in out.columns
@@ -63,18 +69,28 @@ def test_calculate_economic_indicators():
 
     # New tests for economic indicators
     # private saving + public saving = saving
-    assert np.allclose(result["S_USD_bn"], result["S_priv_USD_bn"].fillna(0) + result["S_pub_USD_bn"].fillna(0))
+    assert np.allclose(
+        result["S_USD_bn"], result["S_priv_USD_bn"].fillna(0) + result["S_pub_USD_bn"].fillna(0)
+    )
 
     expected_processor_openness = (result["X_USD_bn"] + result["M_USD_bn"]) / result["GDP_USD_bn"]
-    assert result["Openness_Ratio"].tolist() == pytest.approx(expected_processor_openness.tolist(), rel=1e-4)
+    assert result["Openness_Ratio"].tolist() == pytest.approx(
+        expected_processor_openness.tolist(), rel=1e-4
+    )
 
     # saving rate = S/Y
     expected_processor_saving_rate = result["S_USD_bn"] / result["GDP_USD_bn"]
-    assert result["Saving_Rate"].tolist() == pytest.approx(expected_processor_saving_rate.tolist(), rel=1e-4)
+    assert result["Saving_Rate"].tolist() == pytest.approx(
+        expected_processor_saving_rate.tolist(), rel=1e-4
+    )
 
     # saving rate = 1 - (C_t + G_t)/Y_t (GDP Identity based saving)
-    expected_identity_saving_rate = 1 - (result["C_USD_bn"] + result["G_USD_bn"]) / result["GDP_USD_bn"]
-    assert result["Saving_Rate"].tolist() == pytest.approx(expected_identity_saving_rate.tolist(), rel=1e-4)
+    expected_identity_saving_rate = (
+        1 - (result["C_USD_bn"] + result["G_USD_bn"]) / result["GDP_USD_bn"]
+    )
+    assert result["Saving_Rate"].tolist() == pytest.approx(
+        expected_identity_saving_rate.tolist(), rel=1e-4
+    )
 
     # taxes > 0 (for years where tax data is available)
     assert (result.loc[result["TAX_pct_GDP"].notna(), "T_USD_bn"].dropna() > 0).all()

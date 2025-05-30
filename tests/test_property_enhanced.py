@@ -16,7 +16,9 @@ from hypothesis.stateful import Bundle, RuleBasedStateMachine, initialize, invar
 @st.composite
 def economic_data_strategy(draw):
     """Generate realistic economic data for testing."""
-    years = draw(st.lists(st.integers(min_value=1990, max_value=2030), min_size=3, max_size=10, unique=True))
+    years = draw(
+        st.lists(st.integers(min_value=1990, max_value=2030), min_size=3, max_size=10, unique=True)
+    )
     years.sort()
 
     return {
@@ -29,7 +31,11 @@ def economic_data_strategy(draw):
             )
         ),
         "population": draw(
-            st.lists(st.integers(min_value=int(1e6), max_value=int(2e9)), min_size=len(years), max_size=len(years))
+            st.lists(
+                st.integers(min_value=int(1e6), max_value=int(2e9)),
+                min_size=len(years),
+                max_size=len(years),
+            )
         ),
         "inflation_rates": draw(
             st.lists(
@@ -67,7 +73,9 @@ class TestDataProcessingProperties:
         assume(all(gdp > 0 for gdp in data["gdp_values"]))
 
         # Calculate GDP per capita
-        gdp_per_capita = [gdp / pop for gdp, pop in zip(data["gdp_values"], data["population"], strict=False)]
+        gdp_per_capita = [
+            gdp / pop for gdp, pop in zip(data["gdp_values"], data["population"], strict=False)
+        ]
 
         # Properties that should always hold
         assert all(gpc > 0 for gpc in gdp_per_capita), "GDP per capita should be positive"
@@ -102,7 +110,9 @@ class TestDataProcessingProperties:
         # First GDP growth value should be NaN (no previous year)
         assert pd.isna(df_processed["gdp_growth"].iloc[0]), "First growth value should be NaN"
 
-    @given(st.lists(st.floats(min_value=0, max_value=1e15, allow_nan=False), min_size=1, max_size=100))
+    @given(
+        st.lists(st.floats(min_value=0, max_value=1e15, allow_nan=False), min_size=1, max_size=100)
+    )
     @settings(max_examples=50)
     def test_data_normalization_properties(self, values):
         """Test properties of data normalization."""
@@ -119,7 +129,9 @@ class TestDataProcessingProperties:
         assert max(normalized) == 1, "Maximum should be 1"
         assert len(normalized) == len(values), "Length should be preserved"
 
-    @given(st.lists(st.floats(min_value=-100, max_value=100, allow_nan=False), min_size=3, max_size=50))
+    @given(
+        st.lists(st.floats(min_value=-100, max_value=100, allow_nan=False), min_size=3, max_size=50)
+    )
     @settings(max_examples=30)
     def test_moving_average_properties(self, values):
         """Test properties of moving average calculation."""
@@ -169,7 +181,9 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
 
     @rule(
         target=datasets,
-        dataset_name=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))),
+        dataset_name=st.text(
+            min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))
+        ),
         data=dataframe_strategy(),
     )
     def add_dataset(self, dataset_name, data):
@@ -184,7 +198,9 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
     @rule(
         target=datasets,
         dataset_name=datasets,
-        new_name=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))),
+        new_name=st.text(
+            min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))
+        ),
     )
     def calculate_gdp_per_capita(self, dataset_name, new_name):
         """Calculate GDP per capita for a dataset."""
@@ -203,7 +219,9 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
     @rule(
         target=datasets,
         dataset_name=datasets,
-        new_name=st.text(min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))),
+        new_name=st.text(
+            min_size=1, max_size=10, alphabet=st.characters(whitelist_categories=("Lu", "Ll"))
+        ),
     )
     def calculate_growth_rates(self, dataset_name, new_name):
         """Calculate growth rates for a dataset."""
@@ -234,7 +252,9 @@ class DataProcessingStateMachine(RuleBasedStateMachine):
         """Invariant: GDP per capita should be positive when present."""
         for name, df in self.data_store.items():
             if "gdp_per_capita" in df.columns:
-                assert (df["gdp_per_capita"] > 0).all(), f"GDP per capita in {name} should be positive"
+                assert (df["gdp_per_capita"] > 0).all(), (
+                    f"GDP per capita in {name} should be positive"
+                )
 
     @invariant()
     def year_ordering(self):
@@ -314,14 +334,19 @@ class TestPerformanceProperties:
 
             # Generate test data
             df = pd.DataFrame(
-                {"year": range(2000, 2000 + data_size), "value": np.random.default_rng().random(data_size) * 1e12}
+                {
+                    "year": range(2000, 2000 + data_size),
+                    "value": np.random.default_rng().random(data_size) * 1e12,
+                }
             )
 
             # Measure processing time
             start_time = time.time()
 
             # Simple processing operation
-            df["normalized"] = (df["value"] - df["value"].min()) / (df["value"].max() - df["value"].min())
+            df["normalized"] = (df["value"] - df["value"].min()) / (
+                df["value"].max() - df["value"].min()
+            )
             df["moving_avg"] = df["value"].rolling(window=min(5, len(df))).mean()
 
             processing_time = time.time() - start_time

@@ -1,3 +1,5 @@
+"""Module for loading and preprocessing economic data for the China model."""
+
 import logging
 from pathlib import Path
 from typing import Any

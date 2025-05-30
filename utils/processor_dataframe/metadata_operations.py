@@ -22,7 +22,9 @@ def _get_projected_years_from_original(
     # If projection extends beyond last available data
     if last_data_year < end_year:
         if cutoff_year:
-            projected_years = list(range(max(int(cutoff_year), int(last_data_year) + 1), end_year + 1))
+            projected_years = list(
+                range(max(int(cutoff_year), int(last_data_year) + 1), end_year + 1)
+            )
         else:
             projected_years = list(range(int(last_data_year) + 1, end_year + 1))
 
@@ -80,10 +82,14 @@ def get_projection_metadata(
 
         if column_name in original_df.columns:
             # For columns present in original data, find last non-NA year
-            projected_years = _get_projected_years_from_original(original_df, column_name, end_year, cutoff_year)
+            projected_years = _get_projected_years_from_original(
+                original_df, column_name, end_year, cutoff_year
+            )
         elif projection_df is not None and column_name in projection_df.columns:
             # Special case for projection dataframes
-            projected_years = _get_projected_years_from_projection_df(processed_df, projection_df, column_name)
+            projected_years = _get_projected_years_from_projection_df(
+                processed_df, projection_df, column_name
+            )
 
         if projected_years:
             logger.info(

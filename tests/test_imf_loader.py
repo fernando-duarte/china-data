@@ -31,7 +31,9 @@ class TestIMFLoader:
     @patch("utils.data_sources.imf_loader.check_and_update_hash")
     @patch("utils.data_sources.imf_loader.find_file")
     @patch("pandas.read_csv")
-    def test_load_imf_tax_data_success(self, mock_read_csv, mock_find_file, mock_check_hash, mock_csv_data):
+    def test_load_imf_tax_data_success(
+        self, mock_read_csv, mock_find_file, mock_check_hash, mock_csv_data
+    ):
         """Test successful loading of IMF tax data."""
         # Set up mocks
         mock_check_hash.return_value = True  # Mock the hash check
@@ -48,7 +50,9 @@ class TestIMFLoader:
         mock_find_file.assert_called()
 
         # Verify read_csv was called with correct path
-        mock_read_csv.assert_called_once_with("/path/to/dataset_DEFAULT_INTEGRATION_IMF.FAD_FM_5.0.0.csv")
+        mock_read_csv.assert_called_once_with(
+            "/path/to/dataset_DEFAULT_INTEGRATION_IMF.FAD_FM_5.0.0.csv"
+        )
 
         # Verify result
         assert isinstance(result, pd.DataFrame)
@@ -100,7 +104,9 @@ class TestIMFLoader:
     @patch("utils.data_sources.imf_loader.check_and_update_hash")
     @patch("utils.data_sources.imf_loader.find_file")
     @patch("pandas.read_csv")
-    def test_load_imf_tax_data_data_types(self, mock_read_csv, mock_find_file, mock_check_hash, mock_csv_data):
+    def test_load_imf_tax_data_data_types(
+        self, mock_read_csv, mock_find_file, mock_check_hash, mock_csv_data
+    ):
         """Test that data types are correct."""
         mock_check_hash.return_value = True
         mock_find_file.return_value = "/path/to/imf_data.csv"
@@ -116,7 +122,9 @@ class TestIMFLoader:
     @patch("pathlib.Path.read_bytes")
     @patch("pathlib.Path.write_text")
     @patch("pathlib.Path.exists")
-    def test_check_and_update_hash_new_file(self, mock_exists, mock_write_text, mock_read_bytes, mock_find_file):
+    def test_check_and_update_hash_new_file(
+        self, mock_exists, mock_write_text, mock_read_bytes, mock_find_file
+    ):
         """Test check_and_update_hash when download_date.txt doesn't exist."""
         # Mock file locations
         mock_find_file.side_effect = [

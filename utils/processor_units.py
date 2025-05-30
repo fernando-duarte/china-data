@@ -15,7 +15,17 @@ def convert_units(data: pd.DataFrame) -> pd.DataFrame:
     result = data.copy()
 
     # Convert USD values to billions USD
-    usd_columns = ["GDP_USD", "C_USD", "G_USD", "I_USD", "X_USD", "M_USD", "NX_USD", "K_USD", "FDI_USD"]
+    usd_columns = [
+        "GDP_USD",
+        "C_USD",
+        "G_USD",
+        "I_USD",
+        "X_USD",
+        "M_USD",
+        "NX_USD",
+        "K_USD",
+        "FDI_USD",
+    ]
     for col in usd_columns:
         if col in result.columns:
             result[f"{col}_bn"] = result[col] / 1e9
@@ -30,7 +40,9 @@ def convert_units(data: pd.DataFrame) -> pd.DataFrame:
 
     # Convert PWT cgdpo (millions USD) to billions USD
     if "cgdpo" in result.columns:
-        result["cgdpo_bn"] = result["cgdpo"] / 1e3  # cgdpo is in millions, so divide by 1000 to get billions
+        result["cgdpo_bn"] = (
+            result["cgdpo"] / 1e3
+        )  # cgdpo is in millions, so divide by 1000 to get billions
         result = result.drop("cgdpo", axis=1)
 
     return result

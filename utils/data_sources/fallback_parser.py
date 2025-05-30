@@ -40,7 +40,9 @@ def _find_table_boundaries(lines: list[str]) -> tuple[int | None, int | None]:
     return table_start, table_end
 
 
-def _parse_table_data(table_lines: list[str], table_start: int) -> tuple[list[str], list[list[str]], list[str]]:
+def _parse_table_data(
+    table_lines: list[str], table_start: int
+) -> tuple[list[str], list[list[str]], list[str]]:
     """Parse table data from markdown lines.
 
     Args:
@@ -60,7 +62,9 @@ def _parse_table_data(table_lines: list[str], table_start: int) -> tuple[list[st
             try:
                 values = [v.strip() for v in line.split("|")[1:-1]]
                 if len(values) != len(headers):
-                    error_msg = f"Line {line_num}: Expected {len(headers)} columns, got {len(values)}"
+                    error_msg = (
+                        f"Line {line_num}: Expected {len(headers)} columns, got {len(values)}"
+                    )
                     parse_errors.append(error_msg)
                     continue
                 data.append(values)
@@ -93,7 +97,10 @@ def _read_and_parse_markdown_table(file_path: Path) -> pd.DataFrame:
         content = file_path.read_text(encoding="utf-8")
     except OSError as e:
         raise FileOperationError(
-            operation="read", filepath=str(file_path), message="Failed to read fallback file", original_error=e
+            operation="read",
+            filepath=str(file_path),
+            message="Failed to read fallback file",
+            original_error=e,
         ) from e
 
     if not content.strip():

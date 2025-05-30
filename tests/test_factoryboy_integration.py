@@ -70,10 +70,13 @@ class TestFactoryBoyIntegration:
         """Test parametrizing factory attributes using pytest-factoryboy syntax."""
         # The fixture value should override the factory default
         assert economic_data["GDP_USD_bn"] == economic_data__GDP_USD_bn
-        assert economic_data["year"] == 2020  # Default value
+        # The year is fuzzy, so we can't assert a fixed default value
+        assert 1960 <= economic_data["year"] <= 2030
 
     @pytest.mark.parametrize("economic_data__year", [2020, 2021, 2022])
-    def test_parametrized_years(self, economic_data: dict[str, Any], economic_data__year: int) -> None:
+    def test_parametrized_years(
+        self, economic_data: dict[str, Any], economic_data__year: int
+    ) -> None:
         """Test parametrizing year values."""
         assert economic_data["year"] in [2020, 2021, 2022]
         assert economic_data["year"] == economic_data__year

@@ -2,16 +2,20 @@
 
 from datetime import timedelta
 
-import requests_cache
+from requests_cache import CachedSession
 
 from config import Config
 
 
-def get_cached_session() -> requests_cache.CachedSession:
+def get_cached_session() -> CachedSession:  # type: ignore[no-any-unimported]
     """Creates and returns a cached requests session."""
-    return requests_cache.CachedSession(
-        Config.CACHE_NAME,
-        backend=Config.CACHE_BACKEND,
-        expire_after=timedelta(days=Config.CACHE_EXPIRE_AFTER_DAYS),
+    cache_name_val: str = Config.CACHE_NAME
+    cache_backend_val: str = Config.CACHE_BACKEND
+    expire_days_val: int = Config.CACHE_EXPIRE_AFTER_DAYS
+
+    return CachedSession(
+        cache_name_val,
+        backend=cache_backend_val,
+        expire_after=timedelta(days=expire_days_val),
         allowable_methods=["GET", "POST"],  # Allow caching for POST if needed by sources
     )

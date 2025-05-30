@@ -101,7 +101,9 @@ class TestRenderMarkdownTable:
     def test_download_dates(self, sample_data):
         """Test inclusion of download dates in the output."""
         # Test with all dates
-        result = render_markdown_table(sample_data, wdi_date="2024-01-15", pwt_date="2024-01-16", imf_date="2024-01-17")
+        result = render_markdown_table(
+            sample_data, wdi_date="2024-01-15", pwt_date="2024-01-16", imf_date="2024-01-17"
+        )
 
         assert "Accessed on 2024-01-15" in result
         assert "Accessed on 2024-01-16" in result

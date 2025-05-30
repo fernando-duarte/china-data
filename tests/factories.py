@@ -213,7 +213,9 @@ class DataFrameFactory:
         return pd.DataFrame(data)
 
     @staticmethod
-    def create_imf_tax_dataframe(years: list[int] | None = None, num_rows: int = 10) -> pd.DataFrame:
+    def create_imf_tax_dataframe(
+        years: list[int] | None = None, num_rows: int = 10
+    ) -> pd.DataFrame:
         """Create a DataFrame with IMF tax data."""
         if years is None:
             years = sorted(random.sample(range(1990, 2031), num_rows))
@@ -228,7 +230,10 @@ class DataFrameFactory:
 
     @staticmethod
     def create_complete_dataset(
-        start_year: int = 2000, end_year: int = 2022, include_pwt: bool = True, include_imf: bool = True
+        start_year: int = 2000,
+        end_year: int = 2022,
+        include_pwt: bool = True,
+        include_imf: bool = True,
     ) -> dict[str, pd.DataFrame]:
         """Create a complete dataset with all data sources.
 
@@ -262,7 +267,11 @@ class TimeSeriesFactory:
 
     @staticmethod
     def create_trending_series(
-        start_value: float, end_value: float, years: list[int], volatility: float = 0.05, trend_type: str = "linear"
+        start_value: float,
+        end_value: float,
+        years: list[int],
+        volatility: float = 0.05,
+        trend_type: str = "linear",
     ) -> pd.Series:
         """Create a trending time series with realistic volatility.
 
@@ -317,7 +326,9 @@ def create_complete_economic_data(years: list[int] | None = None) -> pd.DataFram
     return DataFrameFactory.create_economic_dataframe(years=years)
 
 
-def create_data_with_missing_values(years: list[int] | None = None, missing_probability: float = 0.2) -> pd.DataFrame:
+def create_data_with_missing_values(
+    years: list[int] | None = None, missing_probability: float = 0.2
+) -> pd.DataFrame:
     """Create economic data with realistic missing values."""
     if years is None:
         years = list(range(1980, 2023))
@@ -356,7 +367,8 @@ def create_china_growth_scenario() -> pd.DataFrame:
             "G_USD_bn": gdp * 0.15,  # Stable government spending
             "X_USD_bn": gdp * (0.05 + 0.25 * (year - 1980) / (2022 - 1980)),  # Rising exports
             "M_USD_bn": gdp * (0.04 + 0.20 * (year - 1980) / (2022 - 1980)),  # Rising imports
-            "K_USD_bn": gdp * (2.5 + 1.0 * (year - 1980) / (2022 - 1980)),  # Rising capital intensity
+            "K_USD_bn": gdp
+            * (2.5 + 1.0 * (year - 1980) / (2022 - 1980)),  # Rising capital intensity
             "LF_mn": 400 + 350 * (year - 1980) / (2022 - 1980),  # Growing labor force
             "hc": 1.5 + 1.5 * (year - 1980) / (2022 - 1980),  # Improving human capital
             "TAX_pct_GDP": 12 + 8 * (year - 1980) / (2022 - 1980),  # Rising tax capacity

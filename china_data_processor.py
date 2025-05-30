@@ -24,6 +24,8 @@ from config import Config
 from utils.capital import calculate_capital_stock
 from utils.data_sources import load_imf_tax_data
 from utils.economic_indicators import calculate_economic_indicators
+from utils.error_handling.exceptions import ChinaDataError
+from utils.logging_config import get_logger, setup_structured_logging
 from utils.output import create_markdown_table
 from utils.processor_cli import parse_and_validate_args
 from utils.processor_extrapolation import extrapolate_series_to_end_year
@@ -52,7 +54,9 @@ def process_data(
         processed_data = convert_units(raw_data)
 
         # Calculate capital stock
-        processed_data = calculate_capital_stock(processed_data, capital_output_ratio=args.capital_output_ratio)
+        processed_data = calculate_capital_stock(
+            processed_data, capital_output_ratio=args.capital_output_ratio
+        )
 
         # Project human capital
         processed_data = project_human_capital(processed_data, end_year=args.end_year)
@@ -63,21 +67,30 @@ def process_data(
         # Merge IMF tax revenue projections if available
         if "TAX_pct_GDP" in processed_data.columns and len(imf_tax_data) > 0:
             # Only use projections for future years
-            projected_years = [y for y in imf_tax_data["year"] if y > Config.IMF_PROJECTION_START_YEAR]
+            projected_years = [
+                y for y in imf_tax_data["year"] if y > Config.IMF_PROJECTION_START_YEAR
+            ]
             if projected_years:
                 logger.info("Using IMF tax revenue projections for years: %s", projected_years)
                 for year in projected_years:
                     if year in imf_tax_data["year"].to_numpy():
-                        tax_value = imf_tax_data.loc[imf_tax_data.year == year, "TAX_pct_GDP"].iloc[0]
+                        tax_value = imf_tax_data.loc[imf_tax_data.year == year, "TAX_pct_GDP"].iloc[
+                            0
+                        ]
                         processed_data.loc[processed_data.year == year, "TAX_pct_GDP"] = tax_value
 
         # Extrapolate series to end year
         processed_data, extrapolation_info = extrapolate_series_to_end_year(
-            processed_data, end_year=args.end_year, raw_data=raw_data
+            processed_data,
+            end_year=args.end_year,
+            raw_data=raw_data,
         )
 
-    except Exception:
+    except (ChinaDataError, ValueError):
         logger.exception("Error processing data")
+        raise
+    except Exception:  # pylint: disable=broad-exception-caught
+        logger.exception("An unexpected error occurred during data processing")
         raise
 
     return processed_data, extrapolation_info
@@ -91,8 +104,6 @@ def main() -> None:
 
         # Configure structured logging
         if Config.STRUCTURED_LOGGING_ENABLED:
-            from utils.logging_config import get_logger, setup_structured_logging
-
             setup_structured_logging(
                 log_level=Config.STRUCTURED_LOGGING_LEVEL,
                 log_file=Config.STRUCTURED_LOGGING_FILE,
@@ -135,7 +146,7 @@ def main() -> None:
         create_markdown_table(processed_data, md_file, extrapolation_info)
         structured_logger.info("Created markdown table at %s", md_file)
 
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         structured_logger.exception("Error processing data")
         sys.exit(1)
 

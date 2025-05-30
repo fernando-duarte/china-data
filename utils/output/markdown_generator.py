@@ -46,7 +46,9 @@ def _categorize_extrapolation_method(method: str) -> str:
     return "Extrapolated"
 
 
-def _process_extrapolation_info(extrapolation_info: dict[str, Any]) -> tuple[list[str], dict[str, list[str]]]:
+def _process_extrapolation_info(
+    extrapolation_info: dict[str, Any]
+) -> tuple[list[str], dict[str, list[str]]]:
     """Process extrapolation info to create notes and method groupings."""
     column_mapping = Config.get_inverse_column_map()
     notes = []

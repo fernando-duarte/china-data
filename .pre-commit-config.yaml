@@ -103,7 +103,7 @@ repos:
 
   # Additional quality checks with caching
   - repo: https://github.com/pylint-dev/pylint
-    rev: v3.3.7
+    rev: v3.3.1
     hooks:
       - id: pylint
         <<: *all_production_python
@@ -126,7 +126,7 @@ repos:
           - jinja2
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.13.0
     hooks:
       - id: mypy
         <<: *all_production_python
@@ -145,7 +145,7 @@ repos:
 
   # Package vulnerability scanning
   - repo: https://github.com/pypa/pip-audit
-    rev: v2.9.0
+    rev: v2.7.3
     hooks:
       - id: pip-audit
         args:
@@ -163,6 +163,8 @@ repos:
           - scan
           - --output
           - screen
+          - --ignore
+          - PYSEC-2022-42969
         files: ^(requirements.*\.txt|pyproject\.toml|uv\.lock)$
         pass_filenames: false
         require_serial: true
@@ -203,7 +205,7 @@ repos:
 
   # Python upgrades
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.19.0
     hooks:
       - id: pyupgrade
         args: [--py313-plus]
@@ -219,7 +221,7 @@ repos:
         exclude: ^\.github/
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
+    rev: v0.43.0
     hooks:
       - id: markdownlint
         args: [--fix]

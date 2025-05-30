@@ -64,7 +64,9 @@ class TestWDIDownloaderAdditional:
         assert isinstance(result, pd.DataFrame)
 
         # Test with exception -> should raise DataDownloadError
-        mock_wb_reader_class.return_value.read.side_effect = requests.exceptions.RequestException("Error")
+        mock_wb_reader_class.return_value.read.side_effect = requests.exceptions.RequestException(
+            "Error"
+        )
         with pytest.raises(DataDownloadError):
             download_wdi_data("NY.GDP.MKTP.CD")
 

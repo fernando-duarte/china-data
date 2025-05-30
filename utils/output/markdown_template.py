@@ -1,3 +1,4 @@
+"""TODO: Add module docstring."""
 MARKDOWN_TEMPLATE = """
 # Processed China Economic Data
 
@@ -8,29 +9,32 @@ MARKDOWN_TEMPLATE = """
 
 # Notes on Computation
 
-## Data Sources
-The raw data in `{{ input_file }}` comes from the following sources:
+## Data Sources and Adjustments
 
-- **World Bank World Development Indicators (WDI)** for GDP components, FDI, population, and labor force
-- **Penn World Table (PWT) version 10.01** for human capital index and capital stock related variables
-- **International Monetary Fund (IMF) Fiscal Monitor** for tax revenue data
+- **World Bank World Development Indicators (WDI)** for GDP components, FDI, population,
+  and labor force
+- **Penn World Table (PWT) version 10.01** for human capital index and capital stock
+  related variables
+- **International Monetary Fund (IMF) World Economic Outlook (WEO)** for supplementary data
 
 This processed dataset was created by applying the following transformations to the raw data:
 
 ## Unit Conversions
-- GDP and its components (Consumption, Government, Investment, Exports, Imports) were converted from USD to billions USD
-- Population and Labor Force were converted from people to millions of people
+- All monetary values are in constant 2017 international dollars unless otherwise noted.
+- GDP and its components (Consumption, Government, Investment, Exports, Imports) were
+  converted from USD to billions USD
+- Population is in millions.
 
 ## Derived Variables
 ### Net Exports
 Calculated as Exports - Imports (in billions USD)
-```
+```text
 Net Exports = Exports - Imports
 ```
 
 ### Physical Capital
 Calculated using PWT data with the following formula:
-```
+```text
 K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)
 ```
 Where:
@@ -43,9 +47,9 @@ Where:
 - $pl\\_gdpo_{2017}$ is the price level of GDP in 2017 (from PWT)
 
 ### TFP (Total Factor Productivity)
-Calculated using the Cobb-Douglas production function:
-```
-TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))
+Calculated using a Cobb-Douglas production function $Y = A K^{\alpha} (L H)^{1-\alpha}$:
+```text
+A = Y / (K^alpha * (L*H)^(1-alpha))
 ```
 Where:
 - $Y_t$ is GDP in year $t$ (billions USD)
@@ -78,8 +82,9 @@ Each series was extrapolated using the following methods:
 {% if extrapolation_methods['Investment-based projection'] %}
 ### Investment-based projection
 {% for var in extrapolation_methods['Investment-based projection'] %}
-- {{ var }}: Projected using the formula $K_t = K_{t-1} \\times (1-\\delta) + I_t$, where $\\delta = 0.05$
-  (5% depreciation rate) and $I_t$ is investment in year $t${% endfor %}
+- {{ var }}: Projected using the formula $K_t = K_{t-1} \\times (1-\\delta) + I_t$,
+  where $\\delta = 0.05$
+{% endfor %}
 {% endif %}
 
 {% if extrapolation_methods['Extrapolated'] %}
@@ -88,5 +93,7 @@ Each series was extrapolated using the following methods:
 - {{ var }}{% endfor %}
 {% endif %}
 
-Data processed with alpha={{ alpha }}, K/Y= {{ capital_output_ratio }}, source file={{ input_file }},
-end year={{ end_year }}. Generated {{ today }}."""
+*Processing Details:*
+Data processed with alpha={{ alpha }}, K/Y= {{ capital_output_ratio }},
+source file={{ input_file }}, processed on {{ processing_date }}.
+"""

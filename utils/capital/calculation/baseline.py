@@ -21,7 +21,11 @@ def _find_baseline_year(capital_data: pd.DataFrame) -> int:
     logger.info("Available years: %d to %d", min(years_available), max(years_available))
 
     # Try to find an alternative baseline year (closest to Config.BASELINE_YEAR)
-    alt_years = [y for y in years_available if Config.BASELINE_YEAR_RANGE_MIN <= y <= Config.BASELINE_YEAR_RANGE_MAX]
+    alt_years = [
+        y
+        for y in years_available
+        if Config.BASELINE_YEAR_RANGE_MIN <= y <= Config.BASELINE_YEAR_RANGE_MAX
+    ]
     if alt_years:
         baseline_year = min(alt_years, key=lambda y: abs(y - Config.BASELINE_YEAR))
         logger.info("Using alternative baseline year: %d", baseline_year)

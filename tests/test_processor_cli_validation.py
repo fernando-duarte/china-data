@@ -23,12 +23,17 @@ class TestProcessorCLIValidation:
             ],
         ):
             with pytest.raises(ValueError, match="Alpha parameter") as exc_info:
-                parse_and_validate_args(["--alpha", "-0.5", "--capital-output-ratio", "-1", "--end-year", "1999"])
+                parse_and_validate_args(
+                    ["--alpha", "-0.5", "--capital-output-ratio", "-1", "--end-year", "1999"]
+                )
             assert "Alpha parameter" in str(exc_info.value)
 
     def test_validation_error_messages(self, caplog):
         """Test that validation error messages are logged."""
-        with patch.object(sys, "argv", ["prog", "--alpha", "1.5"]), pytest.raises(ValueError, match="Alpha parameter"):
+        with (
+            patch.object(sys, "argv", ["prog", "--alpha", "1.5"]),
+            pytest.raises(ValueError, match="Alpha parameter"),
+        ):
             parse_and_validate_args(["--alpha", "1.5"])
 
         messages = "".join(record.message for record in caplog.records)

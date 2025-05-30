@@ -21,7 +21,9 @@ def _extract_wdi_indicators(fallback_data: pd.DataFrame) -> dict[str, pd.DataFra
 
     for col, name in wdi_mapping.items():
         if col in fallback_data.columns:
-            indicator_df = fallback_data[["Year", col]].rename(columns={"Year": "year", col: name}).dropna()
+            indicator_df = (
+                fallback_data[["Year", col]].rename(columns={"Year": "year", col: name}).dropna()
+            )
             if len(indicator_df) > 0:
                 result[name] = indicator_df
                 logger.debug("Loaded %d rows for %s from fallback", len(indicator_df), name)
@@ -51,7 +53,11 @@ def _extract_pwt_data(fallback_data: pd.DataFrame) -> dict[str, pd.DataFrame]:
     result = {}
 
     raw_data_mapping = Config.get_raw_data_column_map()
-    pwt_rename_map = {display: internal for internal, display in raw_data_mapping.items() if display.startswith("PWT")}
+    pwt_rename_map = {
+        display: internal
+        for internal, display in raw_data_mapping.items()
+        if display.startswith("PWT")
+    }
     pwt_cols = list(pwt_rename_map.keys())
 
     pwt_available = [col for col in pwt_cols if col in fallback_data.columns]

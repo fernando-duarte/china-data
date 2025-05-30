@@ -21,15 +21,15 @@ from typing import Any
 class SarifReportGenerator:
     """Generates unified SARIF reports from multiple security tools."""
 
+    SARIF_SCHEMA_URI = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+
     def __init__(self, output_dir: Path) -> None:
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # SARIF schema version
         self.sarif_version = "2.1.0"
-        self.schema_uri = (
-            "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
-        )
+        self.schema_uri = self.SARIF_SCHEMA_URI
 
     def run_bandit(self) -> dict[str, Any]:
         """Run bandit security scan and return SARIF results."""
@@ -43,7 +43,11 @@ class SarifReportGenerator:
 
             if result.stdout:
                 sarif_data = json.loads(result.stdout)
-                return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("bandit")
+                return (
+                    sarif_data
+                    if isinstance(sarif_data, dict)
+                    else self._create_empty_sarif("bandit")
+                )
             return self._create_empty_sarif("bandit")
 
         except (subprocess.SubprocessError, json.JSONDecodeError) as e:
@@ -62,7 +66,11 @@ class SarifReportGenerator:
 
             if result.stdout:
                 sarif_data = json.loads(result.stdout)
-                return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("semgrep")
+                return (
+                    sarif_data
+                    if isinstance(sarif_data, dict)
+                    else self._create_empty_sarif("semgrep")
+                )
             return self._create_empty_sarif("semgrep")
 
         except (subprocess.SubprocessError, json.JSONDecodeError) as e:
@@ -81,7 +89,9 @@ class SarifReportGenerator:
 
             if result.stdout:
                 sarif_data = json.loads(result.stdout)
-                return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("ruff")
+                return (
+                    sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("ruff")
+                )
             return self._create_empty_sarif("ruff")
 
         except (subprocess.SubprocessError, json.JSONDecodeError) as e:
@@ -96,7 +106,16 @@ class SarifReportGenerator:
 
                 # Run mypy with SARIF output
                 subprocess.run(  # nosec B603 B607 S607
-                    ["uv", "run", "mypy", ".", "--output", "sarif", "--sarif-file", str(report_dir / "mypy.sarif")],
+                    [
+                        "uv",
+                        "run",
+                        "mypy",
+                        ".",
+                        "--output",
+                        "sarif",
+                        "--sarif-file",
+                        str(report_dir / "mypy.sarif"),
+                    ],
                     capture_output=True,
                     text=True,
                     check=False,
@@ -106,7 +125,11 @@ class SarifReportGenerator:
                 if sarif_file.exists():
                     with sarif_file.open() as f:
                         sarif_data = json.load(f)
-                        return sarif_data if isinstance(sarif_data, dict) else self._create_empty_sarif("mypy")
+                        return (
+                            sarif_data
+                            if isinstance(sarif_data, dict)
+                            else self._create_empty_sarif("mypy")
+                        )
 
             return self._create_empty_sarif("mypy")
 
@@ -190,7 +213,9 @@ class SarifReportGenerator:
 
         return reports
 
-    def save_reports(self, reports: dict[str, dict[str, Any]], unified_report: dict[str, Any]) -> None:
+    def save_reports(
+        self, reports: dict[str, dict[str, Any]], unified_report: dict[str, Any]
+    ) -> None:
         """Save individual and unified SARIF reports to files."""
         print(f"💾 Saving SARIF reports to {self.output_dir}...")
 
@@ -247,7 +272,10 @@ class SarifReportGenerator:
             print("\n💡 IDE Integration:")
             print("  - VS Code: Install 'SARIF Viewer' extension and open .sarif files")
             print("  - GitHub: Upload SARIF files to Security tab for code scanning alerts")
-            print("  - Other IDEs: Import unified-security-report.sarif for integrated security analysis")
+            print(
+                "  - Other IDEs: Import unified-security-report.sarif for "
+                "integrated security analysis"
+            )
 
         except (subprocess.SubprocessError, json.JSONDecodeError, OSError) as e:
             print(f"❌ Error generating SARIF reports: {e}")

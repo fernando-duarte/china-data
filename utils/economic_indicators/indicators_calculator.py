@@ -22,7 +22,9 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
-def _calculate_tfp_indicator(result_df: pd.DataFrame, alpha: float, log_instance: logging.Logger) -> pd.DataFrame:
+def _calculate_tfp_indicator(
+    result_df: pd.DataFrame, alpha: float, log_instance: logging.Logger
+) -> pd.DataFrame:
     """Calculate Total Factor Productivity indicator."""
     log_instance.info("Calculating Total Factor Productivity (TFP)")
     try:
@@ -32,7 +34,7 @@ def _calculate_tfp_indicator(result_df: pd.DataFrame, alpha: float, log_instance
             log_instance.info("Calculated TFP for %s years", non_na_count)
         else:
             log_instance.warning("TFP calculation failed - TFP column not found")
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         log_instance.exception("Error calculating TFP")
         if "TFP" not in result_df.columns:
             result_df["TFP"] = np.nan
@@ -55,14 +57,20 @@ def _calculate_tax_revenue(result_df: pd.DataFrame, log_instance: logging.Logger
     return result_df
 
 
-def _calculate_trade_indicators(result_df: pd.DataFrame, log_instance: logging.Logger) -> pd.DataFrame:
+def _calculate_trade_indicators(
+    result_df: pd.DataFrame, log_instance: logging.Logger
+) -> pd.DataFrame:
     """Calculate trade-related indicators (openness ratio and net exports)."""
     # Trade openness ratio
     openness_cols = ["X_USD_bn", "M_USD_bn", "GDP_USD_bn"]
     if all(c in result_df.columns for c in openness_cols):
         log_instance.info("Calculating trade openness ratio")
-        result_df["Openness_Ratio"] = (result_df["X_USD_bn"] + result_df["M_USD_bn"]) / result_df["GDP_USD_bn"]
-        result_df["Openness_Ratio"] = result_df["Openness_Ratio"].round(Config.DECIMAL_PLACES_RATIOS)
+        result_df["Openness_Ratio"] = (result_df["X_USD_bn"] + result_df["M_USD_bn"]) / result_df[
+            "GDP_USD_bn"
+        ]
+        result_df["Openness_Ratio"] = result_df["Openness_Ratio"].round(
+            Config.DECIMAL_PLACES_RATIOS
+        )
         non_na_count = result_df["Openness_Ratio"].notna().sum()
         log_instance.info("Calculated Openness_Ratio for %s years", non_na_count)
     else:
@@ -86,13 +94,17 @@ def _calculate_trade_indicators(result_df: pd.DataFrame, log_instance: logging.L
     return result_df
 
 
-def _calculate_saving_indicators(result_df: pd.DataFrame, log_instance: logging.Logger) -> pd.DataFrame:
+def _calculate_saving_indicators(
+    result_df: pd.DataFrame, log_instance: logging.Logger
+) -> pd.DataFrame:
     """Calculate saving-related indicators."""
     # Total saving (National Saving = Y - C - G)
     total_saving_cols = ["GDP_USD_bn", "C_USD_bn", "G_USD_bn"]
     if all(c in result_df.columns for c in total_saving_cols):
         log_instance.info("Calculating total national saving (S_USD_bn = Y - C - G)")
-        result_df["S_USD_bn"] = result_df["GDP_USD_bn"] - result_df["C_USD_bn"] - result_df["G_USD_bn"]
+        result_df["S_USD_bn"] = (
+            result_df["GDP_USD_bn"] - result_df["C_USD_bn"] - result_df["G_USD_bn"]
+        )
         result_df["S_USD_bn"] = result_df["S_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
         non_na_count = result_df["S_USD_bn"].notna().sum()
         log_instance.info("Calculated S_USD_bn for %s years", non_na_count)
@@ -119,7 +131,9 @@ def _calculate_saving_indicators(result_df: pd.DataFrame, log_instance: logging.
     if all(c in result_df.columns for c in private_saving_cols):
         log_instance.info("Calculating private saving (S_priv_USD_bn)")
         result_df["S_priv_USD_bn"] = result_df["S_USD_bn"] - result_df["S_pub_USD_bn"]
-        result_df["S_priv_USD_bn"] = result_df["S_priv_USD_bn"].round(Config.DECIMAL_PLACES_CURRENCY)
+        result_df["S_priv_USD_bn"] = result_df["S_priv_USD_bn"].round(
+            Config.DECIMAL_PLACES_CURRENCY
+        )
         non_na_count = result_df["S_priv_USD_bn"].notna().sum()
         log_instance.info("Calculated S_priv_USD_bn for %s years", non_na_count)
     else:
@@ -144,7 +158,9 @@ def _calculate_saving_indicators(result_df: pd.DataFrame, log_instance: logging.
 
 
 def calculate_economic_indicators(
-    merged: pd.DataFrame, alpha: float = Config.DEFAULT_ALPHA, log_instance: logging.Logger | None = None
+    merged: pd.DataFrame,
+    alpha: float = Config.DEFAULT_ALPHA,
+    log_instance: logging.Logger | None = None,
 ) -> pd.DataFrame:
     """Calculate comprehensive economic indicators from merged economic data.
 
@@ -161,7 +177,8 @@ def calculate_economic_indicators(
                 GDP_USD_bn, K_USD_bn, LF_mn, hc, TAX_pct_GDP, X_USD_bn, M_USD_bn, etc.
         alpha: Capital share parameter for TFP calculation (0 < alpha < 1).
                Default value from Config.DEFAULT_ALPHA
-        log_instance: Optional logger instance for detailed logging. If None, uses module log_instance.
+        log_instance: Optional logger instance for detailed logging. If None, uses
+               module log_instance.
 
     Returns:
         DataFrame with all original columns plus calculated economic indicators:
@@ -185,7 +202,11 @@ def calculate_economic_indicators(
 
     # Validate alpha parameter
     if not 0 < alpha < 1:
-        log_instance.warning("Invalid alpha value: %s. Using default: %s", alpha, Config.DEFAULT_ALPHA)
+        log_instance.warning(
+            "Invalid alpha value: %s. Using default: %s",
+            alpha,
+            Config.DEFAULT_ALPHA,
+        )
         alpha = Config.DEFAULT_ALPHA
 
     # Calculate indicators using helper functions

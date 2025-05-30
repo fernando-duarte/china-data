@@ -1,6 +1,7 @@
 """Helper functions for capital stock calculations."""
 
 import logging
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
@@ -8,21 +9,31 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class CapitalBaselineParams:
+    """Parameters for baseline capital calculation."""
+
+    rkna_baseline: float
+    pl_gdpo_baseline: float
+    k_baseline_usd: float
+
+
 def _calculate_capital_for_year(
     year: int,
     rkna_value: float,
     pl_gdpo_value: float,
-    *,
-    rkna_baseline: float,
-    pl_gdpo_baseline: float,
-    k_baseline_usd: float,
+    params: CapitalBaselineParams,
 ) -> float:
     """Calculate capital stock for a specific year."""
     if pd.isna(rkna_value) or pd.isna(pl_gdpo_value):
         logger.debug("Missing required data for year %d", year)
         return np.nan
 
-    return (rkna_value / rkna_baseline) * (pl_gdpo_value / pl_gdpo_baseline) * k_baseline_usd
+    return (
+        (rkna_value / params.rkna_baseline)
+        * (pl_gdpo_value / params.pl_gdpo_baseline)
+        * params.k_baseline_usd
+    )
 
 
 def _log_calculation_summary(capital_data: pd.DataFrame) -> None:

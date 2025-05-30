@@ -1,3 +1,5 @@
+"""TODO: Add module docstring."""
+
 from __future__ import annotations
 
 import pandas as pd
@@ -35,9 +37,13 @@ def render_markdown_table(
         if col == "Year":
             formatted_data[col] = [str(int(x)) for x in display_data[col] if not pd.isna(x)]
         elif col in ["Population", "Labor Force"]:
-            formatted_data[col] = [f"{x:,.0f}" if not pd.isna(x) else "N/A" for x in display_data[col]]
+            formatted_data[col] = [
+                f"{x:,.0f}" if not pd.isna(x) else "N/A" for x in display_data[col]
+            ]
         else:
-            formatted_data[col] = [f"{x:.2f}" if not pd.isna(x) else "N/A" for x in display_data[col]]
+            formatted_data[col] = [
+                f"{x:.2f}" if not pd.isna(x) else "N/A" for x in display_data[col]
+            ]
 
     # Create the final display DataFrame
     display_df = pd.DataFrame(formatted_data)
@@ -62,12 +68,14 @@ Data sources:
 {% endfor %}
 
 **Notes:**
-- GDP and its components (Consumption, Government, Investment, Exports, Imports) are in current US dollars
+- GDP and its components (Consumption, Government, Investment, Exports, Imports)
+  are in current US dollars
 - FDI is shown as a percentage of GDP (net inflows)
 - Tax Revenue is shown as a percentage of GDP
 - Population and Labor Force are in number of people
 - PWT rgdpo: Output-side real GDP at chained PPPs (in millions of 2017 USD)
-- PWT rkna: Capital stock at constant 2017 national prices (index: 2017=1)
+- PWT rkna: Capital stock at constant 2017 national prices
+  (index: 2017=1)
 - PWT pl_gdpo: Price level of GDP (price level of USA GDPo in 2017=1)
 - PWT cgdpo: Output-side real GDP at current PPPs (in millions of USD)
 - PWT hc: Human capital index, based on years of schooling and returns to education
@@ -83,5 +91,7 @@ Sources:
   {% if imf_date %}Accessed on {{ imf_date }}.{% endif %}
 """
     )
-    rendered: str = template.render(headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date)
+    rendered: str = template.render(
+        headers=headers, rows=rows, wdi_date=wdi_date, pwt_date=pwt_date, imf_date=imf_date
+    )
     return rendered

@@ -29,9 +29,15 @@ class ProcessingConfig(BaseModel):  # type: ignore[misc]
     """Configuration for data processing parameters."""
 
     default_alpha: float = Field(default=0.33, ge=0, le=1, description="Capital share parameter")
-    default_capital_output_ratio: float = Field(default=3.0, gt=0, description="Capital to output ratio")
-    default_end_year: int = Field(default=2050, ge=2024, le=2100, description="End year for projections")
-    default_depreciation_rate: float = Field(default=0.05, ge=0, le=1, description="Depreciation rate")
+    default_capital_output_ratio: float = Field(
+        default=3.0, gt=0, description="Capital to output ratio"
+    )
+    default_end_year: int = Field(
+        default=2050, ge=2024, le=2100, description="End year for projections"
+    )
+    default_depreciation_rate: float = Field(
+        default=0.05, ge=0, le=1, description="Depreciation rate"
+    )
 
 
 class NetworkConfig(BaseModel):  # type: ignore[misc]
@@ -40,37 +46,57 @@ class NetworkConfig(BaseModel):  # type: ignore[misc]
     max_retries: int = Field(default=3, ge=1, le=10, description="Maximum retry attempts")
     retry_delay_seconds: int = Field(default=5, ge=1, le=60, description="Delay between retries")
     request_timeout_seconds: int = Field(default=30, ge=10, le=300, description="Request timeout")
-    download_delay_seconds: int = Field(default=1, ge=0, le=10, description="Delay between downloads")
+    download_delay_seconds: int = Field(
+        default=1, ge=0, le=10, description="Delay between downloads"
+    )
 
 
 class ValidationConfig(BaseModel):  # type: ignore[misc]
     """Configuration for data validation thresholds."""
 
-    min_data_points_for_regression: int = Field(default=2, ge=2, description="Min points for regression")
+    min_data_points_for_regression: int = Field(
+        default=2, ge=2, description="Min points for regression"
+    )
     min_data_points_for_arima: int = Field(default=5, ge=3, description="Min points for ARIMA")
     outlier_z_score_threshold: float = Field(default=3.0, ge=2.0, description="Z-score threshold")
-    negative_investment_threshold: float = Field(default=0.1, ge=0, le=1, description="Negative investment threshold")
-    min_years_for_investment_stats: int = Field(default=5, ge=3, description="Min years for investment stats")
+    negative_investment_threshold: float = Field(
+        default=0.1, ge=0, le=1, description="Negative investment threshold"
+    )
+    min_years_for_investment_stats: int = Field(
+        default=5, ge=3, description="Min years for investment stats"
+    )
 
 
 class GrowthRateConfig(BaseModel):  # type: ignore[misc]
     """Configuration for growth rate defaults."""
 
-    default_growth_rate: float = Field(default=0.05, ge=-0.5, le=0.5, description="Default growth rate")
-    default_investment_growth_rate: float = Field(default=0.05, ge=-0.5, le=0.5, description="Investment growth rate")
-    default_hc_growth_rate: float = Field(default=0.01, ge=-0.1, le=0.1, description="Human capital growth rate")
+    default_growth_rate: float = Field(
+        default=0.05, ge=-0.5, le=0.5, description="Default growth rate"
+    )
+    default_investment_growth_rate: float = Field(
+        default=0.05, ge=-0.5, le=0.5, description="Investment growth rate"
+    )
+    default_hc_growth_rate: float = Field(
+        default=0.01, ge=-0.1, le=0.1, description="Human capital growth rate"
+    )
 
 
 class LoggingConfig(BaseModel):  # type: ignore[misc]
     """Configuration for logging settings."""
 
     log_file: str = Field(default="china_data.log", description="Log file path")
-    log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$", description="Logging level")
+    log_level: str = Field(
+        default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$", description="Logging level"
+    )
     log_format: str = Field(default="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     log_date_format: str = Field(default="%Y-%m-%d %H:%M:%S")
     structured_logging_enabled: bool = Field(default=True, description="Enable structured logging")
-    structured_logging_json_format: bool = Field(default=False, description="Use JSON format for logs")
-    structured_logging_include_process_info: bool = Field(default=True, description="Include process info in logs")
+    structured_logging_json_format: bool = Field(
+        default=False, description="Use JSON format for logs"
+    )
+    structured_logging_include_process_info: bool = Field(
+        default=True, description="Include process info in logs"
+    )
 
 
 class CacheConfig(BaseModel):  # type: ignore[misc]
@@ -78,7 +104,9 @@ class CacheConfig(BaseModel):  # type: ignore[misc]
 
     cache_name: str = Field(default="china_data_cache", description="Cache database name")
     cache_backend: str = Field(default="sqlite", description="Cache backend type")
-    cache_expire_after_days: int = Field(default=7, ge=1, le=30, description="Cache expiration in days")
+    cache_expire_after_days: int = Field(
+        default=7, ge=1, le=30, description="Cache expiration in days"
+    )
 
 
 class ChinaDataConfig(BaseModel):  # type: ignore[misc]

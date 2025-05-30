@@ -93,7 +93,9 @@ class TestFormatDataForOutput:
 
     def test_trailing_zero_removal(self):
         """Test that trailing zeros are removed."""
-        data = pd.DataFrame({"Year": [2020], "GDP": [1000.0000], "TFP": [2.3000], "Population": [1000000.00]})
+        data = pd.DataFrame(
+            {"Year": [2020], "GDP": [1000.0000], "TFP": [2.3000], "Population": [1000000.00]}
+        )
 
         result = format_data_for_output(data)
 

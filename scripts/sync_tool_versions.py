@@ -40,7 +40,11 @@ class VersionSynchronizer:
                 "pyproject": ">=1.7.0,<2.0",
                 "ci_exact": "1.7.0",
             },
-            "pyupgrade": {"pre_commit": "v3.19.0", "pyproject": ">=3.19.0,<4.0", "ci_exact": "3.19.0"},
+            "pyupgrade": {
+                "pre_commit": "v3.19.0",
+                "pyproject": ">=3.19.0,<4.0",
+                "ci_exact": "3.19.0",
+            },
             "prettier": {
                 "pre_commit": "v4.0.0-alpha.8",
                 "pyproject": None,  # Not a Python package
@@ -61,7 +65,11 @@ class VersionSynchronizer:
                 "pyproject": ">=1.7.0,<2.0",
                 "ci_exact": "1.7.0",
             },
-            "ruff": {"pre_commit": "v0.11.11", "pyproject": ">=0.11.11,<1.0", "ci_exact": "0.11.11"},
+            "ruff": {
+                "pre_commit": "v0.11.11",
+                "pyproject": ">=0.11.11,<1.0",
+                "ci_exact": "0.11.11",
+            },
             "pylint": {"pre_commit": "v3.3.1", "pyproject": ">=3.3.1,<4.0", "ci_exact": "3.3.1"},
             "mypy": {"pre_commit": "v1.13.0", "pyproject": ">=1.13.0,<2.0", "ci_exact": "1.13.0"},
         }
@@ -142,7 +150,8 @@ class VersionSynchronizer:
             else:
                 issues.extend(
                     [
-                        f"{tool} pyproject.toml version mismatch: {match} should contain {pyproject_version}"
+                        f"{tool} pyproject.toml version mismatch: {match} should contain "
+                        f"{pyproject_version}"
                         for match in matches
                         if pyproject_version not in match
                     ]
@@ -281,12 +290,14 @@ class VersionSynchronizer:
       - name: Run pyupgrade syntax modernization
         run: |
           uv add --dev pyupgrade=={ci_exact}
-          uv run pyupgrade --py313-plus china_data_processor.py china_data_downloader.py utils/**/*.py || true
+          uv run pyupgrade --py313-plus china_data_processor.py china_data_downloader.py \\
+            utils/**/*.py || true
 """  # pragma: allowlist secret
 
             # Insert after ruff format check
             content = content.replace(
-                "          uv run ruff format --check .", "          uv run ruff format --check ." + pyupgrade_step
+                "          uv run ruff format --check .",
+                "          uv run ruff format --check ." + pyupgrade_step,
             )
         return content
 
@@ -328,7 +339,8 @@ class VersionSynchronizer:
             if "prettier" in content:
                 content = content.replace(
                     'prettier --check "**/*.{yml,yaml,md}" --ignore-path .gitignore || true',
-                    'prettier --check "**/*.{yml,yaml,md}" --ignore-path .gitignore || true' + markdownlint_step,
+                    'prettier --check "**/*.{yml,yaml,md}" --ignore-path .gitignore || true'
+                    + markdownlint_step,
                 )
         return content
 
@@ -340,14 +352,16 @@ class VersionSynchronizer:
       - name: Check code complexity with radon
         run: |
           uv add --dev radon=={ci_exact}
-          uv run radon cc china_data_processor.py china_data_downloader.py utils/ --min B --show-complexity || true
+          uv run radon cc china_data_processor.py china_data_downloader.py utils/ \\
+            --min B --show-complexity || true
 """
 
             # Insert after markdownlint
             if "markdownlint" in content:
                 content = content.replace(
                     'markdownlint "**/*.md" --ignore node_modules --ignore .github || true',
-                    'markdownlint "**/*.md" --ignore node_modules --ignore .github || true' + radon_step,
+                    'markdownlint "**/*.md" --ignore node_modules --ignore .github || true'
+                    + radon_step,
                 )
         return content
 
@@ -359,7 +373,8 @@ class VersionSynchronizer:
       - name: Check docstring coverage with interrogate
         run: |
           uv add --dev interrogate=={ci_exact}
-          uv run interrogate china_data_processor.py china_data_downloader.py utils/ --verbose --fail-under=80 || true
+          uv run interrogate china_data_processor.py china_data_downloader.py utils/ \\
+            --verbose --fail-under=80 || true
 """
 
             # Insert after radon
@@ -464,9 +479,15 @@ class VersionSynchronizer:
 
 def main() -> int:
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Synchronize tool versions across configuration files")
-    parser.add_argument("--check-only", action="store_true", help="Only check for version mismatches")
-    parser.add_argument("--repo-root", type=Path, default=Path.cwd(), help="Repository root directory")
+    parser = argparse.ArgumentParser(
+        description="Synchronize tool versions across configuration files"
+    )
+    parser.add_argument(
+        "--check-only", action="store_true", help="Only check for version mismatches"
+    )
+    parser.add_argument(
+        "--repo-root", type=Path, default=Path.cwd(), help="Repository root directory"
+    )
 
     args = parser.parse_args()
 

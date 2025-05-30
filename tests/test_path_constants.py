@@ -1,6 +1,10 @@
 import os
 
-from utils.path_constants import INPUT_DIR_NAME, OUTPUT_DIR_NAME, get_search_locations_relative_to_root
+from utils.path_constants import (
+    INPUT_DIR_NAME,
+    OUTPUT_DIR_NAME,
+    get_search_locations_relative_to_root,
+)
 
 
 class TestPathConstants:

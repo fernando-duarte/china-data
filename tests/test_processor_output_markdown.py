@@ -141,7 +141,7 @@ class TestCreateMarkdownTable:
 
         # Check for formula sections
         assert "Net Exports = Exports - Imports" in written_content
-        assert "TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))" in written_content
+        assert "A = Y / (K^alpha * (L*H)^(1-alpha))" in written_content
         # The K_t formula uses x instead of * and includes pl_gdpo terms
         assert "K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)" in written_content
 

@@ -95,7 +95,12 @@ def economic_dataframe_strategy(draw: Any, min_rows: int = 1, max_rows: int = 20
     """Generate a DataFrame with economic data."""
     num_rows = draw(st.integers(min_value=min_rows, max_value=max_rows))
     years = draw(
-        st.lists(st.integers(min_value=1960, max_value=2030), min_size=num_rows, max_size=num_rows, unique=True)
+        st.lists(
+            st.integers(min_value=1960, max_value=2030),
+            min_size=num_rows,
+            max_size=num_rows,
+            unique=True,
+        )
     )
     years.sort()
 
@@ -120,7 +125,9 @@ class TestEconomicIndicatorsProperties:
         if "NX_USD_bn" in result.columns:
             expected_nx = data["X_USD_bn"] - data["M_USD_bn"]
             actual_nx = result["NX_USD_bn"].iloc[0]
-            assert abs(actual_nx - expected_nx) < 0.01, f"NX calculation failed: {actual_nx} != {expected_nx}"
+            assert abs(actual_nx - expected_nx) < 0.01, (
+                f"NX calculation failed: {actual_nx} != {expected_nx}"
+            )
 
     @given(economic_data_strategy())
     def test_tax_revenue_calculation_property(self, data):
@@ -131,7 +138,9 @@ class TestEconomicIndicatorsProperties:
         if "T_USD_bn" in result.columns:
             expected_tax = (data["TAX_pct_GDP"] / 100) * data["GDP_USD_bn"]
             actual_tax = result["T_USD_bn"].iloc[0]
-            assert abs(actual_tax - expected_tax) < 0.01, f"Tax calculation failed: {actual_tax} != {expected_tax}"
+            assert abs(actual_tax - expected_tax) < 0.01, (
+                f"Tax calculation failed: {actual_tax} != {expected_tax}"
+            )
 
     @given(economic_data_strategy())
     def test_openness_ratio_property(self, data):
@@ -168,7 +177,9 @@ class TestEconomicIndicatorsProperties:
         if "Saving_Rate" in result.columns and not pd.isna(result["Saving_Rate"].iloc[0]):
             saving_rate = result["Saving_Rate"].iloc[0]
             # With improved data generation, saving rate should be between -0.2 and 0.6
-            assert -0.2 <= saving_rate <= 0.6, f"Saving rate out of reasonable bounds: {saving_rate}"
+            assert -0.2 <= saving_rate <= 0.6, (
+                f"Saving rate out of reasonable bounds: {saving_rate}"
+            )
 
     @given(economic_dataframe_strategy(min_rows=2, max_rows=10))
     def test_tfp_positivity_property(self, df):
@@ -180,7 +191,9 @@ class TestEconomicIndicatorsProperties:
             if len(tfp_values) > 0:
                 assert (tfp_values > 0).all(), f"TFP should be positive, got: {tfp_values.tolist()}"
 
-    @given(st.floats(min_value=0.1, max_value=0.9), economic_dataframe_strategy(min_rows=1, max_rows=5))
+    @given(
+        st.floats(min_value=0.1, max_value=0.9), economic_dataframe_strategy(min_rows=1, max_rows=5)
+    )
     def test_tfp_alpha_sensitivity_property(self, alpha, df):
         """Property: TFP should change when alpha changes (for same data)."""
         # Ensure we have required columns for TFP calculation
@@ -204,7 +217,9 @@ class TestEconomicIndicatorsProperties:
 
             if len(tfp1) > 0 and len(tfp2) > 0:
                 # TFP values should be different for different alpha values
-                assert not np.allclose(tfp1, tfp2, rtol=1e-10), "TFP should change with different alpha values"
+                assert not np.allclose(tfp1, tfp2, rtol=1e-10), (
+                    "TFP should change with different alpha values"
+                )
 
 
 class TestDataProcessingProperties:
@@ -225,7 +240,10 @@ class TestDataProcessingProperties:
         if "year" in df.columns:
             pd.testing.assert_series_equal(result["year"], df["year"], check_names=False)
 
-    @given(economic_dataframe_strategy(min_rows=1, max_rows=10), st.floats(min_value=2.0, max_value=5.0))
+    @given(
+        economic_dataframe_strategy(min_rows=1, max_rows=10),
+        st.floats(min_value=2.0, max_value=5.0),
+    )
     def test_capital_stock_calculation_property(self, df, capital_output_ratio):
         """Property: Capital stock should be proportional to GDP."""
         # Ensure we have GDP column
@@ -237,10 +255,14 @@ class TestDataProcessingProperties:
         if "K_USD_bn" in result.columns:
             # Capital stock should be roughly proportional to GDP
             for idx in result.index:
-                if not pd.isna(result.loc[idx, "GDP_USD_bn"]) and not pd.isna(result.loc[idx, "K_USD_bn"]):
+                if not pd.isna(result.loc[idx, "GDP_USD_bn"]) and not pd.isna(
+                    result.loc[idx, "K_USD_bn"]
+                ):
                     ratio = result.loc[idx, "K_USD_bn"] / result.loc[idx, "GDP_USD_bn"]
                     # Allow some tolerance for calculation differences
-                    assert 1.5 <= ratio <= 6.0, f"Capital-output ratio out of reasonable bounds: {ratio}"
+                    assert 1.5 <= ratio <= 6.0, (
+                        f"Capital-output ratio out of reasonable bounds: {ratio}"
+                    )
 
     @given(st.lists(st.floats(min_value=0.1, max_value=1000.0), min_size=3, max_size=20))
     def test_time_series_monotonicity_property(self, values):
@@ -264,7 +286,9 @@ class TestDataProcessingProperties:
         # Check that the overall trend is positive (allow for some randomness)
         correlation = np.corrcoef(years, series.values)[0, 1]
         # Lower threshold since we're testing the general property
-        assert correlation > 0.3, f"Series should have positive correlation with time: {correlation}"
+        assert correlation > 0.3, (
+            f"Series should have positive correlation with time: {correlation}"
+        )
 
 
 class TestDataValidationProperties:
@@ -315,11 +339,19 @@ class TestDataValidationProperties:
     def test_gdp_accounting_identity_property(self, data):
         """Property: GDP should approximately equal C + I + G + (X - M)."""
         # Calculate GDP from expenditure approach
-        calculated_gdp = data["C_USD_bn"] + data["I_USD_bn"] + data["G_USD_bn"] + data["X_USD_bn"] - data["M_USD_bn"]
+        calculated_gdp = (
+            data["C_USD_bn"]
+            + data["I_USD_bn"]
+            + data["G_USD_bn"]
+            + data["X_USD_bn"]
+            - data["M_USD_bn"]
+        )
 
         # With improved data generation, identity should hold exactly
         discrepancy = abs(calculated_gdp - data["GDP_USD_bn"]) / data["GDP_USD_bn"]
-        assert discrepancy <= 0.01, f"GDP accounting identity violated: discrepancy = {discrepancy:.3f}"
+        assert discrepancy <= 0.01, (
+            f"GDP accounting identity violated: discrepancy = {discrepancy:.3f}"
+        )
 
 
 class TestRobustnessProperties:
@@ -339,12 +371,17 @@ class TestRobustnessProperties:
         # These functions should not crash with missing data
         try:
             result = calculate_economic_indicators(df_with_na)
-            assert isinstance(result, pd.DataFrame), "Should return DataFrame even with missing data"
+            assert isinstance(result, pd.DataFrame), (
+                "Should return DataFrame even with missing data"
+            )
             assert len(result) == len(df_with_na), "Should preserve number of rows"
         except Exception as e:
             pytest.fail(f"Function should handle missing data gracefully: {e}")
 
-    @given(st.floats(min_value=0.01, max_value=0.99), economic_dataframe_strategy(min_rows=1, max_rows=5))
+    @given(
+        st.floats(min_value=0.01, max_value=0.99),
+        economic_dataframe_strategy(min_rows=1, max_rows=5),
+    )
     def test_alpha_parameter_bounds_property(self, alpha, df):
         """Property: Alpha parameter should be handled correctly within bounds."""
         # Ensure we have required columns

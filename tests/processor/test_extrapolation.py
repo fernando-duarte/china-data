@@ -46,12 +46,18 @@ def test_extrapolate_series_to_end_year(monkeypatch):
     # Apply the mocks to the extrapolation_methods module
     from utils import extrapolation_methods
 
-    monkeypatch.setattr(extrapolation_methods, "extrapolate_with_arima", mock_extrapolate_with_arima)
     monkeypatch.setattr(
-        extrapolation_methods, "extrapolate_with_linear_regression", mock_extrapolate_with_linear_regression
+        extrapolation_methods, "extrapolate_with_arima", mock_extrapolate_with_arima
     )
     monkeypatch.setattr(
-        extrapolation_methods, "extrapolate_with_average_growth_rate", mock_extrapolate_with_average_growth_rate
+        extrapolation_methods,
+        "extrapolate_with_linear_regression",
+        mock_extrapolate_with_linear_regression,
+    )
+    monkeypatch.setattr(
+        extrapolation_methods,
+        "extrapolate_with_average_growth_rate",
+        mock_extrapolate_with_average_growth_rate,
     )
 
     out, info = extrapolate_series_to_end_year(df, end_year=2024, raw_data=df)

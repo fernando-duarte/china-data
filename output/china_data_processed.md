@@ -15,10 +15,10 @@
 | 2024.0 | 2.1307 | 16.8126 | 29205.6 | 1.082 | 0.4911 | 2.65 | 19855.6787 | 0.0068 | 0.0022 | 0.0044 | 0.0029 | 0.0022 | 1436.8779 | 778.7669 | 19.3494 | 48.4539 | 35.0346 | 3541.0507 | nan | 0.0 | 21061.833 | 3541.0507 | 17523.9447 | 1.0 |
 | 2025.0 | 2.2563 | 17.0228 | 30375.0722 | 1.1037 | 0.502 | 2.7 | 20801.8975 | 0.007 | 0.0022 | 0.0044 | 0.003 | 0.0022 | 1443.6237 | 779.0797 | 20.6432 | 50.521 | 36.8601 | 3882.2616 | nan | 0.0 | 22806.1973 | 3882.2616 | 18930.1183 | 1.0 |
 
-
 # Notes on Computation
 
 ## Data Sources
+
 The raw data in `china_data_raw.md` comes from the following sources:
 
 - **World Bank World Development Indicators (WDI)** for GDP components, FDI, population, and labor force
@@ -28,22 +28,30 @@ The raw data in `china_data_raw.md` comes from the following sources:
 This processed dataset was created by applying the following transformations to the raw data:
 
 ## Unit Conversions
+
 - GDP and its components (Consumption, Government, Investment, Exports, Imports) were converted from USD to billions USD
 - Population and Labor Force were converted from people to millions of people
 
 ## Derived Variables
+
 ### Net Exports
+
 Calculated as Exports - Imports (in billions USD)
-```
+
+```text
 Net Exports = Exports - Imports
 ```
 
 ### Physical Capital
+
 Calculated using PWT data with the following formula:
-```
+
+```text
 K_t = (rkna_t / rkna_2017) x K_2017 x (pl_gdpo_t / pl_gdpo_2017)
 ```
+
 Where:
+
 - $K_t$ is the capital stock in year $t$ (billions USD)
 - $rkna_t$ is the real capital stock index in year $t$ (from PWT)
 - $rkna_{2017}$ is the real capital stock index in 2017 (from PWT)
@@ -53,11 +61,15 @@ Where:
 - $pl\_gdpo_{2017}$ is the price level of GDP in 2017 (from PWT)
 
 ### TFP (Total Factor Productivity)
-Calculated using the Cobb-Douglas production function:
+
+Calculated using a Cobb-Douglas production function $Y = A K^{lpha} (L H)^{1-lpha}$:
+
+```text
+A = Y / (K^alpha * (L*H)^(1-alpha))
 ```
-TFP_t = Y_t / (K_t^a x (L_t x H_t)^(1-a))
-```
+
 Where:
+
 - $Y_t$ is GDP in year $t$ (billions USD)
 - $K_t$ is Physical Capital in year $t$ (billions USD)
 - $L_t$ is Labor Force in year $t$ (millions of people)
@@ -65,6 +77,7 @@ Where:
 - $\alpha$ = 0.3333333333333333 (capital share parameter)
 
 ## Extrapolation to 2025
+
 Each series was extrapolated using the following methods:
 
 ### ARIMA(1,1,1) model
@@ -100,11 +113,5 @@ Each series was extrapolated using the following methods:
 - Population (2023-2025)
 - Labor Force (2023-2025)
 
-
-
-
-
-
-
 Data processed with alpha=0.3333333333333333, K/Y= 3.0, source file=china_data_raw.md,
-end year=2025. Generated 2025-05-29.
+end year=2025. Generated 2025-05-30.

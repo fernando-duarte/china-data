@@ -104,7 +104,9 @@ def make_df(rows):
 
 
 def test_get_pwt_data_success(monkeypatch, tmp_path):
-    monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: DummySession())
+    monkeypatch.setattr(
+        "utils.data_sources.pwt_downloader.get_cached_session", lambda: DummySession()
+    )
     expected = pd.DataFrame(
         {
             "countrycode": ["CHN"],
@@ -130,6 +132,8 @@ def test_get_pwt_data_error(monkeypatch):
             msg = "bad"
             raise requests.exceptions.HTTPError(msg)
 
-    monkeypatch.setattr("utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession())
+    monkeypatch.setattr(
+        "utils.data_sources.pwt_downloader.get_cached_session", lambda: ErrorSession()
+    )
     with pytest.raises(requests.exceptions.HTTPError):
         get_pwt_data()

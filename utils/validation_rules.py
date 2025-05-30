@@ -31,11 +31,17 @@ INDICATOR_VALIDATION_RULES: dict[str, dict[str, Any]] = {
     # PWT original column names (before renaming in merged_data)
     "rgdpo": {"strict_positive": True},
     "rkna": {"strict_positive": True},
-    "hc": {"min_value": Config.HUMAN_CAPITAL_MIN, "max_value": Config.HUMAN_CAPITAL_MAX},  # Human Capital Index
+    "hc": {
+        "min_value": Config.HUMAN_CAPITAL_MIN,
+        "max_value": Config.HUMAN_CAPITAL_MAX,
+    },  # Human Capital Index
     "pl_gdpo": {"strict_positive": True},  # Price Level
     "cgdpo": {"strict_positive": True},  # Consumption GDP Output side
     # IMF data (already renamed)
-    "TAX_pct_GDP": {"min_value": Config.TAX_PCT_GDP_MIN, "max_value": Config.TAX_PCT_GDP_MAX},  # Tax as % of GDP
+    "TAX_pct_GDP": {
+        "min_value": Config.TAX_PCT_GDP_MIN,
+        "max_value": Config.TAX_PCT_GDP_MAX,
+    },  # Tax as % of GDP
 }
 
 # Generic validation rules for other indicators
@@ -45,7 +51,10 @@ VALIDATION_RULES: dict[str, dict[str, bool | float | None]] = {
     # Labor force must be positive and reasonably large
     "SL_TLF_TOTL_IN": {"strict_positive": True, "min_value": Config.LABOR_FORCE_MIN},
     # FDI (% of GDP) can be negative but within reasonable bounds
-    "BX_KLT_DINV_WD_GD_ZS": {"min_value": Config.FDI_PCT_GDP_MIN, "max_value": Config.FDI_PCT_GDP_MAX},
+    "BX_KLT_DINV_WD_GD_ZS": {
+        "min_value": Config.FDI_PCT_GDP_MIN,
+        "max_value": Config.FDI_PCT_GDP_MAX,
+    },
     # Human capital index has typical bounds
     "hc": {"min_value": Config.HUMAN_CAPITAL_MIN, "max_value": Config.HUMAN_CAPITAL_MAX},
     # Tax revenue as % of GDP must be between 0 and 100

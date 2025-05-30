@@ -35,11 +35,15 @@ def prepare_output_data(
     # Check for duplicate years
     duplicated_years: list[int] = []
     if "year" in processed_df.columns:
-        duplicated_years_array = processed_df[processed_df.duplicated(subset=["year"], keep=False)]["year"].unique()
+        duplicated_years_array = processed_df[processed_df.duplicated(subset=["year"], keep=False)][
+            "year"
+        ].unique()
         duplicated_years = duplicated_years_array.tolist()
 
     if len(duplicated_years) > 0:
-        logger.warning("Found duplicate years in data: %s. Will keep first occurrence only.", duplicated_years)
+        logger.warning(
+            "Found duplicate years in data: %s. Will keep first occurrence only.", duplicated_years
+        )
 
     # Drop duplicates
     df_unique = processed_df.drop_duplicates(subset=["year"], keep="first")
@@ -51,7 +55,9 @@ def prepare_output_data(
     )
 
     # Select and rename columns
-    final_df = df_unique[output_columns].rename(columns={col: column_map[col] for col in output_columns})
+    final_df = df_unique[output_columns].rename(
+        columns={col: column_map[col] for col in output_columns}
+    )
     logger.info("Final data frame has %s rows and %s columns", final_df.shape[0], final_df.shape[1])
 
     return final_df
@@ -119,10 +125,16 @@ def prepare_final_dataframe(df: pd.DataFrame, column_map: dict[str, str]) -> pd.
         DataFrame with selected and renamed columns, duplicates removed
     """
     # Drop duplicates based on year if present
-    df_unique = df.drop_duplicates(subset=["year"], keep="first") if "year" in df.columns else df.drop_duplicates()
+    df_unique = (
+        df.drop_duplicates(subset=["year"], keep="first")
+        if "year" in df.columns
+        else df.drop_duplicates()
+    )
 
     # Select only columns that exist in both the dataframe and the column map
     available_columns = [col for col in column_map if col in df_unique.columns]
 
     # Select and rename columns
-    return df_unique[available_columns].rename(columns={col: column_map[col] for col in available_columns})
+    return df_unique[available_columns].rename(
+        columns={col: column_map[col] for col in available_columns}
+    )

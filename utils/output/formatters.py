@@ -4,8 +4,6 @@ This module provides functions to format DataFrames for various output formats
 with appropriate number formatting and value handling.
 """
 
-from typing import Union
-
 import pandas as pd
 
 

@@ -26,7 +26,8 @@ def extrapolate_with_arima(
         df (pd.DataFrame): DataFrame containing the time series data
         col (str): Column name of the series to extrapolate
         years_to_project (list): List of years to project values for
-        min_data_points (int): Minimum number of data points required for ARIMA (default: from Config)
+        min_data_points (int): Minimum number of data points required for ARIMA
+            (default: from Config)
         order (tuple): ARIMA order parameters as (p, d, q) (default: from Config)
 
     Returns:
@@ -46,7 +47,12 @@ def extrapolate_with_arima(
     historical = df_result[["year", col]].dropna()
 
     if len(historical) < min_data_points:
-        logger.info("Insufficient data for ARIMA on %s (need %d, have %d)", col, min_data_points, len(historical))
+        logger.info(
+            "Insufficient data for ARIMA on %s (need %d, have %d)",
+            col,
+            min_data_points,
+            len(historical),
+        )
         return df_result, False, f"Insufficient data (need {min_data_points})"
 
     # Get the last observed year
@@ -58,17 +64,20 @@ def extrapolate_with_arima(
         return df_result, False, "No years to project"
 
     try:
-        # Fit ARIMA model
+        # Fit ARIMA model and generate forecasts
         model = ARIMA(historical[col], order=order)
-        model_fit = model.fit()
-
-        # Generate forecasts
-        fc = model_fit.forecast(steps=len(yrs))
-        vals = fc.tolist() if hasattr(fc, "tolist") else list(fc)
+        forecast_series = model.fit().forecast(steps=len(yrs))
+        vals = (
+            forecast_series.tolist()
+            if hasattr(forecast_series, "tolist")
+            else list(forecast_series)
+        )
 
         # Update the dataframe with projected values
         for i, year in enumerate(yrs):
-            df_result.loc[df_result.year == year, col] = round(max(0, vals[i]), Config.DECIMAL_PLACES_PROJECTIONS)
+            df_result.loc[df_result.year == year, col] = round(
+                max(0, vals[i]), Config.DECIMAL_PLACES_PROJECTIONS
+            )
 
         logger.info(
             "Successfully applied ARIMA(%d,%d,%d) to %s for years %d-%d",

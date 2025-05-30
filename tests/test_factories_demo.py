@@ -176,7 +176,17 @@ class TestConvenienceFunctions:
         assert df["year"].max() == 2022
 
         # Should have all economic columns
-        all_cols = ["GDP_USD_bn", "C_USD_bn", "G_USD_bn", "I_USD_bn", "X_USD_bn", "M_USD_bn", "K_USD_bn", "LF_mn", "hc"]
+        all_cols = [
+            "GDP_USD_bn",
+            "C_USD_bn",
+            "G_USD_bn",
+            "I_USD_bn",
+            "X_USD_bn",
+            "M_USD_bn",
+            "K_USD_bn",
+            "LF_mn",
+            "hc",
+        ]
         for col in all_cols:
             assert col in df.columns
 
@@ -204,7 +214,9 @@ class TestConvenienceFunctions:
 
         # GDP should show growth over time
         gdp_correlation = df["year"].corr(df["GDP_USD_bn"])
-        assert gdp_correlation > 0.85, f"GDP should be strongly correlated with time (got {gdp_correlation:.3f})"
+        assert gdp_correlation > 0.85, (
+            f"GDP should be strongly correlated with time (got {gdp_correlation:.3f})"
+        )
 
         # Check realistic economic structure
         # Consumption ratio should increase over time
@@ -241,7 +253,11 @@ class TestTimeSeriesFactory:
         """Test exponential trending time series."""
         years = list(range(2000, 2020))
         series = TimeSeriesFactory.create_trending_series(
-            start_value=100.0, end_value=1000.0, years=years, trend_type="exponential", volatility=0.02
+            start_value=100.0,
+            end_value=1000.0,
+            years=years,
+            trend_type="exponential",
+            volatility=0.02,
         )
 
         assert len(series) == 20
@@ -256,7 +272,11 @@ class TestTimeSeriesFactory:
         """Test logarithmic trending time series."""
         years = list(range(2000, 2010))
         series = TimeSeriesFactory.create_trending_series(
-            start_value=100.0, end_value=200.0, years=years, trend_type="logarithmic", volatility=0.01
+            start_value=100.0,
+            end_value=200.0,
+            years=years,
+            trend_type="logarithmic",
+            volatility=0.01,
         )
 
         assert len(series) == 10
@@ -312,7 +332,9 @@ class TestFactoryIntegration:
         """Stress test with large dataset from factories."""
         # Create a large dataset
         years = list(range(1980, 2023))  # 43 years
-        df = DataFrameFactory.create_economic_dataframe(years=years, include_missing=True, missing_probability=0.1)
+        df = DataFrameFactory.create_economic_dataframe(
+            years=years, include_missing=True, missing_probability=0.1
+        )
 
         assert len(df) == 43
 
@@ -378,7 +400,9 @@ class TestFactoryRealism:
         row = df.iloc[0]
 
         # Basic accounting identity (allowing for statistical discrepancy)
-        calculated_gdp = row["C_USD_bn"] + row["I_USD_bn"] + row["G_USD_bn"] + row["X_USD_bn"] - row["M_USD_bn"]
+        calculated_gdp = (
+            row["C_USD_bn"] + row["I_USD_bn"] + row["G_USD_bn"] + row["X_USD_bn"] - row["M_USD_bn"]
+        )
 
         discrepancy = abs(calculated_gdp - row["GDP_USD_bn"]) / row["GDP_USD_bn"]
         assert discrepancy <= 0.3, f"GDP accounting identity violated: {discrepancy:.3f}"

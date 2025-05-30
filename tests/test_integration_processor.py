@@ -33,8 +33,26 @@ class TestChinaDataProcessorIntegration:
                 "M_USD": [1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000],
                 "FDI_pct_GDP": [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9],
                 "TAX_pct_GDP": [15.0, 15.2, 15.4, 15.6, 15.8, 16.0, 16.2, 16.4],
-                "POP": [1376048943, 1382710000, 1389618778, 1397715000, 1402760000, 1411100000, 1412360000, 1425893465],
-                "LF": [774451000, 776361000, 778707000, 779770000, 774253000, 775931000, 777610000, 779290000],
+                "POP": [
+                    1376048943,
+                    1382710000,
+                    1389618778,
+                    1397715000,
+                    1402760000,
+                    1411100000,
+                    1412360000,
+                    1425893465,
+                ],
+                "LF": [
+                    774451000,
+                    776361000,
+                    778707000,
+                    779770000,
+                    774253000,
+                    775931000,
+                    777610000,
+                    779290000,
+                ],
                 "rgdpo": [20000, 21000, 22000, 23000, 24000, 25000, 26000, 27000],
                 "rkna": [0.90, 0.92, 0.94, 0.96, 0.98, 1.00, 1.02, 1.04],
                 "pl_gdpo": [0.40, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47],
@@ -136,7 +154,9 @@ class TestChinaDataProcessorIntegration:
         converted = convert_units(sample_raw_data)
 
         # Extrapolate to 2030
-        result, info = extrapolate_series_to_end_year(converted, end_year=2030, raw_data=sample_raw_data)
+        result, info = extrapolate_series_to_end_year(
+            converted, end_year=2030, raw_data=sample_raw_data
+        )
 
         # Check that data extends to 2030
         assert result["year"].max() == 2030
@@ -161,7 +181,7 @@ class TestChinaDataProcessorIntegration:
         assert "K_USD_bn" in result.columns
 
         # Just check that K_USD_bn column exists
-        # The actual calculation depends on having the right PWT columns which our test data doesn't have
+        # The actual calculation depends on having the right PWT columns
 
     def test_human_capital_projection(self, sample_raw_data):
         """Test human capital projection."""

@@ -31,10 +31,16 @@ def _check_required_columns(capital_data: pd.DataFrame) -> list[str]:
     missing_columns = [col for col in required_columns if col not in capital_data.columns]
 
     if missing_columns:
-        logger.warning("Missing required columns for capital stock calculation: %s", missing_columns)
+        logger.warning(
+            "Missing required columns for capital stock calculation: %s", missing_columns
+        )
 
         # Look for alternative columns that might contain the required data
-        pwt_cols = [col for col in capital_data.columns if col.startswith("PWT") or col.lower().startswith("pwt")]
+        pwt_cols = [
+            col
+            for col in capital_data.columns
+            if col.startswith("PWT") or col.lower().startswith("pwt")
+        ]
         if pwt_cols:
             logger.info("Found PWT columns that might contain needed data: %s", pwt_cols)
             # Try to map PWT columns to required columns

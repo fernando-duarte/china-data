@@ -30,8 +30,26 @@ class TestChinaDataProcessorOutput:
                 "M_USD": [1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000],
                 "FDI_pct_GDP": [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9],
                 "TAX_pct_GDP": [15.0, 15.2, 15.4, 15.6, 15.8, 16.0, 16.2, 16.4],
-                "POP": [1376048943, 1382710000, 1389618778, 1397715000, 1402760000, 1411100000, 1412360000, 1425893465],
-                "LF": [774451000, 776361000, 778707000, 779770000, 774253000, 775931000, 777610000, 779290000],
+                "POP": [
+                    1376048943,
+                    1382710000,
+                    1389618778,
+                    1397715000,
+                    1402760000,
+                    1411100000,
+                    1412360000,
+                    1425893465,
+                ],
+                "LF": [
+                    774451000,
+                    776361000,
+                    778707000,
+                    779770000,
+                    774253000,
+                    775931000,
+                    777610000,
+                    779290000,
+                ],
                 "rgdpo": [20000, 21000, 22000, 23000, 24000, 25000, 26000, 27000],
                 "rkna": [0.90, 0.92, 0.94, 0.96, 0.98, 1.00, 1.02, 1.04],
                 "pl_gdpo": [0.40, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47],
@@ -92,7 +110,9 @@ class TestChinaDataProcessorOutput:
         assert "year" in result.columns
         assert "GDP_USD_bn" in result.columns
 
-    @pytest.mark.parametrize(("alpha", "k_y_ratio"), [(0.25, 2.5), (0.33, 3.0), (0.40, 3.5), (0.50, 4.0)])
+    @pytest.mark.parametrize(
+        ("alpha", "k_y_ratio"), [(0.25, 2.5), (0.33, 3.0), (0.40, 3.5), (0.50, 4.0)]
+    )
     def test_parameter_sensitivity(self, sample_raw_data, alpha, k_y_ratio):
         """Test that different parameters produce different results."""
         from utils.capital import calculate_capital_stock

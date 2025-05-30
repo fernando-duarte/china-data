@@ -15,32 +15,49 @@ Where:
 """
 
 import logging
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+# --- Data Classes for Configuration ---
 
-def _validate_initial_parameters(x_0: float, e_0: float, y_star_0: float) -> None:
-    """Validate initial parameter values.
 
-    Args:
-        x_0: Initial exports
-        e_0: Initial exchange rate
-        y_star_0: Initial foreign income
+@dataclass
+class ExportEquationParams:
+    """Parameters for the export equation."""
 
-    Raises:
-        ValueError: If any parameters are invalid
-    """
-    if x_0 <= 0:
-        x_0_msg = f"Initial exports x_0 must be positive, got {x_0}"
+    x_0: float
+    e_0: float
+    y_star_0: float
+    epsilon_x: float = 1.5
+    mu_x: float = 1.5
+
+
+@dataclass
+class ExportColumnConfig:
+    """Column names for export DataFrame calculations."""
+
+    exchange_rate_col: str = "exchange_rate"
+    foreign_income_col: str = "Y_star"
+    output_col: str = "X_USD_bn"
+
+
+# --- Helper Functions (Internal) ---
+
+
+def _validate_initial_parameters(params: ExportEquationParams) -> None:
+    """Validate initial parameter values from ExportEquationParams."""
+    if params.x_0 <= 0:
+        x_0_msg = f"Initial exports x_0 must be positive, got {params.x_0}"
         raise ValueError(x_0_msg)
-    if e_0 <= 0:
-        e_0_msg = f"Initial exchange rate e_0 must be positive, got {e_0}"
+    if params.e_0 <= 0:
+        e_0_msg = f"Initial exchange rate e_0 must be positive, got {params.e_0}"
         raise ValueError(e_0_msg)
-    if y_star_0 <= 0:
-        y_star_0_msg = f"Initial foreign income y_star_0 must be positive, got {y_star_0}"
+    if params.y_star_0 <= 0:
+        y_star_0_msg = f"Initial foreign income y_star_0 must be positive, got {params.y_star_0}"
         raise ValueError(y_star_0_msg)
 
 
@@ -103,31 +120,27 @@ def _process_scalar_inputs(exchange_rate: float, foreign_income: float) -> tuple
 def _compute_exports(
     exchange_rate: float | pd.Series[float],
     foreign_income: float | pd.Series[float],
-    x_0: float,
-    e_0: float,
-    y_star_0: float,
-    epsilon_x: float,
-    mu_x: float,
+    params: ExportEquationParams,
 ) -> float | pd.Series[float]:
     """Compute exports using the export equation.
 
     Args:
         exchange_rate: Processed exchange rate values
         foreign_income: Processed foreign income values
-        x_0: Initial exports
-        e_0: Initial exchange rate
-        y_star_0: Initial foreign income
-        epsilon_x: Exchange rate elasticity
-        mu_x: Foreign income elasticity
+        params: ExportEquationParams object holding x_0, e_0, y_star_0, epsilon_x, mu_x
 
     Returns:
         Calculated exports
     """
     try:
-        exchange_rate_ratio = exchange_rate / e_0
-        foreign_income_ratio = foreign_income / y_star_0
+        exchange_rate_ratio = exchange_rate / params.e_0
+        foreign_income_ratio = foreign_income / params.y_star_0
 
-        exports = x_0 * (exchange_rate_ratio**epsilon_x) * (foreign_income_ratio**mu_x)
+        exports = (
+            params.x_0
+            * (exchange_rate_ratio**params.epsilon_x)
+            * (foreign_income_ratio**params.mu_x)
+        )
 
         logger.debug(
             "Calculated exports with exchange_rate_ratio=%s, foreign_income_ratio=%s",
@@ -143,25 +156,20 @@ def _compute_exports(
         return exports
 
 
+# --- Main Calculation Functions ---
+
+
 def calculate_exports(
     exchange_rate: float | pd.Series[float],
     foreign_income: float | pd.Series[float],
-    x_0: float,
-    e_0: float,
-    y_star_0: float,
-    epsilon_x: float = 1.5,
-    mu_x: float = 1.5,
+    params: ExportEquationParams,
 ) -> float | pd.Series[float]:
     """Calculate exports using the China growth model export equation.
 
     Args:
         exchange_rate: Exchange rate in period t
         foreign_income: Foreign income in period t
-        x_0: Initial exports (billions USD)
-        e_0: Initial exchange rate
-        y_star_0: Initial foreign income
-        epsilon_x: Exchange rate elasticity of exports (default: 1.5)
-        mu_x: Foreign income elasticity of exports (default: 1.5)
+        params: ExportEquationParams object holding x_0, e_0, y_star_0, epsilon_x, mu_x
 
     Returns:
         Calculated exports (billions USD)
@@ -170,10 +178,11 @@ def calculate_exports(
         ValueError: If any parameters are invalid
 
     Example:
-        >>> exports = calculate_exports(exchange_rate=8.0, foreign_income=1200.0, x_0=19.41, e_0=1.5, y_star_0=1000.0)
+        >>> params = ExportEquationParams(x_0=19.41, e_0=1.5, y_star_0=1000.0)
+        >>> exports = calculate_exports(exchange_rate=8.0, foreign_income=1200.0, params=params)
     """
     # Validate initial parameters
-    _validate_initial_parameters(x_0, e_0, y_star_0)
+    _validate_initial_parameters(params)
 
     # Process inputs based on type
     if isinstance(exchange_rate, pd.Series) or isinstance(foreign_income, pd.Series):
@@ -182,33 +191,20 @@ def calculate_exports(
         exchange_rate, foreign_income = _process_scalar_inputs(exchange_rate, foreign_income)
 
     # Compute and return exports
-    return _compute_exports(exchange_rate, foreign_income, x_0, e_0, y_star_0, epsilon_x, mu_x)
+    return _compute_exports(exchange_rate, foreign_income, params)
 
 
 def calculate_exports_dataframe(
     df: pd.DataFrame,
-    *,
-    exchange_rate_col: str = "exchange_rate",
-    foreign_income_col: str = "Y_star",
-    x_0: float,
-    e_0: float,
-    y_star_0: float,
-    epsilon_x: float = 1.5,
-    mu_x: float = 1.5,
-    output_col: str = "X_USD_bn",
+    params: ExportEquationParams,
+    column_config: ExportColumnConfig | None = None,
 ) -> pd.DataFrame:
     """Calculate exports for a DataFrame with time series data.
 
     Args:
         df: DataFrame containing exchange rate and foreign income data
-        exchange_rate_col: Column name for exchange rate data
-        foreign_income_col: Column name for foreign income data
-        x_0: Initial exports (billions USD)
-        e_0: Initial exchange rate
-        y_star_0: Initial foreign income
-        epsilon_x: Exchange rate elasticity of exports (default: 1.5)
-        mu_x: Foreign income elasticity of exports (default: 1.5)
-        output_col: Column name for calculated exports (default: "X_USD_bn")
+        params: ExportEquationParams object
+        column_config: Configuration for column names. If None, a default config is used.
 
     Returns:
         DataFrame with exports column added
@@ -216,8 +212,11 @@ def calculate_exports_dataframe(
     Raises:
         ValueError: If required columns are missing
     """
+    if column_config is None:
+        column_config = ExportColumnConfig()
+
     # Validate required columns
-    required_cols = [exchange_rate_col, foreign_income_col]
+    required_cols = [column_config.exchange_rate_col, column_config.foreign_income_col]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         missing_cols_str = ", ".join(missing_cols)
@@ -227,14 +226,10 @@ def calculate_exports_dataframe(
     result_df = df.copy()
 
     # Calculate exports
-    result_df[output_col] = calculate_exports(
-        exchange_rate=df[exchange_rate_col],
-        foreign_income=df[foreign_income_col],
-        x_0=x_0,
-        e_0=e_0,
-        y_star_0=y_star_0,
-        epsilon_x=epsilon_x,
-        mu_x=mu_x,
+    result_df[column_config.output_col] = calculate_exports(
+        exchange_rate=df[column_config.exchange_rate_col],
+        foreign_income=df[column_config.foreign_income_col],
+        params=params,
     )
 
     logger.info("Calculated exports for %d periods", len(result_df))

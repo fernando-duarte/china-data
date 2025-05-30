@@ -25,7 +25,9 @@ def _prepare_hc_data(processed_data: pd.DataFrame, end_year: int) -> pd.DataFram
     """Prepare and validate human capital data for projection."""
     try:
         _validate_input_data(processed_data)
-        logger.info("Data contains %s rows and %s columns", processed_data.shape[0], processed_data.shape[1])
+        logger.info(
+            "Data contains %s rows and %s columns", processed_data.shape[0], processed_data.shape[1]
+        )
         logger.debug("Available columns in data: %s", processed_data.columns.tolist())
     except HumanCapitalError:
         logger.info("Returning empty DataFrame due to validation failure")
@@ -53,7 +55,9 @@ def _analyze_hc_data(hc_data: pd.DataFrame, end_year: int) -> tuple[pd.DataFrame
 
     last_year_with_data = hc_data_not_na["year"].max()
     first_year_with_data = hc_data_not_na["year"].min()
-    logger.info("Human capital data available from %s to %s", first_year_with_data, last_year_with_data)
+    logger.info(
+        "Human capital data available from %s to %s", first_year_with_data, last_year_with_data
+    )
 
     if last_year_with_data >= end_year:
         logger.info("No projection needed - data already available up to %s", last_year_with_data)

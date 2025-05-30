@@ -1,3 +1,5 @@
+"""TODO: Add module docstring."""
+
 import hashlib
 import logging
 from datetime import datetime, timezone
@@ -38,12 +40,13 @@ def _read_metadata_file(date_file_path: Path) -> dict[str, str]:
 
 
 def check_and_update_hash() -> bool:
-    """Check if the IMF CSV file hash has changed and update the download_date.txt file if necessary.
+    """Update download_date.txt if the IMF CSV file hash has changed.
 
     This function:
     - Calculates the SHA-256 hash of the IMF CSV file
     - Reads the current hash from download_date.txt
-    - Updates the file with the new hash and current date if the hash has changed or download_date.txt doesn't exist
+    - Updates the file with the new hash and current date if the hash has changed or
+      download_date.txt doesn't exist
     - Takes no action if the hash is the same
 
     Returns:
@@ -51,7 +54,8 @@ def check_and_update_hash() -> bool:
     """
     # Find the IMF file
     imf_filename = "dataset_DEFAULT_INTEGRATION_IMF.FAD_FM_5.0.0.csv"
-    possible_locations_relative = get_search_locations_relative_to_root()["input_files"]
+    search_locations = get_search_locations_relative_to_root()
+    possible_locations_relative = search_locations["input_files"]
     imf_file = find_file(imf_filename, possible_locations_relative)
 
     if not imf_file:
@@ -113,7 +117,8 @@ def load_imf_tax_data() -> pd.DataFrame:
     the download_date.txt file if necessary.
 
     Returns:
-        pandas.DataFrame: DataFrame containing tax revenue data with columns 'year' and 'TAX_pct_GDP'.
+        pandas.DataFrame: DataFrame containing tax revenue data with columns 'year'
+                         and 'TAX_pct_GDP'.
                          Returns an empty DataFrame if the file is not found.
     """
     # Check if the IMF file hash has changed and update download_date.txt if needed
@@ -121,7 +126,8 @@ def load_imf_tax_data() -> pd.DataFrame:
 
     imf_filename = "dataset_DEFAULT_INTEGRATION_IMF.FAD_FM_5.0.0.csv"
     # Get the standard input file locations
-    possible_locations_relative = get_search_locations_relative_to_root()["input_files"]
+    search_locations = get_search_locations_relative_to_root()
+    possible_locations_relative = search_locations["input_files"]
     imf_file = find_file(imf_filename, possible_locations_relative)
 
     if imf_file:
@@ -143,7 +149,9 @@ def load_imf_tax_data() -> pd.DataFrame:
         tax_data["TAX_pct_GDP"] = pd.to_numeric(tax_data["TAX_pct_GDP"], errors="coerce")
 
         # Validate IMF tax data (rules are based on the final column name 'TAX_pct_GDP')
-        validate_dataframe_with_rules(tax_data, rules=INDICATOR_VALIDATION_RULES, year_column="year")
+        validate_dataframe_with_rules(
+            tax_data, rules=INDICATOR_VALIDATION_RULES, year_column="year"
+        )
         logger.info("Successfully loaded and validated IMF tax data with %d rows.", len(tax_data))
 
         return tax_data

@@ -92,7 +92,9 @@ class TestStructuredLogging:
             root_logger = logging.getLogger()
             root_logger.handlers.clear()
 
-            setup_structured_logging(log_level="INFO", log_file=temp_path, enable_console=False, enable_json=True)
+            setup_structured_logging(
+                log_level="INFO", log_file=temp_path, enable_console=False, enable_json=True
+            )
 
             logger = get_logger("test")
             logger.info("File test message", file_test=True)
@@ -157,7 +159,9 @@ class TestStructuredLogging:
         handler.setLevel(logging.INFO)
 
         # Configure logging without console output first
-        setup_structured_logging(log_level="INFO", enable_console=False, enable_json=False, include_process_info=False)
+        setup_structured_logging(
+            log_level="INFO", enable_console=False, enable_json=False, include_process_info=False
+        )
 
         # Add our custom handler
         root_logger.addHandler(handler)
@@ -189,7 +193,9 @@ class TestStructuredLogging:
         handler.setLevel(logging.INFO)
 
         # Configure logging without console output first
-        setup_structured_logging(log_level="INFO", enable_console=False, enable_json=False, include_process_info=False)
+        setup_structured_logging(
+            log_level="INFO", enable_console=False, enable_json=False, include_process_info=False
+        )
 
         # Add our custom handler
         root_logger.addHandler(handler)
@@ -225,7 +231,9 @@ class TestStructuredLogging:
         handler.setLevel(logging.INFO)
 
         # Configure logging without console output first
-        setup_structured_logging(log_level="INFO", enable_console=False, enable_json=False, include_process_info=False)
+        setup_structured_logging(
+            log_level="INFO", enable_console=False, enable_json=False, include_process_info=False
+        )
 
         # Add our custom handler
         root_logger.addHandler(handler)
@@ -263,14 +271,18 @@ class TestStructuredLogging:
         handler.setLevel(logging.INFO)
 
         # Configure logging without console output first
-        setup_structured_logging(log_level="INFO", enable_console=False, enable_json=False, include_process_info=False)
+        setup_structured_logging(
+            log_level="INFO", enable_console=False, enable_json=False, include_process_info=False
+        )
 
         # Add our custom handler
         root_logger.addHandler(handler)
 
         logger = get_logger("test")
 
-        log_performance_metric(logger, "test_metric", 123.456, "seconds", operation="test_operation")
+        log_performance_metric(
+            logger, "test_metric", 123.456, "seconds", operation="test_operation"
+        )
 
         # Force flush the handler
         handler.flush()
@@ -294,7 +306,9 @@ class TestStructuredLogging:
         handler.setLevel(logging.INFO)
 
         # Configure logging without console output first
-        setup_structured_logging(log_level="INFO", enable_console=False, enable_json=False, include_process_info=False)
+        setup_structured_logging(
+            log_level="INFO", enable_console=False, enable_json=False, include_process_info=False
+        )
 
         # Add our custom handler
         root_logger.addHandler(handler)

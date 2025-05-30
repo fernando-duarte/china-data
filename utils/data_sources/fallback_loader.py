@@ -11,7 +11,11 @@ import pandas as pd
 
 from utils.error_handling import DataValidationError, FileOperationError, log_error_with_context
 
-from .fallback_utils import _convert_to_numeric, _read_and_parse_markdown_table, _split_into_indicators
+from .fallback_utils import (
+    _convert_to_numeric,
+    _read_and_parse_markdown_table,
+    _split_into_indicators,
+)
 
 logger = logging.getLogger(__name__)
 

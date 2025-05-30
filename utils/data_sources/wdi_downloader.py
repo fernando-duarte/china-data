@@ -1,3 +1,5 @@
+"""TODO: Add module docstring."""
+
 import logging
 import time
 from datetime import datetime, timezone
@@ -18,7 +20,9 @@ logger = logging.getLogger(__name__)
 def _raise_missing_year_error(indicator_code: str) -> None:
     """Raise DataDownloadError for missing year column."""
     raise DataDownloadError(
-        source="World Bank WDI", indicator=indicator_code, message="Downloaded data missing 'year' column"
+        source="World Bank WDI",
+        indicator=indicator_code,
+        message="Downloaded data missing 'year' column",
     )
 
 
@@ -34,7 +38,11 @@ def _download_raw_data(
 ) -> pd.DataFrame:
     """Download raw data from World Bank API."""
     reader = wb.WorldBankReader(
-        symbols=indicator_code, countries=country_code, start=start_year, end=end_year, session=session
+        symbols=indicator_code,
+        countries=country_code,
+        start=start_year,
+        end=end_year,
+        session=session,
     )
     reader.timeout = Config.REQUEST_TIMEOUT_SECONDS
     raw_data = reader.read()
@@ -100,9 +108,13 @@ def _handle_download_error(
         error_type = "Unexpected error"
 
     if not is_final_attempt:
+        log_message = (
+            f"{error_type} on attempt {attempt + 1}, "
+            f"retrying in {Config.RETRY_DELAY_SECONDS} seconds"
+        )
         log_error_with_context(
             logger,
-            f"{error_type} on attempt {attempt + 1}, retrying in {Config.RETRY_DELAY_SECONDS} seconds",
+            log_message,
             error,
             error_context,
             level=logging.WARNING,
@@ -110,13 +122,19 @@ def _handle_download_error(
         time.sleep(Config.RETRY_DELAY_SECONDS)
     else:
         log_error_with_context(
-            logger, f"Failed to download {indicator_code} after {Config.MAX_RETRIES} attempts", error, error_context
+            logger,
+            f"Failed to download {indicator_code} after {Config.MAX_RETRIES} attempts",
+            error,
+            error_context,
         )
 
 
 @safe_dataframe_operation("WDI data download")
 def download_wdi_data(
-    indicator_code: str, country_code: str = "CN", start_year: int = Config.MIN_YEAR, end_year: int | None = None
+    indicator_code: str,
+    country_code: str = "CN",
+    start_year: int = Config.MIN_YEAR,
+    end_year: int | None = None,
 ) -> pd.DataFrame:
     """Download World Development Indicators data from World Bank.
 
@@ -135,7 +153,9 @@ def download_wdi_data(
     if end_year is None:
         end_year = datetime.now(timezone.utc).year
 
-    logger.info("Downloading %s data for %s (%d-%d)", indicator_code, country_code, start_year, end_year)
+    logger.info(
+        "Downloading %s data for %s (%d-%d)", indicator_code, country_code, start_year, end_year
+    )
 
     last_error: Exception | None = None
     session = get_cached_session()
@@ -143,10 +163,18 @@ def download_wdi_data(
     for attempt in range(Config.MAX_RETRIES):
         try:
             # Download and process data
-            raw_data = _download_raw_data(indicator_code, country_code, start_year, end_year, session)
+            raw_data = _download_raw_data(
+                indicator_code, country_code, start_year, end_year, session
+            )
             return _process_downloaded_data(raw_data, indicator_code)
 
-        except (requests.exceptions.RequestException, ValueError, TypeError, KeyError, AttributeError) as e:
+        except (
+            requests.exceptions.RequestException,
+            ValueError,
+            TypeError,
+            KeyError,
+            AttributeError,
+        ) as e:
             last_error = e
             is_final_attempt = attempt == Config.MAX_RETRIES - 1
             _handle_download_error(e, indicator_code, country_code, attempt, is_final_attempt)
