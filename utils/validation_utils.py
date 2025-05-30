@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """Data validation utilities."""
 
 from .validation_core import (

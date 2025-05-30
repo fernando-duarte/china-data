@@ -12,17 +12,24 @@ from .processor_extrapolation_utils import _fill_missing_key_variables
 logger = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-arguments
 def _finalize(
     data_df: pd.DataFrame,
     years_to_add: list[int],
     raw_data: pd.DataFrame,
     cols: list[str],
     info: dict[str, Any],
-    *,
-    end_year: int,
+    config_params: dict[str, Any] | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Finalize extrapolation by filling missing key variables and updating metadata."""
     data_df = _fill_missing_key_variables(data_df, years_to_add)
+
+    current_config = config_params if config_params is not None else {}
+    end_year = current_config.get("end_year")
+
+    if end_year is None:
+        logger.error("end_year not provided in config_params for _finalize")
+        return data_df, info
 
     for col in cols:
         if col in raw_data.columns:
@@ -59,6 +66,6 @@ def extrapolate_series_to_end_year(
         raw_data if raw_data is not None else data,
         cols,
         info,
-        end_year=end_year,
+        config_params={"end_year": end_year},
     )
     return data_df, info

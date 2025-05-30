@@ -102,10 +102,7 @@ def log_data_quality_issue(
     operation_logger: Any,
     issue_type: str,
     description: str,
-    *,
-    data_source: str | None = None,
-    affected_records: int | None = None,
-    column: str | None = None,
+    details: dict[str, Any] | None = None,
     **context: Any,
 ) -> None:
     """Log a data quality issue."""
@@ -115,12 +112,8 @@ def log_data_quality_issue(
         **context,
     }
 
-    if data_source:
-        log_data["data_source"] = data_source
-    if affected_records is not None:
-        log_data["affected_records"] = affected_records
-    if column:
-        log_data["column"] = column
+    if details:
+        log_data.update(details)
 
     operation_logger.warning("Data quality issue detected", **log_data)
 

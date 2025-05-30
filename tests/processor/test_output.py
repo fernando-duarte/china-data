@@ -27,6 +27,9 @@ def test_create_markdown_table(tmp_path):
     )
     out = tmp_path / "out.md"
     create_markdown_table(
-        data, str(out), {"GDP_USD_bn": {"method": "test", "years": [2024]}}, end_year=2024
+        data,
+        str(out),
+        {"GDP_USD_bn": {"method": "test", "years": [2024]}},
+        config_params={"end_year": 2024},
     )
     assert out.exists()

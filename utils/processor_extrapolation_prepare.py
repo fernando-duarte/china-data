@@ -5,6 +5,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from .processor_extrapolation_constants import GDP_COMPONENT_COLUMNS
+
 
 def _prepare(
     data_df: pd.DataFrame, end_year: int
@@ -13,16 +15,7 @@ def _prepare(
     max_year = data_df.year.max()
     if max_year >= end_year:
         missing = False
-        key = [
-            "GDP_USD_bn",
-            "C_USD_bn",
-            "G_USD_bn",
-            "I_USD_bn",
-            "X_USD_bn",
-            "M_USD_bn",
-            "POP_mn",
-            "LF_mn",
-        ]
+        key = [*GDP_COMPONENT_COLUMNS, "POP_mn", "LF_mn"]
         for year in [end_year - 1, end_year]:
             for var in key:
                 if var in data_df.columns and pd.isna(

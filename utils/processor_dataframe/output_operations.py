@@ -104,7 +104,7 @@ def save_output_files(
             formatted_df,
             str(md_path),
             extrapolation_info,
-            end_year=end_year,
+            config_params={"end_year": end_year},
         )
         logger.info("Successfully created markdown table at %s", md_path)
     except (OSError, PermissionError, ValueError):

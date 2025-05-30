@@ -10,6 +10,8 @@ from statsmodels.tsa.arima.model import ARIMA
 
 from config import Config
 
+from .extrapolation_helpers import ExtrapolationPrepResult, prepare_extrapolation_data
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,47 +38,34 @@ def extrapolate_with_arima(
             - success: Boolean indicating if ARIMA was successful
             - method_info: String describing the method used
     """
-    # Create a copy of the dataframe to avoid modifying the original
-    df_result = df.copy()
+    prep_result: ExtrapolationPrepResult = prepare_extrapolation_data(
+        df, col, years_to_project, min_data_points, "ARIMA"
+    )
+    if not prep_result.success:
+        return prep_result.df_result, False, prep_result.message
 
-    # Check if the column exists and has sufficient data
-    if col not in df_result.columns or df_result[col].isna().all():
-        return df_result, False, "No data"
+    # Ensure historical_data and yrs_filtered are not None before use
+    if prep_result.historical_data is None or prep_result.years_to_project_filtered is None:
+        # This case should ideally be caught by prep_result.success being False
+        return prep_result.df_result, False, "Preparation failed unexpectedly"
 
-    # Get historical data (non-NA values)
-    historical = df_result[["year", col]].dropna()
-
-    if len(historical) < min_data_points:
-        logger.info(
-            "Insufficient data for ARIMA on %s (need %d, have %d)",
-            col,
-            min_data_points,
-            len(historical),
-        )
-        return df_result, False, f"Insufficient data (need {min_data_points})"
-
-    # Get the last observed year
-    last_year = int(historical["year"].max())
-
-    # Filter years to actually project (might be fewer than requested if some already exist)
-    yrs = [y for y in years_to_project if y > last_year]
-    if not yrs:
-        return df_result, False, "No years to project"
+    df_result = prep_result.df_result
+    historical = prep_result.historical_data
+    yrs_filtered = prep_result.years_to_project_filtered
 
     try:
         # Fit ARIMA model and generate forecasts
         model = ARIMA(historical[col], order=order)
-        forecast_series = model.fit().forecast(steps=len(yrs))
-        vals = (
-            forecast_series.tolist()
-            if hasattr(forecast_series, "tolist")
-            else list(forecast_series)
-        )
+        forecast_series = model.fit().forecast(steps=len(yrs_filtered))
 
         # Update the dataframe with projected values
-        for i, year in enumerate(yrs):
+        if hasattr(forecast_series, "tolist"):
+            processed_forecast = forecast_series.tolist()
+        else:
+            processed_forecast = list(forecast_series)
+        for i, year in enumerate(yrs_filtered):
             df_result.loc[df_result.year == year, col] = round(
-                max(0, vals[i]), Config.DECIMAL_PLACES_PROJECTIONS
+                max(0, processed_forecast[i]), Config.DECIMAL_PLACES_PROJECTIONS
             )
 
         logger.info(
@@ -85,8 +74,8 @@ def extrapolate_with_arima(
             order[1],
             order[2],
             col,
-            min(yrs),
-            max(yrs),
+            min(yrs_filtered),
+            max(yrs_filtered),
         )
         return df_result, True, f"ARIMA({order[0]},{order[1]},{order[2]})"
 

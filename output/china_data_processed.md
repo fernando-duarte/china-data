@@ -17,20 +17,22 @@
 
 # Notes on Computation
 
-## Data Sources
+## Data Sources and Adjustments
 
-The raw data in `china_data_raw.md` comes from the following sources:
-
-- **World Bank World Development Indicators (WDI)** for GDP components, FDI, population, and labor force
-- **Penn World Table (PWT) version 10.01** for human capital index and capital stock related variables
-- **International Monetary Fund (IMF) Fiscal Monitor** for tax revenue data
+- **World Bank World Development Indicators (WDI)** for GDP components, FDI, population,
+  and labor force
+- **Penn World Table (PWT) version 10.01** for human capital index and capital stock
+  related variables
+- **International Monetary Fund (IMF) World Economic Outlook (WEO)** for supplementary data
 
 This processed dataset was created by applying the following transformations to the raw data:
 
 ## Unit Conversions
 
-- GDP and its components (Consumption, Government, Investment, Exports, Imports) were converted from USD to billions USD
-- Population and Labor Force were converted from people to millions of people
+- All monetary values are in constant 2017 international dollars unless otherwise noted.
+- GDP and its components (Consumption, Government, Investment, Exports, Imports) were
+  converted from USD to billions USD
+- Population is in millions.
 
 ## Derived Variables
 
@@ -113,5 +115,6 @@ Each series was extrapolated using the following methods:
 - Population (2023-2025)
 - Labor Force (2023-2025)
 
-Data processed with alpha=0.3333333333333333, K/Y= 3.0, source file=china_data_raw.md,
-end year=2025. Generated 2025-05-30.
+*Processing Details:*
+Data processed with alpha=0.3333333333333333, K/Y= 3.0, end year=2025,
+source file=china_data_raw.md, processed on 2025-05-30.

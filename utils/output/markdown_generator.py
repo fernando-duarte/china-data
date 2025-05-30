@@ -82,11 +82,7 @@ def create_markdown_table(
     data: pd.DataFrame,
     output_path: str,
     extrapolation_info: dict[str, Any],
-    *,
-    alpha: float = 1 / 3,
-    capital_output_ratio: float = 3.0,
-    input_file: str = "china_data_raw.md",
-    end_year: int = 2025,
+    config_params: dict[str, Any] | None = None,
 ) -> None:
     """Create comprehensive markdown output with data table and methodology documentation.
 
@@ -94,10 +90,7 @@ def create_markdown_table(
         data: Processed economic data DataFrame
         output_path: Path to write the markdown file
         extrapolation_info: Dictionary containing extrapolation method information
-        alpha: Capital share parameter used in TFP calculation
-        capital_output_ratio: Capital-output ratio used in capital stock calculation
-        input_file: Name of the input raw data file
-        end_year: Final year of data projection
+        config_params: Dictionary containing optional configuration parameters
 
     Note:
         The function generates a comprehensive markdown document including:
@@ -115,6 +108,14 @@ def create_markdown_table(
 
     # Generate timestamp
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # Set default config params if not provided
+    if config_params is None:
+        config_params = {}
+    alpha = config_params.get("alpha", 1 / 3)
+    capital_output_ratio = config_params.get("capital_output_ratio", 3.0)
+    input_file = config_params.get("input_file", "china_data_raw.md")
+    end_year = config_params.get("end_year", 2025)
 
     # Render template
     tmpl = Template(MARKDOWN_TEMPLATE)

@@ -11,7 +11,10 @@ from utils.extrapolation_methods import (
     extrapolate_with_linear_regression,
 )
 
-from .processor_extrapolation_constants import MIN_HISTORICAL_DATA_POINTS
+from .processor_extrapolation_constants import (
+    GDP_COMPONENT_COLUMNS,
+    MIN_HISTORICAL_DATA_POINTS,
+)
 
 
 def _apply_gdp_extrapolation(
@@ -66,15 +69,7 @@ def _apply_methods(
     data_df: pd.DataFrame, years_to_add: list[int], cols: list[str], info: dict[str, Any]
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Apply appropriate extrapolation methods to each column based on column type."""
-    gdp_columns = [
-        "GDP_USD_bn",
-        "C_USD_bn",
-        "G_USD_bn",
-        "I_USD_bn",
-        "X_USD_bn",
-        "M_USD_bn",
-        "NX_USD_bn",
-    ]
+    gdp_columns = [*GDP_COMPONENT_COLUMNS, "NX_USD_bn"]
     demographic_columns = ["POP_mn", "LF_mn"]
     human_capital_columns = ["hc"]
 

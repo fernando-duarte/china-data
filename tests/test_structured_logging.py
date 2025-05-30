@@ -244,9 +244,11 @@ class TestStructuredLogging:
             logger,
             issue_type="missing_data",
             description="Test missing data",
-            data_source="test_source",
-            affected_records=5,
-            column="test_column",
+            details={
+                "data_source": "test_source",
+                "affected_records": 5,
+                "column": "test_column",
+            },
         )
 
         # Force flush the handler

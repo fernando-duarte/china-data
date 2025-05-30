@@ -50,15 +50,14 @@ def _get_projected_years_from_projection_df(
     return projected_years if projected_years else None
 
 
+# pylint: disable=too-many-arguments
 def get_projection_metadata(
     processed_df: pd.DataFrame,
     projection_df: pd.DataFrame | None,
     original_df: pd.DataFrame,
     column_name: str,
     method_name: str,
-    *,
-    end_year: int,
-    cutoff_year: int | None = None,
+    config_params: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Generate projection metadata for a specific column.
 
@@ -68,8 +67,8 @@ def get_projection_metadata(
         original_df: The original dataframe with raw data
         column_name: The column to generate metadata for
         method_name: The projection method used
-        end_year: The end year for projections
-        cutoff_year: Optional cutoff year to consider projections after
+        config_params: Configuration parameters. Must include 'end_year'.
+                       May optionally include 'cutoff_year'.
 
     Returns:
         Projection metadata if applicable, None otherwise
@@ -80,13 +79,19 @@ def get_projection_metadata(
 
         projected_years = None
 
+        current_config = config_params if config_params is not None else {}
+        end_year = current_config.get("end_year")
+        cutoff_year = current_config.get("cutoff_year")  # Will be None if not present
+
+        if end_year is None:
+            logger.error("end_year not provided in config_params for get_projection_metadata")
+            return None
+
         if column_name in original_df.columns:
-            # For columns present in original data, find last non-NA year
             projected_years = _get_projected_years_from_original(
                 original_df, column_name, end_year, cutoff_year
             )
         elif projection_df is not None and column_name in projection_df.columns:
-            # Special case for projection dataframes
             projected_years = _get_projected_years_from_projection_df(
                 processed_df, projection_df, column_name
             )

@@ -47,11 +47,7 @@ def validate_year_range(df: pd.DataFrame, year_column: str = "year") -> None:
 def validate_numeric_values(
     df: pd.DataFrame,
     column: str,
-    *,
-    min_value: float | None = None,
-    max_value: float | None = None,
-    allow_na: bool = True,
-    strict_positive: bool = False,
+    validation_params: dict[str, Any] | None = None,
 ) -> None:
     """Validate numeric column values against optional min/max bounds and strict positivity."""
     if column not in df.columns:
@@ -61,6 +57,14 @@ def validate_numeric_values(
 
     if not pd.api.types.is_numeric_dtype(df[column]):
         raise DataValidationError(column=column, message=f"Column '{column}' is not numeric.")
+
+    # Set default validation params if not provided
+    if validation_params is None:
+        validation_params = {}
+    min_value = validation_params.get("min_value")
+    max_value = validation_params.get("max_value")
+    allow_na = validation_params.get("allow_na", True)
+    strict_positive = validation_params.get("strict_positive", False)
 
     series_to_validate = df[column].dropna() if allow_na else df[column]
     if series_to_validate.empty and not allow_na and not df[column].empty:
@@ -126,10 +130,12 @@ def validate_dataframe_with_rules(
             validate_numeric_values(
                 df,
                 column_name,
-                min_value=rule.get("min_value"),
-                max_value=rule.get("max_value"),
-                allow_na=rule.get("allow_na", True),
-                strict_positive=rule.get("strict_positive", False),
+                validation_params={
+                    "min_value": rule.get("min_value"),
+                    "max_value": rule.get("max_value"),
+                    "allow_na": rule.get("allow_na", True),
+                    "strict_positive": rule.get("strict_positive", False),
+                },
             )
         else:
             # This is not necessarily an error if a source doesn't provide all possible indicators
