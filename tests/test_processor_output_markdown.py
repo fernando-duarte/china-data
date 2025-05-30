@@ -41,10 +41,12 @@ class TestCreateMarkdownTable:
             sample_data,
             output_path,
             extrapolation_info,
-            alpha=1 / 3,
-            capital_output_ratio=3.0,
-            input_file="test_input.md",
-            end_year=2025,
+            config_params={
+                "alpha": 1 / 3,
+                "capital_output_ratio": 3.0,
+                "input_file": "test_input.md",
+                "end_year": 2025,
+            },
         )
 
         # Check that file was opened for writing
@@ -94,33 +96,6 @@ class TestCreateMarkdownTable:
         assert "Human Capital" not in written_content or "hc" not in written_content
 
     @patch("pathlib.Path.open", new_callable=mock_open)
-    def test_parameter_documentation(self, mock_file, sample_data, extrapolation_info):
-        """Test that parameters are documented correctly."""
-        alpha = 0.35
-        capital_output_ratio = 2.5
-        input_file = "custom_input.md"
-        end_year = 2030
-
-        create_markdown_table(
-            sample_data,
-            "test.md",
-            extrapolation_info,
-            alpha=alpha,
-            capital_output_ratio=capital_output_ratio,
-            input_file=input_file,
-            end_year=end_year,
-        )
-
-        written_content = "".join(call.args[0] for call in mock_file().write.call_args_list)
-
-        # Check parameters in content
-        # The alpha symbol might be rendered differently, so check for the value
-        assert f"= {alpha}" in written_content
-        assert f"K/Y= {capital_output_ratio}" in written_content
-        assert f"source file={input_file}" in written_content
-        assert f"end year={end_year}" in written_content
-
-    @patch("pathlib.Path.open", new_callable=mock_open)
     @patch("utils.output.markdown_generator.datetime")
     def test_date_generation(self, mock_datetime, mock_file, sample_data, extrapolation_info):
         """Test that current date is included."""
@@ -130,7 +105,7 @@ class TestCreateMarkdownTable:
 
         written_content = "".join(call.args[0] for call in mock_file().write.call_args_list)
 
-        assert "Generated 2024-01-15" in written_content
+        assert "processed on 2024-01-15" in written_content
 
     @patch("pathlib.Path.open", new_callable=mock_open)
     def test_formula_documentation(self, mock_file, sample_data, extrapolation_info):
@@ -177,3 +152,32 @@ class TestCreateMarkdownTable:
         assert "### Average growth rate" in written_content
         assert "### Investment-based projection" in written_content
         assert "### IMF projections" in written_content
+
+    @patch("pathlib.Path.open", new_callable=mock_open)
+    def test_parameter_documentation(self, mock_file, sample_data, extrapolation_info):
+        """Test that parameters are documented correctly."""
+        alpha = 0.35
+        capital_output_ratio = 2.5
+        input_file = "custom_input.md"
+        end_year = 2030
+
+        create_markdown_table(
+            sample_data,
+            "test.md",
+            extrapolation_info,
+            config_params={
+                "alpha": alpha,
+                "capital_output_ratio": capital_output_ratio,
+                "input_file": input_file,
+                "end_year": end_year,
+            },
+        )
+
+        written_content = "".join(call.args[0] for call in mock_file().write.call_args_list)
+
+        # Check parameters in content
+        # The alpha symbol might be rendered differently, so check for the value
+        assert f"= {alpha}" in written_content
+        assert f"K/Y= {capital_output_ratio}" in written_content
+        assert f"source file={input_file}" in written_content
+        assert f"end year={end_year}" in written_content

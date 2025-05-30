@@ -9,7 +9,9 @@ from utils.processor_dataframe import output_operations as out_ops
 def test_get_projection_metadata_original():
     proc = pd.DataFrame({"year": [2020, 2021, 2022, 2023], "A": [1, 2, 3, 4]})
     orig = pd.DataFrame({"year": [2020, 2021], "A": [1, 2]})
-    result = meta.get_projection_metadata(proc, None, orig, "A", "method", end_year=2023)
+    result = meta.get_projection_metadata(
+        proc, None, orig, "A", "method", config_params={"end_year": 2023}
+    )
     assert result == {"method": "method", "years": [2022, 2023]}
 
 
@@ -17,7 +19,9 @@ def test_get_projection_metadata_projection_df():
     proc = pd.DataFrame({"year": [2020, 2021], "B": [1, 2]})
     proj = pd.DataFrame({"year": [2022, 2023], "B": [3, 4]})
     orig = pd.DataFrame({"year": [2020, 2021], "C": [5, 6]})
-    result = meta.get_projection_metadata(proc, proj, orig, "B", "m2", end_year=2023)
+    result = meta.get_projection_metadata(
+        proc, proj, orig, "B", "m2", config_params={"end_year": 2023}
+    )
     assert result == {"method": "m2", "years": [2022, 2023]}
 
 

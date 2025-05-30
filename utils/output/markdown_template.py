@@ -94,6 +94,6 @@ Each series was extrapolated using the following methods:
 {% endif %}
 
 *Processing Details:*
-Data processed with alpha={{ alpha }}, K/Y= {{ capital_output_ratio }},
-source file={{ input_file }}, processed on {{ processing_date }}.
+Data processed with alpha={{ alpha }}, K/Y= {{ capital_output_ratio }}, end year={{ end_year }},
+source file={{ input_file }}, processed on {{ today }}.
 """
